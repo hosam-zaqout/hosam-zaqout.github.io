@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3ENG.S | للحلول الهندسية و IoT</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #1a3c5a;
+            --accent-color: #d4af37; /* اللون الذهبي كما في اللوجو */
+            --bg-dark: #0f172a;
+            --text-light: #f8fafc;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Hero Section */
+        header {
+            height: 100vh;
+            background: linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.8)), 
+                        url('https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80') center/cover;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .logo-container img {
+            width: 150px;
+            filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.5));
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .highlight {
+            color: var(--accent-color);
+        }
+
+        p.subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            padding: 12px 35px;
+            background: var(--accent-color);
+            color: var(--bg-dark);
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            transition: 0.3s;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(212, 175, 55, 0.3);
+        }
+
+        /* Services Section */
+        .services {
+            padding: 100px 10% 50px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: 0.3s;
+            text-align: center;
+        }
+
+        .card:hover {
+            border-color: var(--accent-color);
+            transform: scale(1.05);
+        }
+
+        .card i {
+            font-size: 3rem;
+            color: var(--accent-color);
+            margin-bottom: 20px;
+        }
+
+        .card h3 {
+            margin-bottom: 15px;
+        }
+
+        /* IoT Special Section */
+        .iot-section {
+            padding: 80px 10%;
+            background: rgba(26, 60, 90, 0.3);
+            text-align: center;
+        }
+
+        /* Footer */
+        footer {
+            padding: 50px;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        header * {
+            animation: fadeIn 1s ease-out forwards;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-container">
+            <i class="fas fa-lightbulb" style="font-size: 80px; color: var(--accent-color);"></i>
+        </div>
+        <h1>3ENG<span class="highlight">.S</span></h1>
+        <p class="subtitle">الحلول الهندسية الذكية وإنترنت الأشياء (IoT Engineering)</p>
+        <a href="#services" class="btn">اكتشف خدماتنا</a>
+    </header>
+
+    <section class="services" id="services">
+        <div class="card">
+            <i class="fas fa-microchip"></i>
+            <h3>تطوير الأنظمة المدمجة</h3>
+            <p>تصميم وبرمجة الدوائر الإلكترونية والأنظمة التي تعمل بدقة وكفاءة عالية.</p>
+        </div>
+        <div class="card">
+            <i class="fas fa-wifi"></i>
+            <h3>حلول IoT</h3>
+            <p>ربط الأجهزة بالشبكة وتحليل البيانات عن بعد لجعل حياتك وعملك أكثر ذكاءً.</p>
+        </div>
+        <div class="card">
+            <i class="fas fa-code"></i>
+            <h3>برمجيات هندسية</h3>
+            <p>بناء تطبيقات وواجهات برمجية مخصصة للتحكم في الأجهزة والعمليات الصناعية.</p>
+        </div>
+    </section>
+
+    <section class="iot-section">
+        <h2>نبتكر للمستقبل</h2>
+        <p style="max-width: 700px; margin: 20px auto;">في 3ENG.S، ندمج بين الهندسة التقليدية وأحدث تقنيات الجيل الرابع للصناعة لتقديم حلول متكاملة.</p>
+    </section>
+
+    <footer>
+        <p>جميع الحقوق محفوظة &copy; 2024 | 3ENG.S - Smart Engineering Solutions</p>
+    </footer>
+
+</body>
+</html>
