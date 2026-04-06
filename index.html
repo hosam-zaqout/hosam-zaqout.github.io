@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3ENG.S | مخيم صنّاع للابتكار</title>
+    <title>3ENG.S | تسجيل الدخول ولوحة الإدارة</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
     <style>
         :root {
-            --primary: #1a3c5a;
-            --accent: #d4af37;
-            --bg: #0f172a;
+            --primary: #1a3c5a; --accent: #d4af37; --bg: #0f172a;
             --glass: rgba(255, 255, 255, 0.05);
         }
 
@@ -19,89 +18,45 @@
 
         /* Navigation */
         nav {
-            background: rgba(15, 23, 42, 0.9);
-            padding: 15px 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: fixed;
-            width: 100%;
-            z-index: 1000;
-            backdrop-filter: blur(10px);
+            background: rgba(15, 23, 42, 0.9); padding: 15px 5%;
+            display: flex; justify-content: space-between; align-items: center;
+            position: fixed; width: 100%; z-index: 1000; backdrop-filter: blur(10px);
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
-        nav .nav-links a { color: white; text-decoration: none; margin-left: 20px; font-weight: bold; transition: 0.3s; }
-        nav .nav-links a:hover { color: var(--accent); }
+        .nav-links a, .auth-btn { color: white; text-decoration: none; margin-left: 20px; font-weight: bold; cursor: pointer; }
+        .auth-btn { background: var(--accent); padding: 5px 15px; border-radius: 5px; color: var(--bg); border: none; }
 
-        /* Hero Section */
+        /* Hero & Sections (Same as before) */
         header {
-            height: 80vh;
-            background: linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.9)), 
-                        url('https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80') center/cover;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding-top: 80px;
+            height: 60vh; display: flex; flex-direction: column; justify-content: center;
+            align-items: center; text-align: center; background: linear-gradient(rgba(15,23,42,0.8), rgba(15,23,42,0.9)), url('https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80') center/cover;
         }
 
-        .hero-title { font-size: 3.5rem; color: var(--accent); margin-bottom: 10px; }
+        /* Modal Login Style */
+        .modal {
+            display: none; position: fixed; z-index: 2000; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: var(--bg); padding: 40px; border-radius: 15px; border: 1px solid var(--accent);
+            text-align: center; width: 90%; max-width: 400px;
+        }
+        .login-options button {
+            width: 100%; padding: 12px; margin: 10px 0; border: none; border-radius: 8px;
+            font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .btn-google { background: #white; color: #444; }
+        .btn-fb { background: #1877f2; color: white; }
 
-        /* Makers Camp Section */
-        .makers-camp { padding: 80px 10%; background: #131c2f; }
-        .camp-header { text-align: center; margin-bottom: 50px; }
-        .camp-description { 
-            background: var(--glass); 
-            padding: 30px; 
-            border-radius: 15px; 
-            border-right: 5px solid var(--accent);
-            margin-bottom: 40px;
+        /* Admin Section */
+        #admin-section { display: none; padding: 50px 10%; background: var(--glass); margin: 20px; border-radius: 15px; border: 1px dashed var(--accent); }
+        .admin-form input, .admin-form textarea {
+            width: 100%; padding: 10px; margin-bottom: 10px; background: rgba(255,255,255,0.1); border: 1px solid #444; color: white; border-radius: 5px;
         }
 
-        .camp-versions { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 50px; }
-        .version-box { 
-            background: var(--glass); 
-            padding: 20px; 
-            border-radius: 10px; 
-            text-align: center; 
-            border: 1px solid rgba(212, 175, 55, 0.2);
-        }
-
-        /* Courses Grid */
-        .courses-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
-            gap: 20px; 
-        }
-        .course-card { 
-            background: white; 
-            color: var(--bg); 
-            padding: 25px; 
-            border-radius: 15px; 
-            transition: 0.3s;
-            text-align: center;
-        }
-        .course-card:hover { transform: translateY(-10px); background: var(--accent); color: white; }
-        .course-card i { font-size: 2.5rem; margin-bottom: 15px; }
-
-        /* Social Media Icons */
-        .social-bar { padding: 40px; text-align: center; background: var(--bg); }
-        .social-icon { 
-            font-size: 1.8rem; 
-            color: white; 
-            margin: 0 15px; 
-            transition: 0.3s; 
-            display: inline-block;
-        }
-        .social-icon:hover { color: var(--accent); transform: scale(1.2); }
-
-        footer { text-align: center; padding: 20px; opacity: 0.6; font-size: 0.8rem; }
-
-        @media (max-width: 768px) {
-            .camp-versions { grid-template-columns: 1fr; }
-            .hero-title { font-size: 2.5rem; }
-        }
+        .courses-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 40px 10%; }
+        .course-card { background: white; color: var(--bg); padding: 25px; border-radius: 15px; text-align: center; position: relative; }
+        .delete-btn { position: absolute; top: 10px; right: 10px; color: red; cursor: pointer; display: none; }
     </style>
 </head>
 <body>
@@ -110,76 +65,129 @@
         <div style="font-weight: bold; font-size: 1.5rem;">3ENG<span style="color: var(--accent);">.S</span></div>
         <div class="nav-links">
             <a href="#home">الرئيسية</a>
-            <a href="#camp">مخيم صنّاع</a>
-            <a href="#contact">تواصل معنا</a>
+            <span id="user-info" style="margin-left: 15px; font-size: 0.9rem; color: var(--accent);"></span>
+            <button class="auth-btn" id="login-nav-btn" onclick="openModal()">تسجيل الدخول</button>
+            <button class="auth-btn" id="logout-btn" onclick="logout()" style="display: none; background: #ff4444;">خروج</button>
         </div>
     </nav>
 
     <header id="home">
-        <h1 class="hero-title">مستقبل الهندسة يبدأ هنا</h1>
-        <p>نحن نبني العقول التي ستصنع التغيير عبر التكنولوجيا والابتكار</p>
+        <h1 style="font-size: 3rem;">مرحبا بك في <span style="color: var(--accent);">3ENG.S</span></h1>
+        <p>سجل دخولك لإدارة المحتوى والاشتراك في الدورات</p>
     </header>
 
-    <section class="makers-camp" id="camp">
-        <div class="camp-header">
-            <h2><i class="fas fa-tools"></i> مخيم صنّاع (Makers Camp)</h2>
-            <div style="width: 80px; height: 4px; background: var(--accent); margin: 15px auto;"></div>
-        </div>
-
-        <div class="camp-description">
-            <h3>عن المخيم:</h3>
-            <p>مخيم صنّاع هو بيئة تفاعلية هندسية تهدف إلى نقل الطلاب والمهتمين من مرحلة استهلاك التكنولوجيا إلى مرحلة صناعتها. نركز في المخيم على الجانب التطبيقي العملي، حيث يتعامل المشاركون مع قطع إلكترونية حقيقية وبرمجيات متطورة لبناء مشاريع تخدم المجتمع.</p>
-        </div>
-
-        <div class="camp-versions">
-            <div class="version-box">
-                <h4><i class="fas fa-rocket"></i> مخيم صنّاع 1</h4>
-                <p>الأساسيات والانطلاق في عالم الابتكار</p>
-            </div>
-            <div class="version-box">
-                <h4><i class="fas fa-brain"></i> مخيم صنّاع 2</h4>
-                <p>المستوى المتقدم والمشاريع الذكية المعقدة</p>
-            </div>
-        </div>
-
-        <h3 style="margin-bottom: 25px; text-align: center; color: var(--accent);">دورات مخيم صنّاع التدريبية</h3>
-        <div class="courses-grid">
-            <div class="course-card">
-                <i class="fas fa-robot"></i>
-                <h4>أردوينو وروبوتيكس</h4>
-                <p>تعلم بناء وبرمجية الروبوتات والتحكم بالأنظمة الميكانيكية.</p>
-            </div>
-            <div class="course-card">
-                <i class="fas fa-code"></i>
-                <h4>بايثون والذكاء الاصطناعي</h4>
-                <p>تحليل البيانات وبناء خوارزميات ذكية بلغة البايثون.</p>
-            </div>
-            <div class="course-card">
-                <i class="fas fa-microchip"></i>
-                <h4>الكترونيات وتصميم PCB</h4>
-                <p>تصميم اللوحات الإلكترونية المطبوعة من الصفر إلى الاحتراف.</p>
-            </div>
-            <div class="course-card">
-                <i class="fas fa-network-wired"></i>
-                <h4>إنترنت الأشياء (IoT)</h4>
-                <p>ربط الأجهزة بالإنترنت والتحكم بها من أي مكان في العالم.</p>
-            </div>
+    <section id="admin-section">
+        <h2 style="color: var(--accent); margin-bottom: 20px;">لوحة تحكم الإدارة</h2>
+        <div class="admin-form">
+            <input type="text" id="course-title" placeholder="عنوان الدورة">
+            <textarea id="course-desc" placeholder="وصف الدورة"></textarea>
+            <button class="auth-btn" onclick="addCourse()">إضافة دورة جديدة</button>
         </div>
     </section>
 
-    <section class="social-bar" id="contact">
-        <h3>تابعنا وتواصل معنا</h3>
-        <div style="margin-top: 25px;">
-            <a href="https://wa.me/972592753159" class="social-icon" target="_blank"><i class="fab fa-whatsapp"></i></a>
-            <a href="https://www.instagram.com/3eng.s" class="social-icon" target="_blank"><i class="fab fa-instagram"></i></a>
-            <a href="https://www.tiktok.com/@3eng.s" class="social-icon" target="_blank"><i class="fab fa-tiktok"></i></a>
-            <a href="https://www.facebook.com/profile.php?id=61584936014304" class="social-icon" target="_blank"><i class="fab fa-facebook"></i></a>
+    <div class="courses-grid" id="courses-display">
         </div>
-    </section>
 
-    <footer>
-        <p>جميع الحقوق محفوظة &copy; 2026 | 3ENG.S - Smart Engineering & Makers Camp</p>
-    </footer>
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <h2 style="margin-bottom: 20px;">تسجيل الدخول</h2>
+            <div class="login-options">
+                <button class="btn-google" onclick="loginWithGoogle()"><i class="fab fa-google"></i> الدخول بواسطة جوجل</button>
+                <button class="btn-fb" onclick="loginWithFacebook()"><i class="fab fa-facebook"></i> الدخول بواسطة فيسبوك</button>
+            </div>
+            <button onclick="closeModal()" style="margin-top: 20px; background: transparent; color: white; border: none; cursor: pointer;">إلغاء</button>
+        </div>
+    </div>
 
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyALJiF8l_wnk_6FU6etQpz44Z43lSORXQk",
+            authDomain: "engs-website.firebaseapp.com",
+            projectId: "engs-website",
+            storageBucket: "engs-website.firebasestorage.app",
+            messagingSenderId: "1028163586505",
+            appId: "1:1028163586505:web:c09de00bb30a3369ca4018",
+            measurementId: "G-GZJCYL5YM8"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- Auth Logic ---
+        window.loginWithGoogle = () => {
+            const provider = new GoogleAuthProvider();
+            signInWithPopup(auth, provider).then(() => closeModal()).catch(err => alert(err.message));
+        };
+
+        window.loginWithFacebook = () => {
+            const provider = new FacebookAuthProvider();
+            signInWithPopup(auth, provider).then(() => closeModal()).catch(err => alert(err.message));
+        };
+
+        window.logout = () => signOut(auth);
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('login-nav-btn').style.display = 'none';
+                document.getElementById('logout-btn').style.display = 'inline-block';
+                document.getElementById('user-info').innerText = user.displayName;
+                
+                // هنا نحدد من هو الأدمن (استبدل بالإيميل الخاص بك)
+                if(user.email === "hosam2564491@gmail.com" || user.uid === "ضع_هنا_ID_الخاص_بك") {
+                    document.getElementById('admin-section').style.display = 'block';
+                    window.isAdmin = true;
+                }
+            } else {
+                document.getElementById('login-nav-btn').style.display = 'inline-block';
+                document.getElementById('logout-btn').style.display = 'none';
+                document.getElementById('admin-section').style.display = 'none';
+                document.getElementById('user-info').innerText = "";
+                window.isAdmin = false;
+            }
+            fetchCourses();
+        });
+
+        // --- Firestore Logic (Courses) ---
+        window.addCourse = async () => {
+            const title = document.getElementById('course-title').value;
+            const desc = document.getElementById('course-desc').value;
+            if (title && desc) {
+                await addDoc(collection(db, "courses"), { title, desc, createdAt: new Date() });
+                document.getElementById('course-title').value = "";
+                document.getElementById('course-desc').value = "";
+            }
+        };
+
+        const fetchCourses = () => {
+            onSnapshot(collection(db, "courses"), (snapshot) => {
+                const display = document.getElementById('courses-display');
+                display.innerHTML = "";
+                snapshot.forEach((docData) => {
+                    const course = docData.data();
+                    display.innerHTML += `
+                        <div class="course-card">
+                            ${window.isAdmin ? `<i class="fas fa-trash delete-btn" style="display:block" onclick="deleteCourse('${docData.id}')"></i>` : ''}
+                            <i class="fas fa-microchip" style="font-size: 2rem; color: var(--accent);"></i>
+                            <h4>${course.title}</h4>
+                            <p>${course.desc}</p>
+                        </div>
+                    `;
+                });
+            });
+        };
+
+        window.deleteCourse = async (id) => {
+            if(confirm("هل تريد حذف هذه الدورة؟")) await deleteDoc(doc(db, "courses", id));
+        };
+
+        // UI Helpers
+        window.openModal = () => document.getElementById('loginModal').style.display = 'flex';
+        window.closeModal = () => document.getElementById('loginModal').style.display = 'none';
+    </script>
 </body>
 </html>
