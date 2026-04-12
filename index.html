@@ -7,70 +7,111 @@
 <meta name="description" content="منصة 3Engs — المهندسون الثلاثة. منتجات رقمية، دورات تعليمية، وكتب متخصصة في الهندسة والتقنية.">
 <meta property="og:title" content="3Engs | المهندسون الثلاثة">
 <meta property="og:url" content="https://www.3engs.com">
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
-  // لاحظ أننا أضفنا doc, onSnapshot, query, orderBy هنا
-  import { getFirestore, collection, addDoc, serverTimestamp, doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  // إضافة مكتبات المصادقة (Authentication)
+  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+// داخل تاغ <script type="module"> في index.html
 
+import { getFirestore, doc, onSnapshot, collection, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// 1. جلب نصوص الـ Hero المتغيرة
+onSnapshot(doc(db, "content", "hero"), (doc) => {
+    if (doc.exists()) {
+        const data = doc.data();
+        if(data.title) document.querySelector('.hero-h1').innerHTML = data.title;
+        if(data.desc) document.querySelector('.hero-sub').innerText = data.desc;
+    }
+});
+
+// 2. جلب المنتجات بشكل ديناميكي من قاعدة البيانات
+const productsQuery = query(collection(db, "products"), orderBy("timestamp", "desc"));
+onSnapshot(productsQuery, (snapshot) => {
+    const grid = document.getElementById('productsGrid');
+    // يمكنك هنا مسح المحتوى الثابت واستبداله بـ snapshot.forEach ليعرض ما تضيفه من لوحة التحكم
+});
   const firebaseConfig = {
     apiKey: "AIzaSyALJiF8l_wnk_6FU6etQpz44Z43lSORXQk",
     authDomain: "engs-website.firebaseapp.com",
     projectId: "engs-website",
     storageBucket: "engs-website.firebasestorage.app",
     messagingSenderId: "1028163586505",
-    appId: "1:1028163586505:web:c09de00bb30a3369ca4018"
+    appId: "1:1028163586505:web:c09de00bb30a3369ca4018",
+    measurementId: "G-GZJCYL5YM8"
   };
 
   const app = initializeApp(firebaseConfig);
   const analytics = getAnalytics(app);
   const db = getFirestore(app);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
 
-  // --- الكود الجديد الذي سألت عنه يبدأ من هنا ---
+  logEvent(analytics, 'page_view');
 
-  // 1. تحديث نصوص الـ Hero (العنوان والوصف) تلقائياً عند تغييرها من لوحة التحكم
-  onSnapshot(doc(db, "content", "hero"), (snapshot) => {
-    if (snapshot.exists()) {
-      const data = snapshot.data();
-      // تأكد أن الكلاسات .hero-h1 و .hero-sub موجودة في ملف الـ HTML الخاص بك
-      const titleTag = document.querySelector('.hero h1') || document.querySelector('.hero-h1');
-      const descTag = document.querySelector('.hero p') || document.querySelector('.hero-sub');
-      
-      if(data.title && titleTag) titleTag.innerHTML = data.title;
-      if(data.desc && descTag) descTag.innerText = data.desc;
-    }
-  });
-
-  // 2. جلب المنتجات وعرضها في الشبكة (Grid)
-  const productsQuery = query(collection(db, "products"), orderBy("timestamp", "desc"));
-  onSnapshot(productsQuery, (snapshot) => {
-    const grid = document.getElementById('productsGrid'); // تأكد أن الـ ID هذا موجود في قسم المنتجات
-    if(!grid) return;
-
-    grid.innerHTML = ''; // مسح المنتجات القديمة (الثابتة) لعرض الجديدة من الإدارة
-
-    snapshot.forEach((doc) => {
-      const p = doc.data();
-      // تصميم كرت المنتج (يمكنك تعديل الـ HTML ليتناسب مع ستايل موقعك)
-      grid.innerHTML += `
-        <div class="product-card">
-          <span class="badge">${p.cat || 'منتج'}</span>
-          <h3>${p.title}</h3>
-          <p class="price">${p.price}</p>
-          <button class="btn-buy">شراء الآن</button>
-        </div>
-      `;
-    });
-  });
-
-  // --- الكود الجديد ينتهي هنا ---
-
-  // تصدير المتغيرات لاستخدامها في بقية الموقع (مثل نموذج الاتصال)
   window.fbDb = db;
   window.fbCollection = collection;
   window.fbAddDoc = addDoc;
   window.fbServerTimestamp = serverTimestamp;
-  window.fbLogEvent = logEvent;
+  window.fbLogEvent = (name, params) => logEvent(analytics, name, params);
+
+  // دوال تسجيل الدخول والخروج
+  window.loginWithGoogle = async () => {
+    try {
+      await signInWithPopup(auth, provider);
+      showToast("✓ تم تسجيل الدخول بنجاح!");
+    } catch (error) {
+      console.error(error);
+      showToast("⚠️ حدث خطأ أثناء تسجيل الدخول", true);
+    }
+  };
+
+  window.logout = async () => {
+    try {
+      await signOut(auth);
+      showToast("✓ تم تسجيل الخروج");
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // مراقبة حالة المستخدم لتحديث الواجهة
+  onAuthStateChanged(auth, (user) => {
+    const authDesktop = document.getElementById('auth-desktop');
+    const authMobile = document.getElementById('auth-mobile');
+
+    if (user) {
+      // حالة تسجيل الدخول
+      if(authDesktop) {
+        authDesktop.innerHTML = `
+          <div style="display:flex; align-items:center; gap:12px;">
+            <img src="${user.photoURL}" alt="User" style="width:34px; height:34px; border-radius:50%; border:2px solid var(--gold);">
+            <button onclick="logout()" class="nav-cta" style="background:transparent!important; border:1px solid var(--gold)!important; color:var(--gold)!important; padding:6px 16px;">خروج</button>
+          </div>
+        `;
+      }
+      if(authMobile) {
+        authMobile.innerHTML = `
+           <div style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border);">
+             <img src="${user.photoURL}" alt="User" style="width:40px; height:40px; border-radius:50%; border:2px solid var(--gold);">
+             <span style="color:var(--text); font-weight:700;">${user.displayName}</span>
+           </div>
+           <a href="#" class="m-cta" style="background:transparent; border:1px solid var(--gold); color:var(--gold)!important;" onclick="logout(); closeMenu()">تسجيل الخروج</a>
+        `;
+      }
+    } else {
+      // حالة تسجيل الخروج
+      if(authDesktop) {
+        authDesktop.innerHTML = `<button onclick="loginWithGoogle()" class="nav-cta" style="border:none; cursor:pointer;">تسجيل الدخول</button>`;
+      }
+      if(authMobile) {
+        authMobile.innerHTML = `<a href="#" class="m-cta" onclick="loginWithGoogle(); closeMenu()">تسجيل الدخول (Google)</a>`;
+      }
+    }
+  });
+
 </script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
