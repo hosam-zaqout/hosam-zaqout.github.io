@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>الانضمام إلى 3Engs</title>
+    <style>
+        body { background: #0f172a; color: white; font-family: 'Cairo'; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .auth-box { background: #1e293b; padding: 40px; border-radius: 20px; width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; }
+        .btn-main { width: 100%; padding: 12px; background: #06b6d4; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-google { width: 100%; padding: 12px; background: #fff; color: #000; border: none; border-radius: 8px; margin-top: 10px; cursor: pointer; font-weight: bold; }
+        .toggle-link { text-align: center; margin-top: 20px; cursor: pointer; color: #06b6d4; }
+    </style>
+</head>
+<body>
+
+<div class="auth-box">
+    <h2 id="auth-title">تسجيل دخول</h2>
+    <div id="manual-fields">
+        <input type="text" id="u-name" placeholder="الاسم الكامل (للتسجيل فقط)" style="display:none;">
+        <input type="email" id="u-email" placeholder="البريد الإلكتروني">
+        <input type="password" id="u-pass" placeholder="كلمة المرور">
+    </div>
+    <button class="btn-main" id="btn-submit" onclick="handleAuth()">دخول</button>
+    <button class="btn-google" onclick="googleAuth()">التسجيل بواسطة Google</button>
+    <div class="toggle-link" onclick="toggleMode()" id="mode-text">ليس لديك حساب؟ سجل الآن</div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = { /* بياناتك */ };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let isLogin = true;
+
+    window.toggleMode = () => {
+        isLogin = !isLogin;
+        document.getElementById('auth-title').innerText = isLogin ? "تسجيل دخول" : "إنشاء حساب جديد";
+        document.getElementById('u-name').style.display = isLogin ? "none" : "block";
+        document.getElementById('btn-submit').innerText = isLogin ? "دخول" : "إنشاء حساب";
+        document.getElementById('mode-text').innerText = isLogin ? "ليس لديك حساب؟ سجل الآن" : "تمتلك حساباً؟ سجل دخولك";
+    }
+
+    window.handleAuth = async () => {
+        const email = document.getElementById('u-email').value;
+        const pass = document.getElementById('u-pass').value;
+        const name = document.getElementById('u-name').value;
+
+        try {
+            if (isLogin) {
+                await signInWithEmailAndPassword(auth, email, pass);
+            } else {
+                const res = await createUserWithEmailAndPassword(auth, email, pass);
+                await setDoc(doc(db, "users", res.user.uid), { name, email, method: 'manual' });
+            }
+            window.location.href = "index.html";
+        } catch (e) { alert("خطأ: " + e.message); }
+    }
+
+    window.googleAuth = async () => {
+        const res = await signInWithPopup(auth, new GoogleAuthProvider());
+        await setDoc(doc(db, "users", res.user.uid), { name: res.user.displayName, email: res.user.email, method: 'google' });
+        window.location.href = "index.html";
+    }
+</script>
+</body>
+</html>
