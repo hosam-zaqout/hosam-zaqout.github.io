@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم 3Engs | الإدارة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #06b6d4;
+            --dark: #0f172a;
+            --dark2: #1e293b;
+            --text: #f8fafc;
+            --border: rgba(6, 182, 212, 0.2);
+        }
+        body { font-family: 'Cairo', sans-serif; background: var(--dark); color: var(--text); margin: 0; display: flex; }
+        
+        /* Sidebar */
+        .sidebar { width: 260px; background: var(--dark2); height: 100vh; position: fixed; border-left: 1px solid var(--border); padding: 20px; }
+        .sidebar h2 { color: var(--primary); font-size: 1.5rem; margin-bottom: 30px; text-align: center; }
+        .nav-item { padding: 12px 15px; border-radius: 8px; cursor: pointer; transition: 0.3s; margin-bottom: 5px; display: block; color: var(--text); text-decoration: none; }
+        .nav-item:hover, .nav-item.active { background: var(--primary); color: #fff; }
+
+        /* Main Content */
+        .main-content { margin-right: 260px; padding: 40px; width: 100%; }
+        .card { background: var(--dark2); border: 1px solid var(--border); border-radius: 12px; padding: 25px; margin-bottom: 20px; }
+        h3 { margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 20px; }
+
+        /* Forms */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; }
+        input, textarea, select { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--dark); color: #fff; font-family: 'Cairo'; }
+        .btn-save { background: var(--primary); color: #fff; border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer; font-weight: 700; }
+        
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: right; border-bottom: 1px solid var(--border); }
+        th { color: var(--primary); }
+
+        #login-overlay { position: fixed; inset: 0; background: var(--dark); z-index: 1000; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+    </style>
+</head>
+<body>
+
+    <div id="login-overlay">
+        <h2>مدخل الإدارة الآمن</h2>
+        <button onclick="login()" style="background:var(--primary); color:#fff; border:none; padding:15px 40px; border-radius:8px; cursor:pointer; font-weight:900; font-size:1.1rem;">تسجيل الدخول بجوجل</button>
+        <p id="error-msg" style="color:red; margin-top:15px; display:none;">عذراً، ليس لديك صلاحية الوصول.</p>
+    </div>
+
+    <div class="sidebar">
+        <h2>3Engs Admin</h2>
+        <div class="nav-item active" onclick="showSection('hero-edit')">تعديل الواجهة (Hero)</div>
+        <div class="nav-item" onclick="showSection('products-manage')">إدارة المنتجات</div>
+        <div class="nav-item" onclick="showSection('messages')">الرسائل الواردة</div>
+        <div class="nav-item" onclick="logout()" style="margin-top:50px; color:#ff4d4d;">تسجيل الخروج</div>
+    </div>
+
+    <div class="main-content">
+        <div id="hero-edit" class="admin-section">
+            <div class="card">
+                <h3>تعديل نصوص واجهة الموقع الرئيسي</h3>
+                <div class="form-group">
+                    <label>العنوان الرئيسي (H1)</label>
+                    <input type="text" id="hero-title" placeholder="مثلاً: تعلم. ابنِ. تميز.">
+                </div>
+                <div class="form-group">
+                    <label>الوصف الفرعي</label>
+                    <textarea id="hero-desc" rows="3"></textarea>
+                </div>
+                <button class="btn-save" onclick="updateHero()">حفظ التعديلات</button>
+            </div>
+        </div>
+
+        <div id="products-manage" class="admin-section" style="display:none;">
+            <div class="card">
+                <h3>إضافة منتج/دورة جديدة</h3>
+                <div class="form-group">
+                    <label>اسم المنتج</label>
+                    <input type="text" id="p-title">
+                </div>
+                <div class="form-row" style="display:flex; gap:10px;">
+                    <div class="form-group" style="flex:1;">
+                        <label>السعر</label>
+                        <input type="text" id="p-price">
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>التصنيف</label>
+                        <select id="p-cat">
+                            <option value="course">دورة</option>
+                            <option value="ebook">كتاب</option>
+                            <option value="tool">أداة</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn-save" onclick="addProduct()">إضافة للموقع</button>
+            </div>
+        </div>
+
+        <div id="messages" class="admin-section" style="display:none;">
+            <div class="card">
+                <h3>رسائل تواصل معنا</h3>
+                <table id="msg-table">
+                    <thead>
+                        <tr>
+                            <th>الاسم</th>
+                            <th>الإيميل</th>
+                            <th>الرسالة</th>
+                            <th>التاريخ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="msg-body">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, updateDoc, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyALJiF8l_wnk_6FU6etQpz44Z43lSORXQk",
+            authDomain: "engs-website.firebaseapp.com",
+            projectId: "engs-website",
+            storageBucket: "engs-website.firebasestorage.app",
+            messagingSenderId: "1028163586505",
+            appId: "1:1028163586505:web:c09de00bb30a3369ca4018"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        const admins = ["hosam2564491@gmail.com", "info@3engs.com"];
+
+        window.login = () => signInWithPopup(auth, provider);
+        window.logout = () => signOut(auth);
+
+        onAuthStateChanged(auth, (user) => {
+            if (user && admins.includes(user.email)) {
+                document.getElementById('login-overlay').style.display = 'none';
+                loadMessages();
+            } else if (user) {
+                document.getElementById('error-msg').style.display = 'block';
+                setTimeout(() => signOut(auth), 2000);
+            }
+        });
+
+        window.showSection = (id) => {
+            document.querySelectorAll('.admin-section').forEach(s => s.style.display = 'none');
+            document.getElementById(id).style.display = 'block';
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            event.target.classList.add('active');
+        };
+
+        // وظيفة تحديث نصوص الموقع
+        window.updateHero = async () => {
+            const title = document.getElementById('hero-title').value;
+            const desc = document.getElementById('hero-desc').value;
+            await setDoc(doc(db, "content", "hero"), { title, desc });
+            alert("تم التحديث بنجاح!");
+        };
+
+        // وظيفة إضافة منتج
+        window.addProduct = async () => {
+            const title = document.getElementById('p-title').value;
+            const price = document.getElementById('p-price').value;
+            const cat = document.getElementById('p-cat').value;
+            await addDoc(collection(db, "products"), { title, price, cat, timestamp: new Date() });
+            alert("تمت إضافة المنتج!");
+        };
+
+        // جلب الرسائل من فايربيز
+        function loadMessages() {
+            const q = query(collection(db, "contact_messages"), orderBy("timestamp", "desc"));
+            onSnapshot(q, (snapshot) => {
+                const tbody = document.getElementById('msg-body');
+                tbody.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const m = doc.data();
+                    tbody.innerHTML += `<tr><td>${m.name}</td><td>${m.email}</td><td>${m.message}</td><td>${m.timestamp?.toDate().toLocaleDateString('ar-EG')}</td></tr>`;
+                });
+            });
+        }
+    </script>
+</body>
+</html>
