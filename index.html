@@ -1,0 +1,3139 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3Engs - المهندسون الثلاثة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyALJiF8l_wnk_6FU6etQpz44Z43lSORXQk",
+    authDomain: "engs-website.firebaseapp.com",
+    projectId: "engs-website",
+    storageBucket: "engs-website.firebasestorage.app",
+    messagingSenderId: "1028163586505",
+    appId: "1:1028163586505:web:c09de00bb30a3369ca4018",
+    measurementId: "G-GZJCYL5YM8"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const analytics = getAnalytics(app);
+  const provider = new GoogleAuthProvider();
+
+  window.firebaseAuth = auth;
+  window.firebaseDb = db;
+  window.googleProvider = provider;
+  window.fbSignInWithPopup = signInWithPopup;
+  window.fbCreateUser = createUserWithEmailAndPassword;
+  window.fbSignIn = signInWithEmailAndPassword;
+  window.fbSignOut = signOut;
+  window.fbOnAuthStateChanged = onAuthStateChanged;
+  window.fbDoc = doc;
+  window.fbSetDoc = setDoc;
+  window.fbGetDoc = getDoc;
+  window.fbCollection = collection;
+  window.fbAddDoc = addDoc;
+  window.fbGetDocs = getDocs;
+  window.fbUpdateDoc = updateDoc;
+  window.fbDeleteDoc = deleteDoc;
+
+  window.ADMIN_EMAILS = ['hosam2564491@gmail.com', 'info@3engs.com'];
+
+  onAuthStateChanged(auth, (user) => {
+    window.currentUser = user;
+    if (typeof window.onAuthChange === 'function') window.onAuthChange(user);
+  });
+</script>
+
+<style>
+:root {
+  --primary: #00D4FF;
+  --primary-dark: #0099BB;
+  --secondary: #FF6B35;
+  --accent: #7C3AED;
+  --gold: #FFD700;
+  --bg-dark: #050A14;
+  --bg-card: #0D1626;
+  --bg-card2: #111927;
+  --text-primary: #F0F6FF;
+  --text-secondary: #8BA3BF;
+  --border: rgba(0,212,255,0.15);
+  --glow: 0 0 30px rgba(0,212,255,0.3);
+  --glow-sm: 0 0 15px rgba(0,212,255,0.2);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --font-main: 'Cairo', sans-serif;
+  --font-body: 'Tajawal', sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  overflow-x: hidden;
+  line-height: 1.7;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-dark); }
+::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
+
+/* ===== NAVBAR ===== */
+#navbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  padding: 16px 40px;
+  display: flex; align-items: center; justify-content: space-between;
+  transition: all 0.4s ease;
+  background: transparent;
+}
+
+#navbar.scrolled {
+  background: rgba(5,10,20,0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 40px;
+  box-shadow: var(--glow-sm);
+}
+
+.nav-logo {
+  display: flex; align-items: center; gap: 12px;
+  font-family: var(--font-main);
+  font-weight: 900;
+  font-size: 1.5rem;
+  color: var(--primary);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.nav-logo img {
+  height: 44px; width: 44px; border-radius: 50%;
+  border: 2px solid var(--primary);
+  box-shadow: var(--glow-sm);
+}
+
+.nav-links {
+  display: flex; align-items: center; gap: 8px;
+  list-style: none;
+}
+
+.nav-links a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+
+.nav-links a:hover {
+  color: var(--primary);
+  background: rgba(0,212,255,0.08);
+}
+
+.nav-actions {
+  display: flex; align-items: center; gap: 12px;
+}
+
+.cart-btn {
+  position: relative;
+  background: rgba(0,212,255,0.1);
+  border: 1px solid var(--border);
+  color: var(--primary);
+  padding: 10px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s;
+}
+
+.cart-btn:hover { background: rgba(0,212,255,0.2); box-shadow: var(--glow-sm); }
+
+.cart-count {
+  position: absolute; top: -6px; right: -6px;
+  background: var(--secondary);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  display: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: white;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: var(--font-main);
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(0,212,255,0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(0,212,255,0.5);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--primary);
+  border: 1.5px solid var(--primary);
+  padding: 10px 22px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: var(--font-main);
+  transition: all 0.3s;
+}
+
+.btn-outline:hover {
+  background: rgba(0,212,255,0.1);
+  box-shadow: var(--glow-sm);
+}
+
+/* ===== HERO ===== */
+#hero {
+  min-height: 100vh;
+  display: flex; align-items: center;
+  position: relative;
+  overflow: hidden;
+  padding: 120px 40px 60px;
+}
+
+.hero-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 80% 80% at 50% 0%, rgba(0,212,255,0.08) 0%, transparent 70%),
+              radial-gradient(ellipse 60% 60% at 90% 50%, rgba(124,58,237,0.06) 0%, transparent 70%),
+              radial-gradient(ellipse 60% 60% at 10% 80%, rgba(255,107,53,0.05) 0%, transparent 70%);
+}
+
+.hero-grid {
+  position: absolute; inset: 0;
+  background-image: 
+    linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+.hero-content {
+  position: relative; z-index: 2;
+  max-width: 1200px; margin: 0 auto; width: 100%;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;
+}
+
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(0,212,255,0.1);
+  border: 1px solid rgba(0,212,255,0.3);
+  color: var(--primary);
+  padding: 8px 18px;
+  border-radius: 50px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 24px;
+  animation: pulse-border 2s infinite;
+}
+
+@keyframes pulse-border {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0,212,255,0.3); }
+  50% { box-shadow: 0 0 0 6px rgba(0,212,255,0); }
+}
+
+.hero-title {
+  font-family: var(--font-main);
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  font-weight: 900;
+  line-height: 1.2;
+  margin-bottom: 20px;
+}
+
+.hero-title .gradient-text {
+  background: linear-gradient(135deg, var(--primary), var(--accent), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-desc {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  margin-bottom: 36px;
+  max-width: 500px;
+}
+
+.hero-btns {
+  display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 48px;
+}
+
+.hero-btns .btn-primary {
+  padding: 14px 32px;
+  font-size: 1rem;
+}
+
+.hero-btns .btn-outline {
+  padding: 14px 32px;
+  font-size: 1rem;
+}
+
+.hero-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 20px 16px;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.stat-card:hover {
+  border-color: var(--primary);
+  box-shadow: var(--glow-sm);
+  transform: translateY(-4px);
+}
+
+.stat-num {
+  font-family: var(--font-main);
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--primary);
+  display: block;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.hero-visual {
+  position: relative;
+  display: flex; justify-content: center; align-items: center;
+}
+
+.hero-circle {
+  width: 340px; height: 340px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,212,255,0.15) 0%, transparent 70%);
+  border: 1px solid rgba(0,212,255,0.2);
+  display: flex; align-items: center; justify-content: center;
+  animation: rotate-slow 20s linear infinite;
+  position: relative;
+}
+
+.hero-circle::before {
+  content: '';
+  position: absolute;
+  width: 260px; height: 260px;
+  border-radius: 50%;
+  border: 1px dashed rgba(0,212,255,0.15);
+  animation: rotate-slow 15s linear infinite reverse;
+}
+
+@keyframes rotate-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.hero-logo-big {
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  border: 3px solid var(--primary);
+  box-shadow: var(--glow);
+  object-fit: cover;
+  position: absolute;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+}
+
+.floating-card {
+  position: absolute;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  font-size: 0.8rem;
+  backdrop-filter: blur(10px);
+  animation: float 3s ease-in-out infinite;
+}
+
+.floating-card.top-right { top: 20px; right: -20px; animation-delay: 0.5s; }
+.floating-card.bottom-left { bottom: 20px; left: -30px; animation-delay: 1s; }
+.floating-card.mid-right { top: 50%; right: -40px; transform: translateY(-50%); animation-delay: 1.5s; }
+
+/* ===== SECTIONS ===== */
+section { padding: 80px 40px; }
+
+.section-header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.section-tag {
+  display: inline-block;
+  background: rgba(0,212,255,0.1);
+  border: 1px solid rgba(0,212,255,0.3);
+  color: var(--primary);
+  padding: 6px 18px;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-bottom: 14px;
+  letter-spacing: 2px;
+}
+
+.section-title {
+  font-family: var(--font-main);
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-weight: 900;
+  margin-bottom: 14px;
+}
+
+.section-subtitle {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.container { max-width: 1200px; margin: 0 auto; }
+
+/* ===== FILTER BAR ===== */
+.filter-bar {
+  display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+  margin-bottom: 48px;
+}
+
+.filter-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 10px 24px;
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: var(--font-body);
+  transition: all 0.3s;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.filter-btn:hover, .filter-btn.active {
+  background: rgba(0,212,255,0.15);
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: var(--glow-sm);
+}
+
+/* ===== PRODUCT CARDS ===== */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+}
+
+.product-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: all 0.4s;
+  position: relative;
+  cursor: pointer;
+}
+
+.product-card:hover {
+  transform: translateY(-8px);
+  border-color: var(--primary);
+  box-shadow: var(--glow);
+}
+
+.product-thumb {
+  height: 200px;
+  background: linear-gradient(135deg, var(--bg-card2), var(--accent));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 3.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.product-thumb::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, transparent 60%, rgba(5,10,20,0.8));
+}
+
+.product-badge {
+  position: absolute; top: 12px; right: 12px;
+  background: var(--secondary);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.product-body { padding: 20px; }
+
+.product-type {
+  font-size: 0.75rem;
+  color: var(--primary);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.product-name {
+  font-family: var(--font-main);
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.product-desc {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+.product-footer {
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.product-price {
+  font-family: var(--font-main);
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: var(--primary);
+}
+
+.product-price .old-price {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-decoration: line-through;
+  font-weight: 400;
+  margin-right: 6px;
+}
+
+.add-cart-btn {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: var(--font-body);
+  transition: all 0.3s;
+}
+
+.add-cart-btn:hover {
+  transform: scale(1.05);
+  box-shadow: var(--glow-sm);
+}
+
+/* ===== COURSES ===== */
+#courses { background: linear-gradient(180deg, var(--bg-dark) 0%, rgba(13,22,38,0.5) 100%); }
+
+.courses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 28px;
+}
+
+.course-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: all 0.4s;
+}
+
+.course-card:hover {
+  transform: translateY(-8px);
+  border-color: var(--accent);
+  box-shadow: 0 0 30px rgba(124,58,237,0.3);
+}
+
+.course-thumb {
+  height: 220px;
+  background: linear-gradient(135deg, var(--accent), var(--primary));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 4rem;
+  position: relative;
+}
+
+.course-level {
+  position: absolute; top: 14px; right: 14px;
+  padding: 5px 14px;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.level-beginner { background: rgba(0,212,255,0.2); color: var(--primary); border: 1px solid var(--primary); }
+.level-intermediate { background: rgba(255,215,0,0.2); color: var(--gold); border: 1px solid var(--gold); }
+.level-advanced { background: rgba(255,107,53,0.2); color: var(--secondary); border: 1px solid var(--secondary); }
+
+.course-body { padding: 24px; }
+
+.course-name {
+  font-family: var(--font-main);
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.course-desc {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  margin-bottom: 20px;
+}
+
+.course-meta {
+  display: flex; gap: 16px; margin-bottom: 20px;
+}
+
+.meta-item {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.meta-item i { color: var(--primary); }
+
+.instructor {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px;
+  background: var(--bg-card2);
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.instructor-avatar {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  color: white;
+  font-weight: 700;
+}
+
+.instructor-info { flex: 1; }
+.instructor-name { font-size: 0.9rem; font-weight: 700; }
+.instructor-title { font-size: 0.77rem; color: var(--text-secondary); }
+
+.course-footer {
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+/* ===== BOOKS ===== */
+.books-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 32px;
+}
+
+.book-card {
+  cursor: pointer;
+  transition: all 0.4s;
+  text-align: center;
+}
+
+.book-3d {
+  perspective: 1000px;
+  margin-bottom: 16px;
+}
+
+.book-cover {
+  width: 160px; height: 220px;
+  margin: 0 auto;
+  border-radius: 4px 12px 12px 4px;
+  background: linear-gradient(135deg, var(--accent), var(--primary));
+  transform: rotateY(-15deg);
+  transition: all 0.4s;
+  box-shadow: 
+    6px 6px 0 #0D1626,
+    12px 12px 20px rgba(0,0,0,0.5),
+    inset -4px 0 8px rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.book-cover::before {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 30px; height: 100%;
+  background: rgba(0,0,0,0.2);
+}
+
+.book-card:hover .book-cover {
+  transform: rotateY(-5deg) scale(1.05);
+  box-shadow: 
+    10px 10px 0 #0D1626,
+    20px 20px 30px rgba(0,0,0,0.6),
+    inset -4px 0 8px rgba(0,0,0,0.3);
+}
+
+.book-title {
+  font-family: var(--font-main);
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.book-author {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.book-price {
+  color: var(--primary);
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+/* ===== TESTIMONIALS ===== */
+#testimonials { background: rgba(13,22,38,0.6); }
+
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.testimonial-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.testimonial-card:hover {
+  border-color: var(--gold);
+  box-shadow: 0 0 20px rgba(255,215,0,0.15);
+  transform: translateY(-4px);
+}
+
+.quote-icon {
+  font-size: 2.5rem;
+  color: var(--primary);
+  opacity: 0.3;
+  margin-bottom: 12px;
+}
+
+.testimonial-text {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+
+.testimonial-stars {
+  color: var(--gold);
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+}
+
+.testimonial-author {
+  display: flex; align-items: center; gap: 12px;
+}
+
+.author-avatar {
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: white;
+}
+
+.author-name { font-weight: 700; font-size: 0.95rem; }
+.author-job { font-size: 0.78rem; color: var(--text-secondary); }
+
+/* ===== NEWSLETTER ===== */
+#newsletter {
+  background: linear-gradient(135deg, rgba(0,212,255,0.05), rgba(124,58,237,0.08));
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.newsletter-box {
+  max-width: 600px; margin: 0 auto; text-align: center;
+}
+
+.newsletter-input-group {
+  display: flex; gap: 12px; margin-top: 28px;
+}
+
+.newsletter-input {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-family: var(--font-body);
+  outline: none;
+  transition: all 0.3s;
+  direction: rtl;
+}
+
+.newsletter-input:focus {
+  border-color: var(--primary);
+  box-shadow: var(--glow-sm);
+}
+
+.newsletter-input::placeholder { color: var(--text-secondary); }
+
+/* ===== FOOTER ===== */
+footer {
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+  padding: 60px 40px 30px;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 40px;
+  max-width: 1200px; margin: 0 auto;
+  margin-bottom: 40px;
+}
+
+.footer-brand img {
+  height: 50px; margin-bottom: 16px;
+}
+
+.footer-brand p {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+
+.social-links {
+  display: flex; gap: 10px;
+}
+
+.social-link {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  background: rgba(0,212,255,0.1);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--primary);
+  font-size: 1rem;
+  text-decoration: none;
+  transition: all 0.3s;
+}
+
+.social-link:hover {
+  background: var(--primary);
+  color: var(--bg-dark);
+  transform: translateY(-3px);
+}
+
+.footer-col h4 {
+  font-family: var(--font-main);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 18px;
+  position: relative;
+  padding-bottom: 10px;
+}
+
+.footer-col h4::after {
+  content: '';
+  position: absolute;
+  bottom: 0; right: 0;
+  width: 30px; height: 2px;
+  background: var(--primary);
+}
+
+.footer-col ul { list-style: none; }
+.footer-col ul li { margin-bottom: 10px; }
+.footer-col ul li a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.88rem;
+  transition: color 0.3s;
+}
+.footer-col ul li a:hover { color: var(--primary); }
+
+.contact-item {
+  display: flex; align-items: center; gap: 10px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+}
+.contact-item i { color: var(--primary); width: 16px; }
+
+.footer-bottom {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; justify-content: space-between; align-items: center;
+  border-top: 1px solid var(--border);
+  padding-top: 24px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+/* ===== TOAST ===== */
+.toast-container {
+  position: fixed;
+  bottom: 30px; left: 30px;
+  z-index: 9999;
+  display: flex; flex-direction: column; gap: 10px;
+}
+
+.toast {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 20px;
+  display: flex; align-items: center; gap: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  animation: slide-in 0.4s ease;
+  min-width: 280px;
+}
+
+@keyframes slide-in {
+  from { transform: translateX(-100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.toast-icon { font-size: 1.2rem; }
+.toast-msg { font-size: 0.88rem; font-weight: 500; }
+.toast.success { border-color: var(--primary); }
+.toast.success .toast-icon { color: var(--primary); }
+.toast.error { border-color: var(--secondary); }
+.toast.error .toast-icon { color: var(--secondary); }
+.toast.info { border-color: var(--gold); }
+.toast.info .toast-icon { color: var(--gold); }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(5,10,20,0.9);
+  backdrop-filter: blur(10px);
+  z-index: 2000;
+  display: flex; align-items: center; justify-content: center;
+  animation: fade-in 0.3s ease;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 40px;
+  width: 90%; max-width: 440px;
+  animation: scale-in 0.3s ease;
+  position: relative;
+}
+
+@keyframes scale-in {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.modal-close {
+  position: absolute; top: 16px; left: 16px;
+  background: none; border: none;
+  color: var(--text-secondary);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+.modal-close:hover { color: var(--secondary); }
+
+.modal-title {
+  font-family: var(--font-main);
+  font-size: 1.6rem;
+  font-weight: 900;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.modal-sub {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.form-group { margin-bottom: 18px; }
+
+.form-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+}
+
+.form-input {
+  width: 100%;
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-family: var(--font-body);
+  outline: none;
+  transition: all 0.3s;
+  direction: rtl;
+}
+
+.form-input:focus {
+  border-color: var(--primary);
+  box-shadow: var(--glow-sm);
+}
+
+.form-input.error { border-color: var(--secondary); }
+
+.btn-google {
+  width: 100%;
+  background: white;
+  color: #333;
+  border: none;
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: var(--font-body);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  margin-top: 12px;
+  transition: all 0.3s;
+}
+
+.btn-google:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
+
+.divider {
+  display: flex; align-items: center; gap: 12px;
+  margin: 18px 0;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.divider::before, .divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.auth-switch {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.auth-switch a {
+  color: var(--primary);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* ===== CART SIDEBAR ===== */
+.cart-sidebar {
+  position: fixed; top: 0; left: -400px;
+  width: 380px; height: 100vh;
+  background: var(--bg-card);
+  border-right: 1px solid var(--border);
+  z-index: 1500;
+  transition: left 0.4s ease;
+  display: flex; flex-direction: column;
+}
+
+.cart-sidebar.open { left: 0; }
+
+.cart-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.cart-title { font-family: var(--font-main); font-size: 1.2rem; font-weight: 800; }
+
+.cart-close {
+  background: none; border: none;
+  color: var(--text-secondary); font-size: 1.2rem;
+  cursor: pointer; transition: color 0.3s;
+}
+.cart-close:hover { color: var(--secondary); }
+
+.cart-items { flex: 1; overflow-y: auto; padding: 20px 24px; }
+
+.cart-empty {
+  text-align: center;
+  padding: 60px 0;
+  color: var(--text-secondary);
+}
+.cart-empty i { font-size: 3rem; margin-bottom: 14px; color: var(--border); }
+
+.cart-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.cart-item-icon {
+  width: 48px; height: 48px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.cart-item-info { flex: 1; }
+.cart-item-name { font-size: 0.88rem; font-weight: 700; margin-bottom: 4px; }
+.cart-item-price { color: var(--primary); font-size: 0.9rem; font-weight: 700; }
+
+.cart-item-remove {
+  background: none; border: none;
+  color: var(--text-secondary); cursor: pointer;
+  font-size: 0.9rem; transition: color 0.3s;
+}
+.cart-item-remove:hover { color: var(--secondary); }
+
+.cart-footer {
+  padding: 20px 24px;
+  border-top: 1px solid var(--border);
+}
+
+.cart-total {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 16px;
+  font-size: 1.1rem;
+}
+
+.cart-total-price { color: var(--primary); font-weight: 900; font-size: 1.4rem; }
+
+.cart-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1400;
+  display: none;
+}
+.cart-overlay.show { display: block; }
+
+/* ===== ADMIN PAGE ===== */
+#admin-page {
+  display: none;
+  min-height: 100vh;
+  background: var(--bg-dark);
+}
+
+.admin-layout {
+  display: flex;
+}
+
+.admin-sidebar {
+  width: 260px;
+  background: var(--bg-card);
+  border-left: 1px solid var(--border);
+  height: 100vh;
+  position: fixed;
+  right: 0; top: 0;
+  display: flex; flex-direction: column;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.admin-logo {
+  padding: 24px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+
+.admin-logo img { height: 36px; width: 36px; border-radius: 50%; }
+.admin-logo span {
+  font-family: var(--font-main);
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--primary);
+}
+
+.admin-nav { padding: 16px 0; flex: 1; }
+
+.admin-nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 20px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.admin-nav-item:hover, .admin-nav-item.active {
+  background: rgba(0,212,255,0.1);
+  color: var(--primary);
+  border-right: 3px solid var(--primary);
+}
+
+.admin-nav-item i { width: 20px; text-align: center; }
+
+.admin-content {
+  flex: 1;
+  margin-right: 260px;
+  padding: 30px;
+  min-height: 100vh;
+}
+
+.admin-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-page-title {
+  font-family: var(--font-main);
+  font-size: 1.6rem;
+  font-weight: 900;
+}
+
+.admin-section { display: none; }
+.admin-section.active { display: block; }
+
+/* Stats Cards */
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin-bottom: 28px;
+}
+
+.admin-stat {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex; align-items: center; gap: 16px;
+}
+
+.admin-stat-icon {
+  width: 48px; height: 48px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem;
+}
+
+.admin-stat-num { font-family: var(--font-main); font-size: 1.6rem; font-weight: 900; }
+.admin-stat-label { font-size: 0.8rem; color: var(--text-secondary); }
+
+/* Admin Table */
+.admin-table-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.admin-table-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+.admin-table-title { font-weight: 700; font-size: 0.95rem; }
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table th {
+  padding: 12px 16px;
+  text-align: right;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+  background: rgba(0,212,255,0.03);
+}
+
+.admin-table td {
+  padding: 12px 16px;
+  font-size: 0.85rem;
+  border-bottom: 1px solid rgba(0,212,255,0.05);
+}
+
+.admin-table tr:last-child td { border-bottom: none; }
+.admin-table tr:hover td { background: rgba(0,212,255,0.03); }
+
+.badge-admin { background: rgba(255,107,53,0.2); color: var(--secondary); padding: 3px 10px; border-radius: 50px; font-size: 0.75rem; }
+.badge-user { background: rgba(0,212,255,0.1); color: var(--primary); padding: 3px 10px; border-radius: 50px; font-size: 0.75rem; }
+
+/* Admin Forms */
+.admin-form-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.admin-form-title { font-weight: 700; font-size: 1rem; margin-bottom: 20px; }
+
+.admin-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.admin-form-group { display: flex; flex-direction: column; gap: 8px; }
+.admin-form-group.full { grid-column: 1 / -1; }
+
+.admin-form-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.admin-form-input, .admin-form-select, .admin-form-textarea {
+  background: var(--bg-card2);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-family: var(--font-body);
+  outline: none;
+  transition: border-color 0.3s;
+  direction: rtl;
+}
+
+.admin-form-input:focus, .admin-form-select:focus, .admin-form-textarea:focus {
+  border-color: var(--primary);
+}
+
+.admin-form-textarea { resize: vertical; min-height: 90px; }
+.admin-form-select option { background: var(--bg-card2); }
+
+.admin-btn {
+  padding: 10px 22px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 700;
+  font-family: var(--font-body);
+  transition: all 0.3s;
+  border: none;
+}
+
+.admin-btn-primary { background: var(--primary); color: var(--bg-dark); }
+.admin-btn-primary:hover { box-shadow: var(--glow-sm); transform: translateY(-1px); }
+.admin-btn-danger { background: rgba(255,107,53,0.15); color: var(--secondary); border: 1px solid var(--secondary); }
+.admin-btn-danger:hover { background: var(--secondary); color: white; }
+.admin-btn-sm { padding: 7px 14px; font-size: 0.78rem; }
+
+/* Color Customizer */
+.color-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+}
+
+.color-item {
+  display: flex; flex-direction: column; gap: 8px;
+}
+
+.color-preview {
+  width: 100%; height: 36px;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+  cursor: pointer;
+}
+
+/* ===== AUTH PAGE ===== */
+#auth-page {
+  display: none;
+  min-height: 100vh;
+  background: var(--bg-dark);
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+/* ===== ANIMATIONS ===== */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.7s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+.reveal-delay-5 { transition-delay: 0.5s; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+  .admin-stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  #navbar { padding: 14px 20px; }
+  .nav-links { display: none; }
+  section { padding: 60px 20px; }
+  #hero { padding: 100px 20px 50px; }
+  .hero-content { grid-template-columns: 1fr; gap: 40px; }
+  .hero-visual { display: none; }
+  .footer-grid { grid-template-columns: 1fr; }
+  .newsletter-input-group { flex-direction: column; }
+  .admin-sidebar { width: 220px; }
+  .admin-content { margin-right: 220px; padding: 20px; }
+  .admin-form-grid { grid-template-columns: 1fr; }
+  .admin-stats { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 480px) {
+  .admin-sidebar { position: relative; width: 100%; height: auto; }
+  .admin-layout { flex-direction: column; }
+  .admin-content { margin-right: 0; }
+  .admin-stats { grid-template-columns: 1fr; }
+}
+
+/* ===== WHATSAPP BTN ===== */
+.whatsapp-float {
+  position: fixed;
+  bottom: 30px; right: 30px;
+  z-index: 990;
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: #25D366;
+  color: white;
+  font-size: 1.5rem;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 20px rgba(37,211,102,0.4);
+  text-decoration: none;
+  transition: all 0.3s;
+  animation: float 3s ease-in-out infinite;
+}
+
+.whatsapp-float:hover {
+  transform: scale(1.1) !important;
+  box-shadow: 0 6px 30px rgba(37,211,102,0.6);
+}
+</style>
+</head>
+<body>
+
+<!-- ===== TOAST CONTAINER ===== -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ===== CART OVERLAY ===== -->
+<div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+
+<!-- ===== CART SIDEBAR ===== -->
+<div class="cart-sidebar" id="cartSidebar">
+  <div class="cart-header">
+    <span class="cart-title">🛒 سلة المشتريات</span>
+    <button class="cart-close" onclick="closeCart()"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="cart-items" id="cartItems">
+    <div class="cart-empty">
+      <i class="fas fa-shopping-bag"></i>
+      <p>السلة فارغة</p>
+    </div>
+  </div>
+  <div class="cart-footer">
+    <div class="cart-total">
+      <span>الإجمالي</span>
+      <span class="cart-total-price" id="cartTotal">₪0</span>
+    </div>
+    <button class="btn-primary" style="width:100%;padding:14px;" onclick="checkout()">
+      <i class="fas fa-credit-card" style="margin-left:8px;"></i> إتمام الشراء
+    </button>
+    <button onclick="openWhatsApp()" style="width:100%;padding:12px;margin-top:10px;background:rgba(37,211,102,0.15);border:1px solid #25D366;color:#25D366;border-radius:10px;cursor:pointer;font-family:var(--font-body);font-weight:700;">
+      <i class="fab fa-whatsapp" style="margin-left:6px;"></i> طلب عبر واتساب
+    </button>
+  </div>
+</div>
+
+<!-- ===== MAIN SITE ===== -->
+<div id="main-site">
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <div class="nav-logo" onclick="scrollToTop()">
+    <img src="https://i.imgur.com/placeholder.png" id="nav-logo-img" alt="3Engs" onerror="this.style.background='linear-gradient(135deg,#00D4FF,#7C3AED)';this.src=''">
+    <span id="site-name-nav">3Engs</span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#products" onclick="smooth(event,'products')">المنتجات</a></li>
+    <li><a href="#courses" onclick="smooth(event,'courses')">الدورات</a></li>
+    <li><a href="#books" onclick="smooth(event,'books')">الكتب</a></li>
+    <li><a href="#testimonials" onclick="smooth(event,'testimonials')">آراء العملاء</a></li>
+    <li><a href="#newsletter" onclick="smooth(event,'newsletter')">التواصل</a></li>
+  </ul>
+  <div class="nav-actions">
+    <button class="cart-btn" onclick="openCart()">
+      <i class="fas fa-shopping-cart"></i>
+      <span class="cart-count" id="cartCount">0</span>
+    </button>
+    <div id="authButtons">
+      <button class="btn-outline" onclick="showAuth('login')" style="font-size:0.85rem;padding:9px 18px;">دخول</button>
+      <button class="btn-primary" onclick="showAuth('signup')" style="font-size:0.85rem;padding:9px 18px;">تسجيل</button>
+    </div>
+    <div id="userMenu" style="display:none;align-items:center;gap:10px;">
+      <span id="userName" style="font-size:0.85rem;color:var(--text-secondary);"></span>
+      <button class="btn-outline" onclick="handleSignOut()" style="font-size:0.82rem;padding:7px 14px;">خروج</button>
+      <button class="admin-btn admin-btn-primary admin-btn-sm" onclick="showAdmin()" id="adminBtn" style="display:none;">لوحة الإدارة</button>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-left">
+      <div class="hero-badge">
+        <i class="fas fa-bolt"></i>
+        <span id="hero-badge-text">🚀 منصة هندسية متكاملة</span>
+      </div>
+      <h1 class="hero-title">
+        <span id="hero-title-line1">المهندسون الثلاثة</span><br>
+        <span class="gradient-text" id="hero-title-line2">أدواتك لنجاح مهني استثنائي</span>
+      </h1>
+      <p class="hero-desc" id="hero-desc">
+        منصة تعليمية هندسية متخصصة بالهندسة الكهربائية — دورات احترافية، كتب تقنية، أدوات ذكية، كل ما تحتاجه لتطور مسيرتك المهنية.
+      </p>
+      <div class="hero-btns">
+        <button class="btn-primary" onclick="smooth(event,'products')">
+          <i class="fas fa-rocket" style="margin-left:8px;"></i>
+          استعرض المنتجات
+        </button>
+        <button class="btn-outline" onclick="smooth(event,'courses')">
+          <i class="fas fa-play-circle" style="margin-left:8px;"></i>
+          الدورات التعليمية
+        </button>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-card reveal">
+          <span class="stat-num" id="stat1">+500</span>
+          <span class="stat-label">طالب مسجّل</span>
+        </div>
+        <div class="stat-card reveal reveal-delay-1">
+          <span class="stat-num" id="stat2">+30</span>
+          <span class="stat-label">دورة ومنتج</span>
+        </div>
+        <div class="stat-card reveal reveal-delay-2">
+          <span class="stat-num" id="stat3">4.9★</span>
+          <span class="stat-label">تقييم العملاء</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-circle">
+        <img class="hero-logo-big" id="hero-logo" src="" alt="3Engs" onerror="this.style.background='linear-gradient(135deg,#00D4FF,#7C3AED)';this.style.display='flex';this.alt='⚡';this.src=''">
+      </div>
+      <div class="floating-card top-right">
+        <span style="color:var(--primary);font-weight:800;">⚡ هندسة كهربائية</span>
+      </div>
+      <div class="floating-card bottom-left">
+        <span style="color:var(--gold);">🏆 محتوى احترافي</span>
+      </div>
+      <div class="floating-card mid-right">
+        <span style="color:var(--secondary);">📚 +30 منتج</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRODUCTS -->
+<section id="products">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-tag">⚙️ المتجر</div>
+      <h2 class="section-title">منتجاتنا المتميزة</h2>
+      <p class="section-subtitle">أدوات، كتب، دورات وقوالب هندسية احترافية لتطوير مسيرتك</p>
+    </div>
+
+    <div class="filter-bar reveal">
+      <button class="filter-btn active" onclick="filterProducts('all', this)">
+        <i class="fas fa-th-large"></i> الكل
+      </button>
+      <button class="filter-btn" onclick="filterProducts('tool', this)">
+        <i class="fas fa-tools"></i> أدوات
+      </button>
+      <button class="filter-btn" onclick="filterProducts('book', this)">
+        <i class="fas fa-book"></i> كتب
+      </button>
+      <button class="filter-btn" onclick="filterProducts('course', this)">
+        <i class="fas fa-graduation-cap"></i> دورات
+      </button>
+      <button class="filter-btn" onclick="filterProducts('template', this)">
+        <i class="fas fa-file-alt"></i> قوالب
+      </button>
+    </div>
+
+    <div class="products-grid" id="productsGrid"></div>
+  </div>
+</section>
+
+<!-- COURSES -->
+<section id="courses">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-tag">🎓 التعليم</div>
+      <h2 class="section-title">الدورات التعليمية</h2>
+      <p class="section-subtitle">تعلم من خبراء الهندسة الكهربائية بأسلوب تطبيقي وعملي</p>
+    </div>
+    <div class="courses-grid" id="coursesGrid"></div>
+  </div>
+</section>
+
+<!-- BOOKS -->
+<section id="books" style="background:rgba(13,22,38,0.4);">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-tag">📚 المكتبة</div>
+      <h2 class="section-title">الكتب الهندسية</h2>
+      <p class="section-subtitle">مراجع احترافية وكتب تقنية متخصصة في الهندسة الكهربائية</p>
+    </div>
+    <div class="books-grid" id="booksGrid"></div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials">
+  <div class="container">
+    <div class="section-header reveal">
+      <div class="section-tag">⭐ آراؤهم</div>
+      <h2 class="section-title">ماذا يقول عملاؤنا</h2>
+      <p class="section-subtitle">تجارب حقيقية من مهندسين استفادوا من منتجاتنا ودوراتنا</p>
+    </div>
+    <div class="testimonials-grid" id="testimonialsGrid"></div>
+  </div>
+</section>
+
+<!-- NEWSLETTER -->
+<section id="newsletter">
+  <div class="container">
+    <div class="newsletter-box">
+      <div class="section-tag" style="margin:0 auto 14px;">📧 النشرة البريدية</div>
+      <h2 class="section-title" id="newsletter-title">اشترك في نشرتنا البريدية</h2>
+      <p class="section-subtitle" id="newsletter-desc">احصل على أحدث الدورات والمقالات الهندسية مباشرة في بريدك</p>
+      <div class="newsletter-input-group">
+        <input type="email" class="newsletter-input" id="nlEmail" placeholder="أدخل بريدك الإلكتروني...">
+        <button class="btn-primary" onclick="subscribeNewsletter()" style="padding:14px 24px;white-space:nowrap;">
+          <i class="fas fa-paper-plane" style="margin-left:6px;"></i>
+          اشتراك
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer id="main-footer">
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <img src="" id="footer-logo" alt="3Engs" onerror="this.style.display='none'" style="height:44px;width:44px;border-radius:50%;border:2px solid var(--primary);">
+        <span style="font-family:var(--font-main);font-size:1.3rem;font-weight:900;color:var(--primary);" id="footer-brand-name">3Engs</span>
+      </div>
+      <p id="footer-desc">منصة هندسية متخصصة تقدم دورات وأدوات وكتب في الهندسة الكهربائية لبناء مسيرة مهنية متميزة.</p>
+      <div class="social-links">
+        <a href="https://instagram.com/3eng.s" target="_blank" class="social-link"><i class="fab fa-instagram"></i></a>
+        <a href="https://tiktok.com/@3eng.s" target="_blank" class="social-link"><i class="fab fa-tiktok"></i></a>
+        <a href="https://wa.me/00972592753159" target="_blank" class="social-link"><i class="fab fa-whatsapp"></i></a>
+        <a href="mailto:info@3engs.com" class="social-link"><i class="fas fa-envelope"></i></a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>روابط سريعة</h4>
+      <ul>
+        <li><a href="#products" onclick="smooth(event,'products')">المنتجات</a></li>
+        <li><a href="#courses" onclick="smooth(event,'courses')">الدورات</a></li>
+        <li><a href="#books" onclick="smooth(event,'books')">الكتب</a></li>
+        <li><a href="#testimonials" onclick="smooth(event,'testimonials')">التقييمات</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>الدعم</h4>
+      <ul>
+        <li><a href="#">سياسة الخصوصية</a></li>
+        <li><a href="#">الأسئلة الشائعة</a></li>
+        <li><a href="#">شروط الاستخدام</a></li>
+        <li><a href="mailto:info@3engs.com">تواصل معنا</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>تواصل معنا</h4>
+      <div class="contact-item"><i class="fas fa-envelope"></i> info@3engs.com</div>
+      <div class="contact-item"><i class="fab fa-whatsapp"></i> 00972592753159</div>
+      <div class="contact-item"><i class="fab fa-instagram"></i> @3eng.s</div>
+      <div class="contact-item"><i class="fab fa-tiktok"></i> @3eng.s</div>
+      <div class="contact-item"><i class="fas fa-globe"></i> www.3engs.com</div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span id="footer-copy">© 2024 3Engs - المهندسون الثلاثة. جميع الحقوق محفوظة.</span>
+    <span style="color:var(--primary);">⚡ صنع بشغف للمهندسين</span>
+  </div>
+</footer>
+
+</div><!-- end main-site -->
+
+<!-- ===== AUTH PAGE ===== -->
+<div id="auth-page" style="display:none;">
+  <div class="modal" style="position:relative;max-width:440px;width:90%;margin:auto;">
+    <button class="modal-close" onclick="showMainSite()" style="position:absolute;top:14px;left:14px;"><i class="fas fa-arrow-right"></i></button>
+    <div id="auth-login" style="display:block;">
+      <div style="text-align:center;margin-bottom:24px;">
+        <img src="" id="auth-logo" alt="3Engs" style="height:56px;width:56px;border-radius:50%;border:2px solid var(--primary);object-fit:cover;margin-bottom:12px;" onerror="this.style.display='none'">
+        <h2 class="modal-title">تسجيل الدخول</h2>
+        <p class="modal-sub">مرحباً بعودتك إلى 3Engs</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">البريد الإلكتروني</label>
+        <input type="email" class="form-input" id="loginEmail" placeholder="أدخل بريدك الإلكتروني">
+      </div>
+      <div class="form-group">
+        <label class="form-label">كلمة المرور</label>
+        <input type="password" class="form-input" id="loginPass" placeholder="أدخل كلمة المرور">
+      </div>
+      <button class="btn-primary" style="width:100%;padding:13px;" onclick="handleLogin()">دخول</button>
+      <div class="divider">أو</div>
+      <button class="btn-google" onclick="handleGoogleAuth()">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20">
+        الدخول بحساب جوجل
+      </button>
+      <div class="auth-switch">
+        ليس لديك حساب؟ <a onclick="switchAuth('signup')">سجّل الآن</a>
+      </div>
+    </div>
+    <div id="auth-signup" style="display:none;">
+      <div style="text-align:center;margin-bottom:24px;">
+        <h2 class="modal-title">إنشاء حساب</h2>
+        <p class="modal-sub">انضم إلى مجتمع 3Engs الهندسي</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">الاسم الكامل</label>
+        <input type="text" class="form-input" id="signupName" placeholder="أدخل اسمك الكامل">
+      </div>
+      <div class="form-group">
+        <label class="form-label">البريد الإلكتروني</label>
+        <input type="email" class="form-input" id="signupEmail" placeholder="أدخل بريدك الإلكتروني">
+      </div>
+      <div class="form-group">
+        <label class="form-label">كلمة المرور</label>
+        <input type="password" class="form-input" id="signupPass" placeholder="كلمة مرور قوية (8+ أحرف)">
+      </div>
+      <button class="btn-primary" style="width:100%;padding:13px;" onclick="handleSignup()">إنشاء الحساب</button>
+      <div class="divider">أو</div>
+      <button class="btn-google" onclick="handleGoogleAuth()">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20">
+        التسجيل بحساب جوجل
+      </button>
+      <div class="auth-switch">
+        لديك حساب؟ <a onclick="switchAuth('login')">سجّل دخولك</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ADMIN PAGE ===== -->
+<div id="admin-page">
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <div class="admin-sidebar">
+      <div class="admin-logo">
+        <img src="" id="admin-sidebar-logo" alt="3Engs" onerror="this.style.background='linear-gradient(135deg,#00D4FF,#7C3AED)';this.src=''">
+        <span>لوحة التحكم</span>
+      </div>
+      <nav class="admin-nav">
+        <div class="admin-nav-item active" onclick="switchAdminSection('dashboard', this)">
+          <i class="fas fa-chart-bar"></i> الإحصائيات
+        </div>
+        <div class="admin-nav-item" onclick="switchAdminSection('hero', this)">
+          <i class="fas fa-home"></i> الصفحة الرئيسية
+        </div>
+        <div class="admin-nav-item" onclick="switchAdminSection('products', this)">
+          <i class="fas fa-box"></i> المنتجات
+        </div>
+        <div class="admin-nav-item" onclick="switchAdminSection('courses', this)">
+          <i class="fas fa-graduation-cap"></i> الدورات
+        </div>
+        <div class="admin-nav-item" onclick="switchAdminSection('books', this)">
+          <i class="fas fa-book"></i> الكتب
+        </div>
+        <div class="admin-nav-item" onclick="switchAdminSection('testimonials', this)">
+          <i class="fas fa-star"></i> التقييمات
+        </div>
+        <div class="admin-nav-item" onclick="switchAdminSection('design', this)">
+          <i class="fas fa-palette"></i> التصميم والألوان
+        </div>
+        <div class="admin-nav-item" onclick="switchAdminSection('footer', this)">
+          <i class="fas fa-layer-group"></i> الفوتر والتواصل
+        </div>
+        <div class="admin-nav-item" onclick="switchAdminSection('users', this)">
+          <i class="fas fa-users"></i> المستخدمون
+        </div>
+        <div class="admin-nav-item" onclick="switchAdminSection('logo', this)">
+          <i class="fas fa-image"></i> الشعار والعلامة
+        </div>
+      </nav>
+      <div style="padding:16px 20px;border-top:1px solid var(--border);">
+        <button class="admin-btn admin-btn-danger" style="width:100%;" onclick="showMainSite()">
+          <i class="fas fa-eye" style="margin-left:6px;"></i> عرض الموقع
+        </button>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="admin-content">
+      <div class="admin-header">
+        <h1 class="admin-page-title" id="adminPageTitle">📊 الإحصائيات</h1>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:0.82rem;color:var(--text-secondary);">أهلاً، <span id="adminWelcome">مدير</span></span>
+          <button class="admin-btn admin-btn-primary admin-btn-sm" onclick="handleSignOut()">خروج</button>
+        </div>
+      </div>
+
+      <!-- Dashboard Section -->
+      <div class="admin-section active" id="section-dashboard">
+        <div class="admin-stats">
+          <div class="admin-stat">
+            <div class="admin-stat-icon" style="background:rgba(0,212,255,0.1);color:var(--primary);">
+              <i class="fas fa-users"></i>
+            </div>
+            <div>
+              <div class="admin-stat-num" id="dash-users">0</div>
+              <div class="admin-stat-label">المستخدمون</div>
+            </div>
+          </div>
+          <div class="admin-stat">
+            <div class="admin-stat-icon" style="background:rgba(124,58,237,0.1);color:var(--accent);">
+              <i class="fas fa-box"></i>
+            </div>
+            <div>
+              <div class="admin-stat-num" id="dash-products">6</div>
+              <div class="admin-stat-label">المنتجات</div>
+            </div>
+          </div>
+          <div class="admin-stat">
+            <div class="admin-stat-icon" style="background:rgba(255,215,0,0.1);color:var(--gold);">
+              <i class="fas fa-graduation-cap"></i>
+            </div>
+            <div>
+              <div class="admin-stat-num" id="dash-courses">3</div>
+              <div class="admin-stat-label">الدورات</div>
+            </div>
+          </div>
+          <div class="admin-stat">
+            <div class="admin-stat-icon" style="background:rgba(255,107,53,0.1);color:var(--secondary);">
+              <i class="fas fa-book"></i>
+            </div>
+            <div>
+              <div class="admin-stat-num" id="dash-books">6</div>
+              <div class="admin-stat-label">الكتب</div>
+            </div>
+          </div>
+        </div>
+        <div class="admin-table-card">
+          <div class="admin-table-header">
+            <span class="admin-table-title">📢 معلومات سريعة</span>
+          </div>
+          <div style="padding:24px;">
+            <p style="color:var(--text-secondary);font-size:0.9rem;line-height:2;">
+              ✅ الموقع يعمل بنجاح مع Firebase<br>
+              ✅ نظام المصادقة متاح (جوجل + إيميل)<br>
+              ✅ يمكنك التحكم بجميع عناصر الموقع من هنا<br>
+              ✅ التغييرات تُطبّق فوراً على الموقع<br>
+              ⚡ المهندسون الثلاثة — متخصصون بالهندسة الكهربائية
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Section Control -->
+      <div class="admin-section" id="section-hero">
+        <div class="admin-form-card">
+          <div class="admin-form-title">✏️ تعديل محتوى الصفحة الرئيسية</div>
+          <div class="admin-form-grid">
+            <div class="admin-form-group">
+              <label class="admin-form-label">الشارة (Badge)</label>
+              <input class="admin-form-input" id="hero-badge-input" placeholder="مثال: 🚀 منصة هندسية متكاملة">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">عنوان السطر الأول</label>
+              <input class="admin-form-input" id="hero-title1-input" placeholder="المهندسون الثلاثة">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">عنوان السطر الثاني (بالألوان)</label>
+              <input class="admin-form-input" id="hero-title2-input" placeholder="أدواتك لنجاح مهني استثنائي">
+            </div>
+            <div class="admin-form-group full">
+              <label class="admin-form-label">وصف الهيرو</label>
+              <textarea class="admin-form-textarea" id="hero-desc-input"></textarea>
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">إحصائية 1 (عدد الطلاب)</label>
+              <input class="admin-form-input" id="stat1-input" placeholder="+500">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">إحصائية 2 (المنتجات)</label>
+              <input class="admin-form-input" id="stat2-input" placeholder="+30">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">إحصائية 3 (التقييم)</label>
+              <input class="admin-form-input" id="stat3-input" placeholder="4.9★">
+            </div>
+          </div>
+          <button class="admin-btn admin-btn-primary" style="margin-top:16px;" onclick="saveHeroContent()">
+            <i class="fas fa-save" style="margin-left:6px;"></i> حفظ وتطبيق
+          </button>
+        </div>
+      </div>
+
+      <!-- Products Control -->
+      <div class="admin-section" id="section-products">
+        <div class="admin-form-card">
+          <div class="admin-form-title">➕ إضافة / تعديل منتج</div>
+          <input type="hidden" id="prod-edit-index" value="">
+          <div class="admin-form-grid">
+            <div class="admin-form-group">
+              <label class="admin-form-label">اسم المنتج</label>
+              <input class="admin-form-input" id="prod-name" placeholder="اسم المنتج">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">النوع</label>
+              <select class="admin-form-select" id="prod-type">
+                <option value="tool">أداة</option>
+                <option value="book">كتاب</option>
+                <option value="course">دورة</option>
+                <option value="template">قالب</option>
+              </select>
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">السعر (₪)</label>
+              <input class="admin-form-input" type="number" id="prod-price" placeholder="0">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">السعر القديم (اختياري)</label>
+              <input class="admin-form-input" type="number" id="prod-old-price" placeholder="0">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">الأيقونة (Emoji)</label>
+              <input class="admin-form-input" id="prod-icon" placeholder="⚡">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">شارة (مثل: جديد، خصم)</label>
+              <input class="admin-form-input" id="prod-badge" placeholder="جديد">
+            </div>
+            <div class="admin-form-group full">
+              <label class="admin-form-label">الوصف</label>
+              <textarea class="admin-form-textarea" id="prod-desc" placeholder="وصف المنتج..."></textarea>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:16px;">
+            <button class="admin-btn admin-btn-primary" onclick="saveProduct()">
+              <i class="fas fa-save" style="margin-left:6px;"></i> حفظ المنتج
+            </button>
+            <button class="admin-btn" style="background:var(--bg-card2);color:var(--text-secondary);border:1px solid var(--border);" onclick="clearProductForm()">
+              مسح
+            </button>
+          </div>
+        </div>
+        <div class="admin-table-card">
+          <div class="admin-table-header">
+            <span class="admin-table-title">📦 المنتجات الحالية</span>
+          </div>
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>الأيقونة</th>
+                <th>الاسم</th>
+                <th>النوع</th>
+                <th>السعر</th>
+                <th>الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="products-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Courses Control -->
+      <div class="admin-section" id="section-courses">
+        <div class="admin-form-card">
+          <div class="admin-form-title">➕ إضافة / تعديل دورة</div>
+          <input type="hidden" id="course-edit-index" value="">
+          <div class="admin-form-grid">
+            <div class="admin-form-group">
+              <label class="admin-form-label">اسم الدورة</label>
+              <input class="admin-form-input" id="c-name" placeholder="اسم الدورة">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">المستوى</label>
+              <select class="admin-form-select" id="c-level">
+                <option value="beginner">مبتدئ</option>
+                <option value="intermediate">متوسط</option>
+                <option value="advanced">متقدم</option>
+              </select>
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">السعر (₪)</label>
+              <input class="admin-form-input" type="number" id="c-price">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">مدة الدورة</label>
+              <input class="admin-form-input" id="c-duration" placeholder="مثال: 12 ساعة">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">عدد المحاضرات</label>
+              <input class="admin-form-input" id="c-lectures" placeholder="مثال: 48 محاضرة">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">الأيقونة (Emoji)</label>
+              <input class="admin-form-input" id="c-icon" placeholder="⚡">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">اسم المحاضر</label>
+              <input class="admin-form-input" id="c-instructor">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">عنوان المحاضر</label>
+              <input class="admin-form-input" id="c-instructor-title" placeholder="مهندس كهربائي">
+            </div>
+            <div class="admin-form-group full">
+              <label class="admin-form-label">وصف الدورة</label>
+              <textarea class="admin-form-textarea" id="c-desc"></textarea>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:16px;">
+            <button class="admin-btn admin-btn-primary" onclick="saveCourse()">حفظ الدورة</button>
+            <button class="admin-btn" style="background:var(--bg-card2);color:var(--text-secondary);border:1px solid var(--border);" onclick="clearCourseForm()">مسح</button>
+          </div>
+        </div>
+        <div class="admin-table-card">
+          <div class="admin-table-header"><span class="admin-table-title">🎓 الدورات الحالية</span></div>
+          <table class="admin-table">
+            <thead>
+              <tr><th>الأيقونة</th><th>الاسم</th><th>المستوى</th><th>السعر</th><th>الإجراءات</th></tr>
+            </thead>
+            <tbody id="courses-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Books Control -->
+      <div class="admin-section" id="section-books">
+        <div class="admin-form-card">
+          <div class="admin-form-title">➕ إضافة / تعديل كتاب</div>
+          <input type="hidden" id="book-edit-index" value="">
+          <div class="admin-form-grid">
+            <div class="admin-form-group">
+              <label class="admin-form-label">عنوان الكتاب</label>
+              <input class="admin-form-input" id="b-title">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">المؤلف</label>
+              <input class="admin-form-input" id="b-author">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">السعر (₪)</label>
+              <input class="admin-form-input" type="number" id="b-price">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">الأيقونة (Emoji)</label>
+              <input class="admin-form-input" id="b-icon" placeholder="📗">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">لون الغلاف 1</label>
+              <input class="admin-form-input" type="color" id="b-color1" value="#7C3AED">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">لون الغلاف 2</label>
+              <input class="admin-form-input" type="color" id="b-color2" value="#00D4FF">
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:16px;">
+            <button class="admin-btn admin-btn-primary" onclick="saveBook()">حفظ الكتاب</button>
+            <button class="admin-btn" style="background:var(--bg-card2);color:var(--text-secondary);border:1px solid var(--border);" onclick="clearBookForm()">مسح</button>
+          </div>
+        </div>
+        <div class="admin-table-card">
+          <div class="admin-table-header"><span class="admin-table-title">📚 الكتب الحالية</span></div>
+          <table class="admin-table">
+            <thead>
+              <tr><th>الأيقونة</th><th>العنوان</th><th>المؤلف</th><th>السعر</th><th>الإجراءات</th></tr>
+            </thead>
+            <tbody id="books-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Testimonials Control -->
+      <div class="admin-section" id="section-testimonials">
+        <div class="admin-form-card">
+          <div class="admin-form-title">➕ إضافة تقييم</div>
+          <input type="hidden" id="test-edit-index" value="">
+          <div class="admin-form-grid">
+            <div class="admin-form-group">
+              <label class="admin-form-label">اسم العميل</label>
+              <input class="admin-form-input" id="t-name">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">الوظيفة</label>
+              <input class="admin-form-input" id="t-job">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">التقييم (1-5)</label>
+              <select class="admin-form-select" id="t-stars">
+                <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+                <option value="4">⭐⭐⭐⭐ (4)</option>
+                <option value="3">⭐⭐⭐ (3)</option>
+              </select>
+            </div>
+            <div class="admin-form-group full">
+              <label class="admin-form-label">نص التقييم</label>
+              <textarea class="admin-form-textarea" id="t-text"></textarea>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:16px;">
+            <button class="admin-btn admin-btn-primary" onclick="saveTestimonial()">حفظ التقييم</button>
+            <button class="admin-btn" style="background:var(--bg-card2);color:var(--text-secondary);border:1px solid var(--border);" onclick="clearTestimonialForm()">مسح</button>
+          </div>
+        </div>
+        <div class="admin-table-card">
+          <div class="admin-table-header"><span class="admin-table-title">⭐ التقييمات الحالية</span></div>
+          <table class="admin-table">
+            <thead><tr><th>الاسم</th><th>الوظيفة</th><th>التقييم</th><th>الإجراءات</th></tr></thead>
+            <tbody id="testimonials-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Design Control -->
+      <div class="admin-section" id="section-design">
+        <div class="admin-form-card">
+          <div class="admin-form-title">🎨 تخصيص ألوان الموقع</div>
+          <div class="color-grid" style="margin-bottom:20px;">
+            <div class="color-item">
+              <label class="admin-form-label">اللون الأساسي (Primary)</label>
+              <input type="color" class="color-preview" id="c-primary" value="#00D4FF" onchange="applyColor('--primary', this.value)">
+              <span style="font-size:0.78rem;color:var(--text-secondary);" id="c-primary-val">#00D4FF</span>
+            </div>
+            <div class="color-item">
+              <label class="admin-form-label">اللون الثانوي (Accent)</label>
+              <input type="color" class="color-preview" id="c-accent" value="#7C3AED" onchange="applyColor('--accent', this.value);document.getElementById('c-accent-val').textContent=this.value">
+              <span style="font-size:0.78rem;color:var(--text-secondary);" id="c-accent-val">#7C3AED</span>
+            </div>
+            <div class="color-item">
+              <label class="admin-form-label">لون التمييز (Secondary)</label>
+              <input type="color" class="color-preview" id="c-secondary" value="#FF6B35" onchange="applyColor('--secondary', this.value);document.getElementById('c-secondary-val').textContent=this.value">
+              <span style="font-size:0.78rem;color:var(--text-secondary);" id="c-secondary-val">#FF6B35</span>
+            </div>
+            <div class="color-item">
+              <label class="admin-form-label">الخلفية الداكنة</label>
+              <input type="color" class="color-preview" id="c-bg" value="#050A14" onchange="applyColor('--bg-dark', this.value);document.getElementById('c-bg-val').textContent=this.value">
+              <span style="font-size:0.78rem;color:var(--text-secondary);" id="c-bg-val">#050A14</span>
+            </div>
+            <div class="color-item">
+              <label class="admin-form-label">خلفية البطاقات</label>
+              <input type="color" class="color-preview" id="c-card" value="#0D1626" onchange="applyColor('--bg-card', this.value);document.getElementById('c-card-val').textContent=this.value">
+              <span style="font-size:0.78rem;color:var(--text-secondary);" id="c-card-val">#0D1626</span>
+            </div>
+            <div class="color-item">
+              <label class="admin-form-label">لون الذهبي</label>
+              <input type="color" class="color-preview" id="c-gold" value="#FFD700" onchange="applyColor('--gold', this.value);document.getElementById('c-gold-val').textContent=this.value">
+              <span style="font-size:0.78rem;color:var(--text-secondary);" id="c-gold-val">#FFD700</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button class="admin-btn admin-btn-primary" onclick="saveColors()">حفظ الألوان</button>
+            <button class="admin-btn" style="background:var(--bg-card2);color:var(--text-secondary);border:1px solid var(--border);" onclick="resetColors()">إعادة الضبط</button>
+          </div>
+        </div>
+        <div class="admin-form-card">
+          <div class="admin-form-title">🔤 الخطوط والنصوص</div>
+          <div class="admin-form-grid">
+            <div class="admin-form-group">
+              <label class="admin-form-label">الخط الرئيسي</label>
+              <select class="admin-form-select" id="font-main" onchange="document.documentElement.style.setProperty('--font-main', this.value)">
+                <option value="'Cairo', sans-serif">Cairo</option>
+                <option value="'Tajawal', sans-serif">Tajawal</option>
+                <option value="'Almarai', sans-serif">Almarai</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Control -->
+      <div class="admin-section" id="section-footer">
+        <div class="admin-form-card">
+          <div class="admin-form-title">🦶 تعديل الفوتر والتواصل</div>
+          <div class="admin-form-grid">
+            <div class="admin-form-group">
+              <label class="admin-form-label">اسم العلامة التجارية</label>
+              <input class="admin-form-input" id="footer-brand-input">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">البريد الإلكتروني</label>
+              <input class="admin-form-input" id="footer-email-input" type="email">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">رقم الواتساب</label>
+              <input class="admin-form-input" id="footer-whatsapp-input">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">انستغرام</label>
+              <input class="admin-form-input" id="footer-instagram-input" placeholder="@3eng.s">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">تيكتوك</label>
+              <input class="admin-form-input" id="footer-tiktok-input" placeholder="@3eng.s">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">الموقع الإلكتروني</label>
+              <input class="admin-form-input" id="footer-website-input">
+            </div>
+            <div class="admin-form-group full">
+              <label class="admin-form-label">وصف الفوتر</label>
+              <textarea class="admin-form-textarea" id="footer-desc-input"></textarea>
+            </div>
+            <div class="admin-form-group full">
+              <label class="admin-form-label">حقوق النشر</label>
+              <input class="admin-form-input" id="footer-copy-input">
+            </div>
+          </div>
+          <button class="admin-btn admin-btn-primary" style="margin-top:16px;" onclick="saveFooter()">حفظ الفوتر</button>
+        </div>
+      </div>
+
+      <!-- Users Section -->
+      <div class="admin-section" id="section-users">
+        <div class="admin-table-card">
+          <div class="admin-table-header">
+            <span class="admin-table-title">👥 المستخدمون المسجلون</span>
+            <button class="admin-btn admin-btn-primary admin-btn-sm" onclick="loadUsers()">
+              <i class="fas fa-sync" style="margin-left:4px;"></i> تحديث
+            </button>
+          </div>
+          <table class="admin-table">
+            <thead><tr><th>الاسم</th><th>البريد</th><th>الصلاحية</th><th>تاريخ التسجيل</th></tr></thead>
+            <tbody id="users-table-body">
+              <tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text-secondary);">اضغط تحديث لتحميل المستخدمين</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Logo Section -->
+      <div class="admin-section" id="section-logo">
+        <div class="admin-form-card">
+          <div class="admin-form-title">🖼️ الشعار والعلامة التجارية</div>
+          <div class="admin-form-grid">
+            <div class="admin-form-group full">
+              <label class="admin-form-label">رابط الشعار (URL)</label>
+              <input class="admin-form-input" id="logo-url-input" placeholder="أدخل رابط صورة الشعار">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">اسم الموقع</label>
+              <input class="admin-form-input" id="site-name-input" placeholder="3Engs">
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">معاينة الشعار</label>
+              <div style="width:80px;height:80px;border-radius:50%;border:2px solid var(--primary);overflow:hidden;background:linear-gradient(135deg,var(--primary),var(--accent));display:flex;align-items:center;justify-content:center;font-size:1.5rem;" id="logo-preview">⚡</div>
+            </div>
+          </div>
+          <div style="margin-top:12px;margin-bottom:8px;">
+            <label class="admin-form-label">أو ارفع صورة مباشرة</label>
+            <input type="file" accept="image/*" onchange="uploadLogoFile(event)" style="color:var(--text-primary);margin-top:8px;">
+          </div>
+          <button class="admin-btn admin-btn-primary" style="margin-top:16px;" onclick="saveLogo()">حفظ الشعار</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- WHATSAPP FLOAT -->
+<a href="https://wa.me/00972592753159" target="_blank" class="whatsapp-float" id="waFloat">
+  <i class="fab fa-whatsapp"></i>
+</a>
+
+<script>
+// ========== DATA ==========
+let siteData = {
+  products: [
+    { name: 'محاكي الدوائر الكهربائية', type: 'tool', price: 149, oldPrice: 250, icon: '⚡', badge: 'جديد', desc: 'أداة احترافية لمحاكاة وتصميم الدوائر الكهربائية بسهولة تامة.' },
+    { name: 'حاسبة التحميل الكهربائي', type: 'tool', price: 89, oldPrice: 150, icon: '🔌', badge: 'مميز', desc: 'احسب التحميل الكهربائي للمشاريع بدقة وسرعة عالية.' },
+    { name: 'قالب تقرير هندسي', type: 'template', price: 49, oldPrice: null, icon: '📄', badge: '', desc: 'قالب احترافي لإعداد التقارير الهندسية الكهربائية.' },
+    { name: 'مقدمة في الطاقة الشمسية', type: 'book', price: 79, oldPrice: 120, icon: '☀️', badge: 'الأكثر مبيعاً', desc: 'دليل شامل لفهم أساسيات الطاقة الشمسية وتطبيقاتها.' },
+    { name: 'دورة MATLAB للمهندسين', type: 'course', price: 299, oldPrice: 499, icon: '🖥️', badge: 'خصم 40%', desc: 'تعلم MATLAB من الصفر حتى الاحتراف لتطبيقات هندسية متقدمة.' },
+    { name: 'حزمة قوالب AutoCAD', type: 'template', price: 129, oldPrice: 200, icon: '📐', badge: 'حزمة', desc: 'مجموعة قوالب AutoCAD الكهربائية الجاهزة للاستخدام المباشر.' }
+  ],
+  courses: [
+    { name: 'الهندسة الكهربائية للمبتدئين', level: 'beginner', price: 199, duration: '20 ساعة', lectures: '80 محاضرة', icon: '⚡', instructor: 'م. أحمد الخطيب', instructorTitle: 'مهندس كهربائي أول', desc: 'دورة شاملة لأساسيات الهندسة الكهربائية تبدأ من الصفر حتى المستوى المتوسط.' },
+    { name: 'أنظمة الطاقة المتجددة', level: 'intermediate', price: 349, duration: '30 ساعة', lectures: '120 محاضرة', icon: '🌞', instructor: 'م. سارة النجار', instructorTitle: 'متخصصة طاقة متجددة', desc: 'تعمق في تصميم وتركيب أنظمة الطاقة الشمسية وطاقة الرياح.' },
+    { name: 'برمجة الـ PLC المتقدمة', level: 'advanced', price: 449, duration: '40 ساعة', lectures: '160 محاضرة', icon: '🤖', instructor: 'م. خالد العمر', instructorTitle: 'خبير أتمتة صناعية', desc: 'احترف برمجة وحدات التحكم المنطقي القابل للبرمجة للتطبيقات الصناعية.' }
+  ],
+  books: [
+    { title: 'أسس الدوائر الكهربائية', author: 'د. محمد العلي', price: 89, icon: '⚡', color1: '#7C3AED', color2: '#00D4FF' },
+    { title: 'تصميم أنظمة التوزيع', author: 'م. أحمد الكريم', price: 99, icon: '🔧', color1: '#FF6B35', color2: '#FFD700' },
+    { title: 'الطاقة الشمسية التطبيقية', author: 'د. سمير حسن', price: 79, icon: '☀️', color1: '#059669', color2: '#10B981' },
+    { title: 'مقدمة في الإلكترونيات', author: 'م. عمر ناصر', price: 69, icon: '📡', color1: '#0EA5E9', color2: '#6366F1' },
+    { title: 'حماية الشبكات الكهربائية', author: 'د. هشام قادر', price: 119, icon: '🛡️', color1: '#DC2626', color2: '#F97316' },
+    { title: 'MATLAB للمهندسين', author: 'م. رنا سالم', price: 85, icon: '💻', color1: '#7C3AED', color2: '#EC4899' }
+  ],
+  testimonials: [
+    { name: 'م. يوسف الحمدان', job: 'مهندس كهرباء - شركة سيمنز', stars: 5, text: 'دورة الـ PLC غيّرت مساري المهني بالكامل. المحتوى عملي ومباشر، واستطعت تطبيقه فوراً في عملي. أنصح كل مهندس بالالتحاق بمنصة 3Engs.' },
+    { name: 'سلمى العثمان', job: 'طالبة هندسة - الجامعة الأردنية', stars: 5, text: 'الكتب والأدوات ساعدتني كثيراً في مشاريع التخرج. التصميم رائع والمحتوى منظم جداً. شكراً للمهندسين الثلاثة على هذا الجهد المبارك.' },
+    { name: 'أ. كريم الزهراني', job: 'مدرب هندسي - معهد تقني', stars: 5, text: 'أستخدم منتجات 3Engs في تدريباتي بشكل منتظم. الجودة ممتازة والدعم الفني استثنائي. هذه المنصة تستحق كل التقدير والدعم.' }
+  ],
+  settings: {
+    heroTitle1: 'المهندسون الثلاثة',
+    heroTitle2: 'أدواتك لنجاح مهني استثنائي',
+    heroDesc: 'منصة تعليمية هندسية متخصصة بالهندسة الكهربائية — دورات احترافية، كتب تقنية، أدوات ذكية.',
+    heroBadge: '🚀 منصة هندسية متكاملة',
+    stat1: '+500', stat2: '+30', stat3: '4.9★',
+    footerBrand: '3Engs - المهندسون الثلاثة',
+    footerDesc: 'منصة هندسية متخصصة تقدم دورات وأدوات وكتب في الهندسة الكهربائية لبناء مسيرة مهنية متميزة.',
+    footerEmail: 'info@3engs.com',
+    footerWhatsapp: '00972592753159',
+    footerInstagram: '@3eng.s',
+    footerTiktok: '@3eng.s',
+    footerWebsite: 'www.3engs.com',
+    footerCopy: '© 2024 3Engs - المهندسون الثلاثة. جميع الحقوق محفوظة.',
+    logoUrl: '',
+    siteName: '3Engs',
+    colors: { primary: '#00D4FF', accent: '#7C3AED', secondary: '#FF6B35', bgDark: '#050A14', bgCard: '#0D1626', gold: '#FFD700' }
+  }
+};
+
+let cart = [];
+
+// Load from localStorage
+function loadLocal() {
+  const saved = localStorage.getItem('3engs_data');
+  if (saved) {
+    try {
+      const d = JSON.parse(saved);
+      Object.assign(siteData, d);
+    } catch(e) {}
+  }
+}
+
+function saveLocal() {
+  localStorage.setItem('3engs_data', JSON.stringify(siteData));
+}
+
+// ========== AUTH ==========
+window.onAuthChange = function(user) {
+  if (user) {
+    document.getElementById('authButtons').style.display = 'none';
+    document.getElementById('userMenu').style.display = 'flex';
+    const name = user.displayName || user.email.split('@')[0];
+    document.getElementById('userName').textContent = `👋 ${name}`;
+    document.getElementById('adminWelcome').textContent = name;
+    const adminBtn = document.getElementById('adminBtn');
+    if (window.ADMIN_EMAILS && window.ADMIN_EMAILS.includes(user.email)) {
+      adminBtn.style.display = 'inline-block';
+    } else {
+      adminBtn.style.display = 'none';
+    }
+  } else {
+    document.getElementById('authButtons').style.display = 'flex';
+    document.getElementById('userMenu').style.display = 'none';
+  }
+};
+
+async function handleGoogleAuth() {
+  try {
+    await window.fbSignInWithPopup(window.firebaseAuth, window.googleProvider);
+    showMainSite();
+    showToast('تم تسجيل الدخول بنجاح! 🎉', 'success');
+  } catch(e) {
+    showToast('حدث خطأ: ' + e.message, 'error');
+  }
+}
+
+async function handleLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  if (!email || !pass) return showToast('يرجى تعبئة جميع الحقول', 'error');
+  try {
+    await window.fbSignIn(window.firebaseAuth, email, pass);
+    showMainSite();
+    showToast('مرحباً بك! 👋', 'success');
+  } catch(e) {
+    showToast('بيانات غير صحيحة', 'error');
+  }
+}
+
+async function handleSignup() {
+  const name = document.getElementById('signupName').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+  const pass = document.getElementById('signupPass').value;
+  if (!name || !email || !pass) return showToast('يرجى تعبئة جميع الحقول', 'error');
+  if (pass.length < 8) return showToast('كلمة المرور يجب أن تكون 8 أحرف على الأقل', 'error');
+  try {
+    const cred = await window.fbCreateUser(window.firebaseAuth, email, pass);
+    await window.fbSetDoc(window.fbDoc(window.firebaseDb, 'users', cred.user.uid), {
+      name, email, createdAt: new Date().toISOString(), role: 'user'
+    });
+    showMainSite();
+    showToast(`مرحباً ${name}! تم إنشاء حسابك بنجاح 🎉`, 'success');
+  } catch(e) {
+    showToast('خطأ: ' + e.message, 'error');
+  }
+}
+
+async function handleSignOut() {
+  await window.fbSignOut(window.firebaseAuth);
+  showMainSite();
+  showToast('تم تسجيل الخروج', 'info');
+}
+
+function switchAuth(type) {
+  document.getElementById('auth-login').style.display = type === 'login' ? 'block' : 'none';
+  document.getElementById('auth-signup').style.display = type === 'signup' ? 'block' : 'none';
+}
+
+// ========== NAVIGATION ==========
+function showAuth(type) {
+  document.getElementById('main-site').style.display = 'none';
+  document.getElementById('admin-page').style.display = 'none';
+  document.getElementById('auth-page').style.display = 'flex';
+  switchAuth(type);
+}
+
+function showMainSite() {
+  document.getElementById('main-site').style.display = 'block';
+  document.getElementById('admin-page').style.display = 'none';
+  document.getElementById('auth-page').style.display = 'none';
+}
+
+function showAdmin() {
+  const user = window.currentUser;
+  if (!user || !window.ADMIN_EMAILS.includes(user.email)) {
+    showToast('غير مصرح لك بالوصول', 'error');
+    return;
+  }
+  document.getElementById('main-site').style.display = 'none';
+  document.getElementById('admin-page').style.display = 'block';
+  document.getElementById('auth-page').style.display = 'none';
+  loadAdminData();
+}
+
+function smooth(e, id) {
+  e.preventDefault();
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+}
+
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ========== NAVBAR SCROLL ==========
+window.addEventListener('scroll', () => {
+  const nav = document.getElementById('navbar');
+  nav.classList.toggle('scrolled', window.scrollY > 50);
+});
+
+// ========== SCROLL REVEAL ==========
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('visible');
+  });
+}, { threshold: 0.1 });
+
+function initReveal() {
+  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+}
+
+// ========== PRODUCTS ==========
+function renderProducts(filter = 'all') {
+  const grid = document.getElementById('productsGrid');
+  const filtered = filter === 'all' ? siteData.products : siteData.products.filter(p => p.type === filter);
+  
+  grid.innerHTML = filtered.map((p, realIdx) => {
+    const idx = siteData.products.indexOf(p);
+    const typeLabels = { tool: 'أداة', book: 'كتاب', course: 'دورة', template: 'قالب' };
+    return `
+    <div class="product-card reveal" style="animation-delay:${(realIdx % 3) * 0.1}s">
+      <div class="product-thumb" style="background:linear-gradient(135deg, hsl(${idx*60},60%,20%), hsl(${idx*60+40},70%,30%));">
+        <span style="font-size:3.5rem;position:relative;z-index:1;">${p.icon || '📦'}</span>
+        ${p.badge ? `<div class="product-badge">${p.badge}</div>` : ''}
+      </div>
+      <div class="product-body">
+        <div class="product-type">${typeLabels[p.type] || p.type}</div>
+        <div class="product-name">${p.name}</div>
+        <div class="product-desc">${p.desc}</div>
+        <div class="product-footer">
+          <div class="product-price">
+            ${p.oldPrice ? `<span class="old-price">₪${p.oldPrice}</span>` : ''}
+            ₪${p.price}
+          </div>
+          <button class="add-cart-btn" onclick='addToCart(${JSON.stringify(p).replace(/'/g, "\\'")})'>
+            <i class="fas fa-cart-plus" style="margin-left:4px;"></i> أضف
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  initReveal();
+}
+
+function filterProducts(type, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderProducts(type);
+}
+
+// ========== COURSES ==========
+function renderCourses() {
+  const levels = { beginner: { label: 'مبتدئ', cls: 'level-beginner' }, intermediate: { label: 'متوسط', cls: 'level-intermediate' }, advanced: { label: 'متقدم', cls: 'level-advanced' } };
+  document.getElementById('coursesGrid').innerHTML = siteData.courses.map((c, i) => {
+    const lv = levels[c.level] || { label: c.level, cls: 'level-beginner' };
+    return `
+    <div class="course-card reveal reveal-delay-${i+1}">
+      <div class="course-thumb" style="background:linear-gradient(135deg, hsl(${i*80+200},70%,25%), hsl(${i*80+240},80%,35%));">
+        <span style="font-size:4rem;position:relative;z-index:1;">${c.icon || '🎓'}</span>
+        <div class="course-level ${lv.cls}">${lv.label}</div>
+      </div>
+      <div class="course-body">
+        <div class="course-name">${c.name}</div>
+        <div class="course-desc">${c.desc}</div>
+        <div class="course-meta">
+          <div class="meta-item"><i class="fas fa-clock"></i> ${c.duration}</div>
+          <div class="meta-item"><i class="fas fa-play-circle"></i> ${c.lectures}</div>
+        </div>
+        <div class="instructor">
+          <div class="instructor-avatar">${(c.instructor || 'م')[0]}</div>
+          <div class="instructor-info">
+            <div class="instructor-name">${c.instructor}</div>
+            <div class="instructor-title">${c.instructorTitle}</div>
+          </div>
+        </div>
+        <div class="course-footer">
+          <div class="product-price">₪${c.price}</div>
+          <button class="add-cart-btn" onclick='addToCart({name:${JSON.stringify(c.name)},price:${c.price},icon:${JSON.stringify(c.icon||"🎓")},type:"course"})'>
+            <i class="fas fa-cart-plus" style="margin-left:4px;"></i> سجّل الآن
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  initReveal();
+}
+
+// ========== BOOKS ==========
+function renderBooks() {
+  document.getElementById('booksGrid').innerHTML = siteData.books.map((b, i) => `
+    <div class="book-card reveal reveal-delay-${i % 5 + 1}" onclick='addToCart({name:${JSON.stringify(b.title)},price:${b.price},icon:${JSON.stringify(b.icon||"📚")},type:"book"})'>
+      <div class="book-3d">
+        <div class="book-cover" style="background:linear-gradient(135deg, ${b.color1||'#7C3AED'}, ${b.color2||'#00D4FF'})">
+          <span style="position:relative;z-index:1;">${b.icon || '📗'}</span>
+        </div>
+      </div>
+      <div class="book-title">${b.title}</div>
+      <div class="book-author">${b.author}</div>
+      <div class="book-price">₪${b.price}</div>
+    </div>
+  `).join('');
+  initReveal();
+}
+
+// ========== TESTIMONIALS ==========
+function renderTestimonials() {
+  document.getElementById('testimonialsGrid').innerHTML = siteData.testimonials.map((t, i) => `
+    <div class="testimonial-card reveal reveal-delay-${i+1}">
+      <div class="quote-icon">"</div>
+      <div class="testimonial-stars">${'⭐'.repeat(t.stars)}</div>
+      <div class="testimonial-text">${t.text}</div>
+      <div class="testimonial-author">
+        <div class="author-avatar">${t.name[0]}</div>
+        <div>
+          <div class="author-name">${t.name}</div>
+          <div class="author-job">${t.job}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+  initReveal();
+}
+
+// ========== NEWSLETTER ==========
+function subscribeNewsletter() {
+  const email = document.getElementById('nlEmail').value.trim();
+  if (!email || !email.includes('@')) {
+    showToast('يرجى إدخال بريد إلكتروني صحيح', 'error');
+    return;
+  }
+  showToast('تم الاشتراك بنجاح! 🎉 شكراً لانضمامك', 'success');
+  document.getElementById('nlEmail').value = '';
+}
+
+// ========== CART ==========
+function addToCart(product) {
+  cart.push(product);
+  updateCartUI();
+  showToast(`تمت الإضافة: ${product.name} 🛒`, 'success');
+  openCart();
+}
+
+function updateCartUI() {
+  const count = cart.length;
+  const countEl = document.getElementById('cartCount');
+  countEl.textContent = count;
+  countEl.style.display = count > 0 ? 'flex' : 'none';
+
+  const total = cart.reduce((s, p) => s + Number(p.price), 0);
+  document.getElementById('cartTotal').textContent = `₪${total}`;
+
+  const itemsEl = document.getElementById('cartItems');
+  if (cart.length === 0) {
+    itemsEl.innerHTML = '<div class="cart-empty"><i class="fas fa-shopping-bag"></i><p>السلة فارغة</p></div>';
+  } else {
+    itemsEl.innerHTML = cart.map((p, i) => `
+      <div class="cart-item">
+        <div class="cart-item-icon">${p.icon || '📦'}</div>
+        <div class="cart-item-info">
+          <div class="cart-item-name">${p.name}</div>
+          <div class="cart-item-price">₪${p.price}</div>
+        </div>
+        <button class="cart-item-remove" onclick="removeFromCart(${i})"><i class="fas fa-trash"></i></button>
+      </div>
+    `).join('');
+  }
+}
+
+function removeFromCart(i) {
+  cart.splice(i, 1);
+  updateCartUI();
+}
+
+function openCart() {
+  document.getElementById('cartSidebar').classList.add('open');
+  document.getElementById('cartOverlay').classList.add('show');
+}
+
+function closeCart() {
+  document.getElementById('cartSidebar').classList.remove('open');
+  document.getElementById('cartOverlay').classList.remove('show');
+}
+
+function checkout() {
+  if (cart.length === 0) return showToast('السلة فارغة!', 'error');
+  openWhatsApp();
+}
+
+function openWhatsApp() {
+  const items = cart.map(p => `- ${p.name}: ₪${p.price}`).join('\n');
+  const total = cart.reduce((s, p) => s + Number(p.price), 0);
+  const msg = cart.length > 0
+    ? `مرحباً، أود الشراء:\n${items}\nالإجمالي: ₪${total}`
+    : 'مرحباً، أود الاستفسار عن منتجاتكم';
+  window.open(`https://wa.me/00972592753159?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+// ========== TOAST ==========
+function showToast(msg, type = 'success') {
+  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<span class="toast-icon">${icons[type]}</span><span class="toast-msg">${msg}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3500);
+}
+
+// ========== SETTINGS APPLY ==========
+function applySettings() {
+  const s = siteData.settings;
+  document.getElementById('hero-badge-text').textContent = s.heroBadge || '';
+  document.getElementById('hero-title-line1').textContent = s.heroTitle1 || '';
+  document.getElementById('hero-title-line2').textContent = s.heroTitle2 || '';
+  document.getElementById('hero-desc').textContent = s.heroDesc || '';
+  document.getElementById('stat1').textContent = s.stat1 || '';
+  document.getElementById('stat2').textContent = s.stat2 || '';
+  document.getElementById('stat3').textContent = s.stat3 || '';
+  document.getElementById('footer-brand-name').textContent = s.footerBrand || '';
+  document.getElementById('footer-desc').textContent = s.footerDesc || '';
+  document.getElementById('footer-copy').textContent = s.footerCopy || '';
+  document.getElementById('site-name-nav').textContent = s.siteName || '3Engs';
+  document.getElementById('newsletter-title').textContent = s.newsletterTitle || 'اشترك في نشرتنا البريدية';
+  document.getElementById('newsletter-desc').textContent = s.newsletterDesc || 'احصل على أحدث الدورات والمقالات الهندسية مباشرة في بريدك';
+
+  if (s.logoUrl) {
+    const logoImgs = ['nav-logo-img', 'hero-logo', 'footer-logo', 'auth-logo', 'admin-sidebar-logo'];
+    logoImgs.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.src = s.logoUrl;
+    });
+  }
+
+  if (s.colors) {
+    const root = document.documentElement;
+    if (s.colors.primary) root.style.setProperty('--primary', s.colors.primary);
+    if (s.colors.accent) root.style.setProperty('--accent', s.colors.accent);
+    if (s.colors.secondary) root.style.setProperty('--secondary', s.colors.secondary);
+    if (s.colors.bgDark) root.style.setProperty('--bg-dark', s.colors.bgDark);
+    if (s.colors.bgCard) root.style.setProperty('--bg-card', s.colors.bgCard);
+    if (s.colors.gold) root.style.setProperty('--gold', s.colors.gold);
+  }
+}
+
+// ========== ADMIN ==========
+function switchAdminSection(name, el) {
+  document.querySelectorAll('.admin-nav-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('section-' + name).classList.add('active');
+  const titles = {
+    dashboard: '📊 الإحصائيات', hero: '🏠 الصفحة الرئيسية', products: '📦 المنتجات',
+    courses: '🎓 الدورات', books: '📚 الكتب', testimonials: '⭐ التقييمات',
+    design: '🎨 التصميم والألوان', footer: '🦶 الفوتر والتواصل', users: '👥 المستخدمون', logo: '🖼️ الشعار'
+  };
+  document.getElementById('adminPageTitle').textContent = titles[name] || '';
+}
+
+function loadAdminData() {
+  const s = siteData.settings;
+  // Fill hero inputs
+  document.getElementById('hero-badge-input').value = s.heroBadge || '';
+  document.getElementById('hero-title1-input').value = s.heroTitle1 || '';
+  document.getElementById('hero-title2-input').value = s.heroTitle2 || '';
+  document.getElementById('hero-desc-input').value = s.heroDesc || '';
+  document.getElementById('stat1-input').value = s.stat1 || '';
+  document.getElementById('stat2-input').value = s.stat2 || '';
+  document.getElementById('stat3-input').value = s.stat3 || '';
+  // Fill footer inputs
+  document.getElementById('footer-brand-input').value = s.footerBrand || '';
+  document.getElementById('footer-email-input').value = s.footerEmail || '';
+  document.getElementById('footer-whatsapp-input').value = s.footerWhatsapp || '';
+  document.getElementById('footer-instagram-input').value = s.footerInstagram || '';
+  document.getElementById('footer-tiktok-input').value = s.footerTiktok || '';
+  document.getElementById('footer-website-input').value = s.footerWebsite || '';
+  document.getElementById('footer-desc-input').value = s.footerDesc || '';
+  document.getElementById('footer-copy-input').value = s.footerCopy || '';
+  // Logo
+  document.getElementById('logo-url-input').value = s.logoUrl || '';
+  document.getElementById('site-name-input').value = s.siteName || '3Engs';
+  // Tables
+  renderProductsTable();
+  renderCoursesTable();
+  renderBooksTable();
+  renderTestimonialsTable();
+  // Colors
+  if (s.colors) {
+    if (s.colors.primary) { document.getElementById('c-primary').value = s.colors.primary; document.getElementById('c-primary-val').textContent = s.colors.primary; }
+    if (s.colors.accent) { document.getElementById('c-accent').value = s.colors.accent; document.getElementById('c-accent-val').textContent = s.colors.accent; }
+    if (s.colors.secondary) { document.getElementById('c-secondary').value = s.colors.secondary; document.getElementById('c-secondary-val').textContent = s.colors.secondary; }
+    if (s.colors.bgDark) { document.getElementById('c-bg').value = s.colors.bgDark; document.getElementById('c-bg-val').textContent = s.colors.bgDark; }
+    if (s.colors.bgCard) { document.getElementById('c-card').value = s.colors.bgCard; document.getElementById('c-card-val').textContent = s.colors.bgCard; }
+    if (s.colors.gold) { document.getElementById('c-gold').value = s.colors.gold; document.getElementById('c-gold-val').textContent = s.colors.gold; }
+  }
+}
+
+// Hero Save
+function saveHeroContent() {
+  siteData.settings.heroBadge = document.getElementById('hero-badge-input').value;
+  siteData.settings.heroTitle1 = document.getElementById('hero-title1-input').value;
+  siteData.settings.heroTitle2 = document.getElementById('hero-title2-input').value;
+  siteData.settings.heroDesc = document.getElementById('hero-desc-input').value;
+  siteData.settings.stat1 = document.getElementById('stat1-input').value;
+  siteData.settings.stat2 = document.getElementById('stat2-input').value;
+  siteData.settings.stat3 = document.getElementById('stat3-input').value;
+  saveLocal(); applySettings();
+  showToast('تم حفظ محتوى الهيرو ✅', 'success');
+}
+
+// Products Admin
+function renderProductsTable() {
+  const typeLabels = { tool: 'أداة', book: 'كتاب', course: 'دورة', template: 'قالب' };
+  document.getElementById('products-table-body').innerHTML = siteData.products.map((p, i) => `
+    <tr>
+      <td>${p.icon || '📦'}</td>
+      <td>${p.name}</td>
+      <td>${typeLabels[p.type] || p.type}</td>
+      <td>₪${p.price}</td>
+      <td>
+        <button class="admin-btn admin-btn-primary admin-btn-sm" onclick="editProduct(${i})" style="margin-left:6px;">✏️</button>
+        <button class="admin-btn admin-btn-danger admin-btn-sm" onclick="deleteProduct(${i})">🗑️</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function saveProduct() {
+  const idx = document.getElementById('prod-edit-index').value;
+  const prod = {
+    name: document.getElementById('prod-name').value,
+    type: document.getElementById('prod-type').value,
+    price: Number(document.getElementById('prod-price').value),
+    oldPrice: Number(document.getElementById('prod-old-price').value) || null,
+    icon: document.getElementById('prod-icon').value || '📦',
+    badge: document.getElementById('prod-badge').value,
+    desc: document.getElementById('prod-desc').value
+  };
+  if (!prod.name) return showToast('أدخل اسم المنتج', 'error');
+  if (idx !== '') siteData.products[parseInt(idx)] = prod;
+  else siteData.products.push(prod);
+  saveLocal(); renderProducts(); renderProductsTable(); clearProductForm();
+  showToast('تم حفظ المنتج ✅', 'success');
+}
+
+function editProduct(i) {
+  const p = siteData.products[i];
+  document.getElementById('prod-edit-index').value = i;
+  document.getElementById('prod-name').value = p.name;
+  document.getElementById('prod-type').value = p.type;
+  document.getElementById('prod-price').value = p.price;
+  document.getElementById('prod-old-price').value = p.oldPrice || '';
+  document.getElementById('prod-icon').value = p.icon || '';
+  document.getElementById('prod-badge').value = p.badge || '';
+  document.getElementById('prod-desc').value = p.desc || '';
+  document.querySelector('#section-products .admin-form-title').textContent = '✏️ تعديل المنتج';
+}
+
+function deleteProduct(i) {
+  if (!confirm('حذف هذا المنتج؟')) return;
+  siteData.products.splice(i, 1);
+  saveLocal(); renderProducts(); renderProductsTable();
+  showToast('تم حذف المنتج', 'info');
+}
+
+function clearProductForm() {
+  ['prod-name','prod-price','prod-old-price','prod-icon','prod-badge','prod-desc'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('prod-edit-index').value = '';
+  document.getElementById('prod-type').value = 'tool';
+}
+
+// Courses Admin
+function renderCoursesTable() {
+  document.getElementById('courses-table-body').innerHTML = siteData.courses.map((c, i) => `
+    <tr>
+      <td>${c.icon || '🎓'}</td>
+      <td>${c.name}</td>
+      <td>${c.level}</td>
+      <td>₪${c.price}</td>
+      <td>
+        <button class="admin-btn admin-btn-primary admin-btn-sm" onclick="editCourse(${i})" style="margin-left:6px;">✏️</button>
+        <button class="admin-btn admin-btn-danger admin-btn-sm" onclick="deleteCourse(${i})">🗑️</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function saveCourse() {
+  const idx = document.getElementById('course-edit-index').value;
+  const c = {
+    name: document.getElementById('c-name').value,
+    level: document.getElementById('c-level').value,
+    price: Number(document.getElementById('c-price').value),
+    duration: document.getElementById('c-duration').value,
+    lectures: document.getElementById('c-lectures').value,
+    icon: document.getElementById('c-icon').value || '🎓',
+    instructor: document.getElementById('c-instructor').value,
+    instructorTitle: document.getElementById('c-instructor-title').value,
+    desc: document.getElementById('c-desc').value
+  };
+  if (!c.name) return showToast('أدخل اسم الدورة', 'error');
+  if (idx !== '') siteData.courses[parseInt(idx)] = c;
+  else siteData.courses.push(c);
+  saveLocal(); renderCourses(); renderCoursesTable(); clearCourseForm();
+  showToast('تم حفظ الدورة ✅', 'success');
+}
+
+function editCourse(i) {
+  const c = siteData.courses[i];
+  document.getElementById('course-edit-index').value = i;
+  document.getElementById('c-name').value = c.name;
+  document.getElementById('c-level').value = c.level;
+  document.getElementById('c-price').value = c.price;
+  document.getElementById('c-duration').value = c.duration;
+  document.getElementById('c-lectures').value = c.lectures;
+  document.getElementById('c-icon').value = c.icon || '';
+  document.getElementById('c-instructor').value = c.instructor;
+  document.getElementById('c-instructor-title').value = c.instructorTitle;
+  document.getElementById('c-desc').value = c.desc;
+}
+
+function deleteCourse(i) {
+  if (!confirm('حذف هذه الدورة؟')) return;
+  siteData.courses.splice(i, 1);
+  saveLocal(); renderCourses(); renderCoursesTable();
+  showToast('تم الحذف', 'info');
+}
+
+function clearCourseForm() {
+  ['c-name','c-price','c-duration','c-lectures','c-icon','c-instructor','c-instructor-title','c-desc'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('course-edit-index').value = '';
+}
+
+// Books Admin
+function renderBooksTable() {
+  document.getElementById('books-table-body').innerHTML = siteData.books.map((b, i) => `
+    <tr>
+      <td>${b.icon || '📚'}</td>
+      <td>${b.title}</td>
+      <td>${b.author}</td>
+      <td>₪${b.price}</td>
+      <td>
+        <button class="admin-btn admin-btn-primary admin-btn-sm" onclick="editBook(${i})" style="margin-left:6px;">✏️</button>
+        <button class="admin-btn admin-btn-danger admin-btn-sm" onclick="deleteBook(${i})">🗑️</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function saveBook() {
+  const idx = document.getElementById('book-edit-index').value;
+  const b = {
+    title: document.getElementById('b-title').value,
+    author: document.getElementById('b-author').value,
+    price: Number(document.getElementById('b-price').value),
+    icon: document.getElementById('b-icon').value || '📚',
+    color1: document.getElementById('b-color1').value,
+    color2: document.getElementById('b-color2').value
+  };
+  if (!b.title) return showToast('أدخل عنوان الكتاب', 'error');
+  if (idx !== '') siteData.books[parseInt(idx)] = b;
+  else siteData.books.push(b);
+  saveLocal(); renderBooks(); renderBooksTable(); clearBookForm();
+  showToast('تم حفظ الكتاب ✅', 'success');
+}
+
+function editBook(i) {
+  const b = siteData.books[i];
+  document.getElementById('book-edit-index').value = i;
+  document.getElementById('b-title').value = b.title;
+  document.getElementById('b-author').value = b.author;
+  document.getElementById('b-price').value = b.price;
+  document.getElementById('b-icon').value = b.icon || '';
+  document.getElementById('b-color1').value = b.color1 || '#7C3AED';
+  document.getElementById('b-color2').value = b.color2 || '#00D4FF';
+}
+
+function deleteBook(i) {
+  if (!confirm('حذف هذا الكتاب؟')) return;
+  siteData.books.splice(i, 1);
+  saveLocal(); renderBooks(); renderBooksTable();
+  showToast('تم الحذف', 'info');
+}
+
+function clearBookForm() {
+  ['b-title','b-author','b-price','b-icon'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('book-edit-index').value = '';
+}
+
+// Testimonials Admin
+function renderTestimonialsTable() {
+  document.getElementById('testimonials-table-body').innerHTML = siteData.testimonials.map((t, i) => `
+    <tr>
+      <td>${t.name}</td>
+      <td>${t.job}</td>
+      <td>${'⭐'.repeat(t.stars)}</td>
+      <td>
+        <button class="admin-btn admin-btn-primary admin-btn-sm" onclick="editTestimonial(${i})" style="margin-left:6px;">✏️</button>
+        <button class="admin-btn admin-btn-danger admin-btn-sm" onclick="deleteTestimonial(${i})">🗑️</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function saveTestimonial() {
+  const idx = document.getElementById('test-edit-index').value;
+  const t = {
+    name: document.getElementById('t-name').value,
+    job: document.getElementById('t-job').value,
+    stars: Number(document.getElementById('t-stars').value),
+    text: document.getElementById('t-text').value
+  };
+  if (!t.name) return showToast('أدخل اسم العميل', 'error');
+  if (idx !== '') siteData.testimonials[parseInt(idx)] = t;
+  else siteData.testimonials.push(t);
+  saveLocal(); renderTestimonials(); renderTestimonialsTable(); clearTestimonialForm();
+  showToast('تم حفظ التقييم ✅', 'success');
+}
+
+function editTestimonial(i) {
+  const t = siteData.testimonials[i];
+  document.getElementById('test-edit-index').value = i;
+  document.getElementById('t-name').value = t.name;
+  document.getElementById('t-job').value = t.job;
+  document.getElementById('t-stars').value = t.stars;
+  document.getElementById('t-text').value = t.text;
+}
+
+function deleteTestimonial(i) {
+  if (!confirm('حذف هذا التقييم؟')) return;
+  siteData.testimonials.splice(i, 1);
+  saveLocal(); renderTestimonials(); renderTestimonialsTable();
+}
+
+function clearTestimonialForm() {
+  ['t-name','t-job','t-text'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('test-edit-index').value = '';
+  document.getElementById('t-stars').value = '5';
+}
+
+// Colors
+function applyColor(varName, val) {
+  document.documentElement.style.setProperty(varName, val);
+  const key = { '--primary': 'primary', '--accent': 'accent', '--secondary': 'secondary', '--bg-dark': 'bgDark', '--bg-card': 'bgCard', '--gold': 'gold' }[varName];
+  if (key) siteData.settings.colors[key] = val;
+  const valEl = document.getElementById('c-' + (key === 'bgDark' ? 'bg' : key === 'bgCard' ? 'card' : key) + '-val');
+  if (valEl) valEl.textContent = val;
+}
+
+function saveColors() {
+  saveLocal();
+  showToast('تم حفظ الألوان ✅', 'success');
+}
+
+function resetColors() {
+  siteData.settings.colors = { primary: '#00D4FF', accent: '#7C3AED', secondary: '#FF6B35', bgDark: '#050A14', bgCard: '#0D1626', gold: '#FFD700' };
+  saveLocal(); applySettings(); loadAdminData();
+  showToast('تم إعادة الألوان للافتراضي', 'info');
+}
+
+// Footer Save
+function saveFooter() {
+  const s = siteData.settings;
+  s.footerBrand = document.getElementById('footer-brand-input').value;
+  s.footerEmail = document.getElementById('footer-email-input').value;
+  s.footerWhatsapp = document.getElementById('footer-whatsapp-input').value;
+  s.footerInstagram = document.getElementById('footer-instagram-input').value;
+  s.footerTiktok = document.getElementById('footer-tiktok-input').value;
+  s.footerWebsite = document.getElementById('footer-website-input').value;
+  s.footerDesc = document.getElementById('footer-desc-input').value;
+  s.footerCopy = document.getElementById('footer-copy-input').value;
+  saveLocal(); applySettings();
+  showToast('تم حفظ الفوتر ✅', 'success');
+}
+
+// Logo
+function saveLogo() {
+  const url = document.getElementById('logo-url-input').value;
+  const name = document.getElementById('site-name-input').value;
+  siteData.settings.logoUrl = url;
+  siteData.settings.siteName = name;
+  saveLocal(); applySettings();
+  if (url) document.getElementById('logo-preview').innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+  showToast('تم حفظ الشعار ✅', 'success');
+}
+
+function uploadLogoFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const url = e.target.result;
+    document.getElementById('logo-url-input').value = url;
+    document.getElementById('logo-preview').innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+    siteData.settings.logoUrl = url;
+    applySettings();
+  };
+  reader.readAsDataURL(file);
+}
+
+// Users
+async function loadUsers() {
+  try {
+    const snap = await window.fbGetDocs(window.fbCollection(window.firebaseDb, 'users'));
+    const tbody = document.getElementById('users-table-body');
+    if (snap.empty) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-secondary);">لا يوجد مستخدمون مسجلون بعد</td></tr>';
+      return;
+    }
+    tbody.innerHTML = snap.docs.map(d => {
+      const u = d.data();
+      const isAdmin = window.ADMIN_EMAILS.includes(u.email);
+      return `<tr>
+        <td>${u.name || '—'}</td>
+        <td>${u.email || '—'}</td>
+        <td><span class="${isAdmin ? 'badge-admin' : 'badge-user'}">${isAdmin ? 'مدير' : 'مستخدم'}</span></td>
+        <td>${u.createdAt ? new Date(u.createdAt).toLocaleDateString('ar') : '—'}</td>
+      </tr>`;
+    }).join('');
+    document.getElementById('dash-users').textContent = snap.size;
+  } catch(e) {
+    showToast('خطأ في تحميل المستخدمين: ' + e.message, 'error');
+  }
+}
+
+// ========== INIT ==========
+document.addEventListener('DOMContentLoaded', () => {
+  loadLocal();
+  applySettings();
+  renderProducts();
+  renderCourses();
+  renderBooks();
+  renderTestimonials();
+  initReveal();
+});
+</script>
+</body>
+</html>
