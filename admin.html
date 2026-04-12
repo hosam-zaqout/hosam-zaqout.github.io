@@ -1,191 +1,934 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم 3Engs | الإدارة</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #06b6d4;
-            --dark: #0f172a;
-            --dark2: #1e293b;
-            --text: #f8fafc;
-            --border: rgba(6, 182, 212, 0.2);
-        }
-        body { font-family: 'Cairo', sans-serif; background: var(--dark); color: var(--text); margin: 0; display: flex; }
-        
-        /* Sidebar */
-        .sidebar { width: 260px; background: var(--dark2); height: 100vh; position: fixed; border-left: 1px solid var(--border); padding: 20px; }
-        .sidebar h2 { color: var(--primary); font-size: 1.5rem; margin-bottom: 30px; text-align: center; }
-        .nav-item { padding: 12px 15px; border-radius: 8px; cursor: pointer; transition: 0.3s; margin-bottom: 5px; display: block; color: var(--text); text-decoration: none; }
-        .nav-item:hover, .nav-item.active { background: var(--primary); color: #fff; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3Engs | المهندسون الثلاثة</title>
+<meta name="description" content="منصة 3Engs — المهندسون الثلاثة. منتجات رقمية، دورات تعليمية، وكتب متخصصة في الهندسة والتقنية.">
+<meta property="og:title" content="3Engs | المهندسون الثلاثة">
+<meta property="og:url" content="https://www.3engs.com">
 
-        /* Main Content */
-        .main-content { margin-right: 260px; padding: 40px; width: 100%; }
-        .card { background: var(--dark2); border: 1px solid var(--border); border-radius: 12px; padding: 25px; margin-bottom: 20px; }
-        h3 { margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 20px; }
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
+  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  // إضافة مكتبات المصادقة (Authentication)
+  import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  
+  const firebaseConfig = {
+    apiKey: "AIzaSyALJiF8l_wnk_6FU6etQpz44Z43lSORXQk",
+    authDomain: "engs-website.firebaseapp.com",
+    projectId: "engs-website",
+    storageBucket: "engs-website.firebasestorage.app",
+    messagingSenderId: "1028163586505",
+    appId: "1:1028163586505:web:c09de00bb30a3369ca4018",
+    measurementId: "G-GZJCYL5YM8"
+  };
 
-        /* Forms */
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; }
-        input, textarea, select { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--dark); color: #fff; font-family: 'Cairo'; }
-        .btn-save { background: var(--primary); color: #fff; border: none; padding: 10px 25px; border-radius: 6px; cursor: pointer; font-weight: 700; }
-        
-        /* Tables */
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 12px; text-align: right; border-bottom: 1px solid var(--border); }
-        th { color: var(--primary); }
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+  const provider = new GoogleAuthProvider();
 
-        #login-overlay { position: fixed; inset: 0; background: var(--dark); z-index: 1000; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-    </style>
+  // --- كود مراقبة التغييرات (تحديث تلقائي) ---
+
+  // 1. جلب إعدادات الموقع والشعار من لوحة التحكم (Settings)
+  import { doc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  onSnapshot(doc(db, "settings", "global"), (snap) => {
+      if (snap.exists()) {
+          const data = snap.data();
+          // تحديث الشعار إذا كان هناك رابط جديد
+          const logoImg = document.querySelector('.nav-logo img') || document.getElementById('main-logo');
+          if(data.logo && logoImg) logoImg.src = data.logo;
+          
+          // تحديث نصوص الهيرو (العنوان والوصف)
+          const h1 = document.querySelector('.hero-h1');
+          const p = document.querySelector('.hero-sub');
+          if(data.h1 && h1) h1.innerHTML = data.h1;
+          if(data.p && p) p.innerText = data.p;
+      }
+  });
+
+  // 2. جلب المنتجات والدورات وعرضها ديناميكياً في الـ Grid
+  const itemsQuery = query(collection(db, "items"), orderBy("timestamp", "desc"));
+  onSnapshot(itemsQuery, (snap) => {
+      const grid = document.getElementById('productsGrid');
+      if(!grid) return;
+      
+      grid.innerHTML = ''; // مسح المحتوى القديم
+      snap.forEach(d => {
+          const item = d.data();
+          grid.innerHTML += `
+              <div class="product-card">
+                  <div class="card-image">
+                      <img src="${item.img || 'default-image.jpg'}" alt="${item.name}">
+                      <span class="badge">${item.type === 'course' ? 'دورة' : 'منتج'}</span>
+                  </div>
+                  <div class="card-content">
+                      <h3>${item.name}</h3>
+                      <div class="card-footer">
+                          <span class="price">${item.price}</span>
+                          <button class="btn-buy">شراء الآن</button>
+                      </div>
+                  </div>
+              </div>`;
+      });
+  });
+
+  logEvent(analytics, 'page_view');
+
+  window.fbDb = db;
+  window.fbCollection = collection;
+  window.fbAddDoc = addDoc;
+  window.fbServerTimestamp = serverTimestamp;
+  window.fbLogEvent = (name, params) => logEvent(analytics, name, params);
+
+  // دوال تسجيل الدخول والخروج
+  window.loginWithGoogle = async () => {
+    try {
+      await signInWithPopup(auth, provider);
+      showToast("✓ تم تسجيل الدخول بنجاح!");
+    } catch (error) {
+      console.error(error);
+      showToast("⚠️ حدث خطأ أثناء تسجيل الدخول", true);
+    }
+  };
+
+  window.logout = async () => {
+    try {
+      await signOut(auth);
+      showToast("✓ تم تسجيل الخروج");
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // مراقبة حالة المستخدم لتحديث الواجهة
+  onAuthStateChanged(auth, (user) => {
+    const authDesktop = document.getElementById('auth-desktop');
+    const authMobile = document.getElementById('auth-mobile');
+
+    if (user) {
+      // حالة تسجيل الدخول
+      if(authDesktop) {
+        authDesktop.innerHTML = `
+          <div style="display:flex; align-items:center; gap:12px;">
+            <img src="${user.photoURL}" alt="User" style="width:34px; height:34px; border-radius:50%; border:2px solid var(--gold);">
+            <button onclick="logout()" class="nav-cta" style="background:transparent!important; border:1px solid var(--gold)!important; color:var(--gold)!important; padding:6px 16px;">خروج</button>
+          </div>
+        `;
+      }
+      if(authMobile) {
+        authMobile.innerHTML = `
+           <div style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--border);">
+             <img src="${user.photoURL}" alt="User" style="width:40px; height:40px; border-radius:50%; border:2px solid var(--gold);">
+             <span style="color:var(--text); font-weight:700;">${user.displayName}</span>
+           </div>
+           <a href="#" class="m-cta" style="background:transparent; border:1px solid var(--gold); color:var(--gold)!important;" onclick="logout(); closeMenu()">تسجيل الخروج</a>
+        `;
+      }
+    } else {
+      // حالة تسجيل الخروج
+      if(authDesktop) {
+        authDesktop.innerHTML = `<button onclick="loginWithGoogle()" class="nav-cta" style="border:none; cursor:pointer;">تسجيل الدخول</button>`;
+      }
+      if(authMobile) {
+        authMobile.innerHTML = `<a href="#" class="m-cta" onclick="loginWithGoogle(); closeMenu()">تسجيل الدخول (Google)</a>`;
+      }
+    }
+  });
+
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* ألوان عصرية: درجات الأزرق الداكن والسماوي الساطع (Cyan/Teal) */
+    --gold: #06b6d4;         /* السماوي الأساسي - عوضاً عن الذهبي */
+    --gold-light: #22d3ee;   /* سماوي فاتح */
+    --gold-dim: #0891b2;     /* سماوي داكن */
+    --dark: #0f172a;         /* أزرق داكن جداً (Slate 900) */
+    --dark2: #1e293b;        /* أزرق رمادي (Slate 800) */
+    --card: rgba(30, 41, 59, 0.7); /* شفافية للتأثير الزجاجي */
+    --border: rgba(6, 182, 212, 0.15);
+    --text: #f8fafc;
+    --muted: #94a3b8;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { background:var(--dark); color:var(--text); font-family:'Cairo',sans-serif; overflow-x:hidden; }
+  body::before {
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.3;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  }
+
+  /* NAV */
+  nav {
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 60px;
+    background:rgba(15, 23, 42, .85); backdrop-filter:blur(15px); -webkit-backdrop-filter:blur(15px);
+    border-bottom:1px solid var(--border); transition:padding .3s;
+  }
+  .logo-wrap { display:flex; align-items:center; gap:12px; text-decoration:none; }
+  .logo-icon {
+    width:44px; height:44px; 
+    background:linear-gradient(135deg, var(--gold), #3b82f6); 
+    border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:900;
+    color:#fff; letter-spacing:-1px; flex-shrink:0;
+    box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+  }
+  .logo-text { display:flex; flex-direction:column; line-height:1.1; }
+  .logo-en { font-family:'Playfair Display',serif; font-size:1.3rem; font-weight:900; color:var(--gold); }
+  .logo-ar { font-size:0.7rem; color:var(--muted); font-weight:600; letter-spacing:1px; }
+
+  .nav-links { display:flex; gap:30px; list-style:none; align-items:center; }
+  .nav-links a {
+    color:var(--muted); text-decoration:none; font-size:.95rem; font-weight:600;
+    transition:color .25s; position:relative;
+  }
+  .nav-links a::after {
+    content:''; position:absolute; bottom:-4px; right:0;
+    width:0; height:2px; background:var(--gold); transition:width .3s; border-radius:2px;
+  }
+  .nav-links a:hover { color:var(--gold); }
+  .nav-links a:hover::after { width:100%; }
+  .nav-cta {
+    background:linear-gradient(135deg, var(--gold), #0284c7) !important; color:#fff !important;
+    padding:10px 22px; border-radius:8px; font-weight:700 !important; font-family:'Cairo',sans-serif;
+    transition:transform 0.2s, box-shadow 0.2s !important;
+  }
+  .nav-cta:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(6,182,212,.3); }
+  .nav-cta::after { display:none !important; }
+
+  .hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; }
+  .hamburger span { display:block; width:24px; height:2px; background:var(--gold); border-radius:2px; transition:all .3s; }
+  .hamburger.open span:nth-child(1) { transform:rotate(45deg) translate(5px,5px); }
+  .hamburger.open span:nth-child(2) { opacity:0; }
+  .hamburger.open span:nth-child(3) { transform:rotate(-45deg) translate(5px,-5px); }
+
+  .mobile-menu {
+    display:none; position:fixed; top:72px; left:0; right:0;
+    background:rgba(15, 23, 42,.97); backdrop-filter:blur(20px);
+    border-bottom:1px solid var(--border); padding:22px 28px;
+    z-index:99; flex-direction:column; gap:14px;
+  }
+  .mobile-menu.open { display:flex; }
+  .mobile-menu a {
+    color:var(--text); text-decoration:none; font-size:1rem; font-weight:600;
+    padding:10px 0; border-bottom:1px solid var(--border); transition:color .2s;
+  }
+  .mobile-menu a:hover { color:var(--gold); }
+  .mobile-menu .m-cta { background:linear-gradient(135deg, var(--gold), #0284c7); color:#fff!important; text-align:center; padding:14px; border-radius:8px; border-bottom:none; margin-top:6px; font-weight:700!important; }
+
+  /* HERO */
+  .hero {
+    min-height:100vh; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; text-align:center; padding:130px 40px 80px; position:relative; overflow:hidden;
+  }
+  .hero-bg {
+    position:absolute; inset:0;
+    background:radial-gradient(circle at 50% 30%, rgba(6,182,212,.12) 0%, transparent 60%),
+               radial-gradient(circle at 20% 80%, rgba(59,130,246,.08) 0%, transparent 50%);
+  }
+  .hero-dots { position:absolute; inset:0; overflow:hidden; pointer-events:none; }
+  .dot { position:absolute; width:2px; height:2px; background:var(--gold); border-radius:50%; opacity:0; animation:floatDot linear infinite; }
+  @keyframes floatDot { 0%{opacity:0;transform:translateY(0)} 10%{opacity:.6} 90%{opacity:.3} 100%{opacity:0;transform:translateY(-100vh)} }
+
+  .hero-badge {
+    display:inline-flex; align-items:center; gap:8px;
+    background:rgba(6,182,212,.1); border:1px solid var(--border);
+    color:var(--gold); font-size:.8rem; font-weight:700;
+    letter-spacing:1px; padding:8px 20px; border-radius:20px; margin-bottom:36px;
+    animation:fadeDown .8s ease both; position:relative;
+  }
+  h1.hero-h1 {
+    font-family:'Cairo',sans-serif; font-size:clamp(2.8rem,7vw,5.5rem);
+    font-weight:900; line-height:1.2; margin-bottom:22px;
+    animation:fadeDown .8s ease .15s both; position:relative;
+  }
+  h1.hero-h1 .gold { 
+    background: -webkit-linear-gradient(0deg, var(--gold-light), var(--gold-dim));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero-sub { font-size:1.1rem; color:var(--muted); max-width:600px; line-height:1.9; margin-bottom:46px; animation:fadeDown .8s ease .3s both; position:relative; }
+  .hero-btns { display:flex; gap:16px; flex-wrap:wrap; justify-content:center; animation:fadeDown .8s ease .45s both; position:relative; }
+
+  .btn-primary { background:linear-gradient(135deg, var(--gold), #0284c7); color:#fff; padding:16px 38px; border-radius:8px; font-size:1rem; font-weight:700; font-family:'Cairo',sans-serif; border:none; cursor:pointer; transition:transform .2s,box-shadow .25s; text-decoration:none; display:inline-block; }
+  .btn-primary:hover { transform:translateY(-3px); box-shadow:0 12px 30px rgba(6,182,212,.3); }
+  .btn-outline { background:rgba(255,255,255,0.03); color:var(--text); padding:16px 38px; border-radius:8px; font-size:1rem; font-weight:700; font-family:'Cairo',sans-serif; border:1px solid var(--border); cursor:pointer; transition:all .25s; text-decoration:none; display:inline-block; backdrop-filter:blur(5px); }
+  .btn-outline:hover { border-color:var(--gold); color:var(--gold); transform:translateY(-3px); background:rgba(6,182,212,.05); }
+
+  .hero-stats { display:flex; gap:60px; margin-top:80px; animation:fadeUp .8s ease .6s both; flex-wrap:wrap; justify-content:center; position:relative; }
+  .stat { text-align:center; }
+  .stat-num { font-family:'Playfair Display',serif; font-size:2.4rem; font-weight:900; color:var(--text); display:block; }
+  .stat-label { font-size:.85rem; color:var(--gold); font-weight:700; margin-top:4px; }
+
+  /* SECTIONS */
+  section { padding:100px 60px; position:relative; }
+  .section-tag { display:inline-block; color:var(--gold); font-size:.8rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; border-right:3px solid var(--gold); padding-right:12px; margin-bottom:14px; }
+  .section-title { font-family:'Cairo',sans-serif; font-size:clamp(1.8rem,4vw,2.8rem); font-weight:900; margin-bottom:12px; line-height:1.3; }
+  .section-title .gold { color:var(--gold); }
+  .section-desc { color:var(--muted); font-size:1rem; line-height:1.8; max-width:520px; }
+  .section-header { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:52px; flex-wrap:wrap; gap:24px; }
+  .gold-divider { width:60px; height:3px; background:linear-gradient(90deg,var(--gold),transparent); margin-bottom:14px; border-radius:2px; }
+  .view-all { color:var(--gold); text-decoration:none; font-size:.9rem; font-weight:700; display:flex; align-items:center; gap:8px; transition:gap .25s; white-space:nowrap; }
+  .view-all:hover { gap:14px; }
+
+  /* CATEGORIES */
+  .categories { background:var(--dark2); border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:24px 60px; display:flex; gap:12px; overflow-x:auto; scrollbar-width:none; }
+  .categories::-webkit-scrollbar { display:none; }
+  .cat-btn { white-space:nowrap; padding:10px 24px; border-radius:20px; border:1px solid var(--border); background:rgba(255,255,255,0.02); color:var(--muted); font-family:'Cairo',sans-serif; font-size:.9rem; font-weight:600; cursor:pointer; transition:all .25s; flex-shrink:0; backdrop-filter:blur(5px); }
+  .cat-btn.active,.cat-btn:hover { background:var(--gold); color:#fff; border-color:var(--gold); box-shadow:0 4px 15px rgba(6,182,212,.2); }
+
+  /* PRODUCTS */
+  #products { background:var(--dark); }
+  .products-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(285px,1fr)); gap:26px; }
+  .product-card { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; transition:transform .3s,box-shadow .3s,border-color .3s; position:relative; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
+  .product-card:hover { transform:translateY(-8px); box-shadow:0 20px 40px rgba(0,0,0,.5),0 0 0 1px rgba(6,182,212,.4); border-color:rgba(6,182,212,.5); }
+  .card-badge { position:absolute; top:14px; right:14px; background:var(--gold); color:#fff; font-size:.7rem; font-weight:700; padding:5px 12px; border-radius:20px; letter-spacing:1px; z-index:2; box-shadow:0 4px 10px rgba(0,0,0,0.2); }
+  .card-badge.sale { background:#E74C3C; }
+  .card-badge.free { background:#10B981; }
+  .card-thumb { width:100%; height:185px; display:flex; align-items:center; justify-content:center; font-size:4rem; position:relative; overflow:hidden; }
+  .card-thumb.type-course { background:linear-gradient(135deg,#0f172a,#1e3a8a); }
+  .card-thumb.type-ebook  { background:linear-gradient(135deg,#064e3b,#0f172a); }
+  .card-thumb.type-tool   { background:linear-gradient(135deg,#312e81,#0f172a); }
+  .card-thumb.type-template { background:linear-gradient(135deg,#4c1d95,#0f172a); }
+  .card-thumb::after { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at center,rgba(6,182,212,.15),transparent 70%); }
+  .card-body { padding:22px; }
+  .card-type { font-size:.7rem; font-weight:700; color:var(--gold); letter-spacing:1px; margin-bottom:8px; }
+  .card-title { font-family:'Cairo',sans-serif; font-size:1.1rem; font-weight:700; margin-bottom:8px; line-height:1.4; color:#fff; }
+  .card-desc { font-size:.85rem; color:var(--muted); line-height:1.7; margin-bottom:16px; }
+  .card-footer { display:flex; align-items:center; justify-content:space-between; padding-top:14px; border-top:1px solid rgba(255,255,255,0.05); margin-bottom:16px; }
+  .price-current { font-family:'Playfair Display',serif; font-size:1.3rem; font-weight:900; color:var(--gold); }
+  .price-old { font-size:.85rem; color:var(--muted); text-decoration:line-through; margin-right:6px; }
+  .card-stars { color:#F59E0B; font-size:.8rem; }
+  .card-reviews { font-size:.75rem; color:var(--muted); margin-right:4px; }
+  .btn-card { width:100%; background:rgba(6,182,212,0.05); border:1px solid var(--gold); color:var(--gold); padding:12px; border-radius:8px; font-family:'Cairo',sans-serif; font-size:.9rem; font-weight:700; cursor:pointer; transition:all .25s; }
+  .btn-card:hover { background:var(--gold); color:#fff; box-shadow:0 4px 15px rgba(6,182,212,.3); }
+
+  /* FEATURES */
+  .features-strip { background:var(--dark2); border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:60px 60px; }
+  .features-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:34px; }
+  .feature { display:flex; align-items:flex-start; gap:16px; }
+  .feature-icon { font-size:1.5rem; flex-shrink:0; width:52px; height:52px; background:rgba(6,182,212,.1); border:1px solid var(--border); border-radius:12px; display:flex; align-items:center; justify-content:center; color:var(--gold); }
+  .feature-text h4 { font-size:1rem; font-weight:700; margin-bottom:6px; color:#fff; }
+  .feature-text p { font-size:.85rem; color:var(--muted); line-height:1.6; }
+
+  /* COURSES */
+  #courses { background:var(--dark); }
+  .courses-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:26px; }
+  .course-card { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; transition:all .3s; display:flex; flex-direction:column; backdrop-filter:blur(10px); }
+  .course-card:hover { border-color:rgba(6,182,212,.5); box-shadow:0 16px 40px rgba(0,0,0,.4); transform:translateY(-6px); }
+  .course-thumb { height:180px; display:flex; align-items:center; justify-content:center; font-size:3.5rem; position:relative; }
+  .course-thumb.c1 { background:linear-gradient(135deg,#020617,#1e293b); }
+  .course-thumb.c2 { background:linear-gradient(135deg,#170f2e,#2e1e54); }
+  .course-thumb.c3 { background:linear-gradient(135deg,#0f172a,#0f3d3e); }
+  .course-overlay { position:absolute; bottom:0; left:0; right:0; padding:12px 16px; background:linear-gradient(transparent,rgba(0,0,0,.9)); font-family:'Cairo',sans-serif; font-size:.75rem; color:var(--gold); font-weight:700; letter-spacing:1px; }
+  .course-body { padding:24px; flex:1; display:flex; flex-direction:column; }
+  .course-title { font-family:'Cairo',sans-serif; font-size:1.1rem; font-weight:700; margin-bottom:12px; line-height:1.4; color:#fff; }
+  .course-desc { font-size:.85rem; color:var(--muted); line-height:1.7; flex:1; margin-bottom:18px; }
+  .course-meta { display:flex; gap:16px; margin-bottom:18px; flex-wrap:wrap; background:rgba(0,0,0,0.2); padding:10px; border-radius:8px; }
+  .meta-item { font-size:.75rem; color:var(--gold-light); font-weight:600; }
+  .course-footer { display:flex; align-items:center; justify-content:space-between; padding-top:16px; border-top:1px solid rgba(255,255,255,0.05); }
+  .instructor { display:flex; align-items:center; gap:12px; }
+  .instr-avatar { width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,var(--gold-dim),var(--gold)); display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:700; color:#fff; flex-shrink:0; }
+  .instr-name { font-size:.85rem; font-weight:700; color:#fff; }
+  .instr-role { font-size:.75rem; color:var(--muted); }
+
+  /* BOOKS */
+  #books { background:var(--dark2); }
+  .books-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:36px; }
+  .book-card { display:flex; flex-direction:column; align-items:center; text-align:center; cursor:pointer; transition:transform .3s; }
+  .book-card:hover { transform:translateY(-8px); }
+  .book-cover { width:150px; height:215px; border-radius:6px 12px 12px 6px; display:flex; align-items:center; justify-content:center; font-size:3.5rem; position:relative; margin-bottom:18px; box-shadow:-8px 8px 30px rgba(0,0,0,.5),4px 0 0 rgba(6,182,212,.2); transition:box-shadow .3s; }
+  .book-card:hover .book-cover { box-shadow:-12px 16px 40px rgba(0,0,0,.6),4px 0 0 rgba(6,182,212,.5); }
+  .book-cover.b1{background:linear-gradient(160deg,#0f172a,#1e3a8a)}
+  .book-cover.b2{background:linear-gradient(160deg,#1e1b4b,#312e81)}
+  .book-cover.b3{background:linear-gradient(160deg,#064e3b,#047857)}
+  .book-cover.b4{background:linear-gradient(160deg,#4c1d95,#6d28d9)}
+  .book-cover.b5{background:linear-gradient(160deg,#831843,#be185d)}
+  .book-cover.b6{background:linear-gradient(160deg,#0f172a,#0f3d3e)}
+  .book-spine { position:absolute; right:-4px; top:0; bottom:0; width:4px; background:rgba(6,182,212,.4); border-radius:0 4px 4px 0; }
+  .book-title { font-family:'Cairo',sans-serif; font-size:1rem; font-weight:700; margin-bottom:6px; line-height:1.4; color:#fff; }
+  .book-author { font-size:.8rem; color:var(--muted); margin-bottom:8px; }
+  .book-price { font-size:1.1rem; font-weight:900; color:var(--gold); }
+
+  /* TESTIMONIALS */
+  #testimonials { background:var(--dark); }
+  .test-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:24px; }
+  .test-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:28px; position:relative; backdrop-filter:blur(10px); }
+  .test-card::before { content:'"'; position:absolute; top:10px; left:20px; font-family:'Playfair Display',serif; font-size:5rem; color:var(--gold); opacity:.1; line-height:1; }
+  .test-stars { color:#F59E0B; font-size:.9rem; margin-bottom:12px; }
+  .test-text { font-size:.9rem; line-height:1.8; color:var(--text); margin-bottom:20px; font-weight:600; }
+  .test-author { display:flex; align-items:center; gap:14px; padding-top:16px; border-top:1px solid rgba(255,255,255,0.05); }
+  .author-avatar { width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg,var(--gold-dim),var(--gold)); display:flex; align-items:center; justify-content:center; font-size:.9rem; font-weight:700; color:#fff; flex-shrink:0; }
+  .author-name { font-size:.9rem; font-weight:700; color:#fff; }
+  .author-role { font-size:.75rem; color:var(--gold-light); }
+
+  /* CONTACT */
+  #contact { background:var(--dark2); }
+  .contact-grid { display:grid; grid-template-columns:1fr 1fr; gap:56px; align-items:start; }
+  .contact-links { display:flex; flex-direction:column; gap:16px; margin-top:20px; }
+  .contact-link { display:flex; align-items:center; gap:16px; padding:18px 20px; background:var(--card); border:1px solid var(--border); border-radius:12px; text-decoration:none; color:var(--text); transition:all .25s; }
+  .contact-link:hover { border-color:var(--gold); transform:translateX(-6px); background:rgba(6,182,212,.05); box-shadow:0 10px 25px rgba(0,0,0,0.2); }
+  .contact-link-icon { width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.4rem; flex-shrink:0; }
+  .icon-wa { background:rgba(37,211,102,.15); color:#25D366; }
+  .icon-ig { background:rgba(225,48,108,.15); color:#E1306C; }
+  .icon-tt { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); }
+  .icon-fb { background:rgba(24,119,242,.15); color:#1877F2; }
+  .icon-mail { background:rgba(6,182,212,.15); color:var(--gold); }
+  .contact-link-label { font-size:.75rem; color:var(--muted); font-weight:700; letter-spacing:1px; }
+  .contact-link-value { font-size:.95rem; font-weight:700; margin-top:4px; color:#fff; }
+
+  .contact-form-wrap { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:38px; backdrop-filter:blur(10px); box-shadow:0 20px 40px rgba(0,0,0,0.2); }
+  .contact-form-wrap h3 { font-family:'Cairo',sans-serif; font-size:1.4rem; font-weight:900; margin-bottom:8px; color:#fff; }
+  .contact-form-wrap > p { font-size:.9rem; color:var(--muted); margin-bottom:28px; }
+  .form-group { margin-bottom:18px; }
+  .form-group label { display:block; font-size:.85rem; font-weight:700; color:var(--muted); margin-bottom:8px; }
+  .form-group input,.form-group textarea { width:100%; background:rgba(15,23,42,0.6); border:1px solid rgba(255,255,255,0.1); color:var(--text); padding:14px 16px; border-radius:8px; font-family:'Cairo',sans-serif; font-size:.9rem; outline:none; transition:border-color .25s, background .25s; resize:vertical; }
+  .form-group input:focus,.form-group textarea:focus { border-color:var(--gold); background:rgba(15,23,42,0.9); }
+  .form-group input::placeholder,.form-group textarea::placeholder { color:var(--muted); opacity:0.6; }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .btn-submit { width:100%; background:linear-gradient(135deg, var(--gold), #0284c7); color:#fff; padding:16px; border:none; border-radius:8px; font-family:'Cairo',sans-serif; font-size:1rem; font-weight:700; cursor:pointer; transition:all .25s; margin-top:10px; display:flex; align-items:center; justify-content:center; gap:8px; }
+  .btn-submit:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(6,182,212,.3); }
+  .btn-submit.loading { opacity:.7; cursor:not-allowed; pointer-events:none; }
+
+  /* CTA */
+  .cta-section { background:linear-gradient(135deg,#0f172a 0%,#082f49 50%,#0f172a 100%); border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:90px 60px; text-align:center; position:relative; overflow:hidden; }
+  .cta-section::before { content:''; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:600px; height:600px; background:radial-gradient(circle,rgba(6,182,212,.1) 0%,transparent 70%); }
+  .cta-section h2 { font-family:'Cairo',sans-serif; font-size:clamp(1.8rem,5vw,3rem); font-weight:900; margin-bottom:16px; position:relative; color:#fff; }
+  .cta-section p { color:var(--muted); font-size:1rem; max-width:480px; margin:0 auto 36px; line-height:1.8; position:relative; }
+  .newsletter-form { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; position:relative; }
+  .newsletter-form input { background:rgba(15,23,42,0.8); border:1px solid rgba(255,255,255,0.1); color:var(--text); padding:16px 24px; border-radius:8px; font-family:'Cairo',sans-serif; font-size:.95rem; width:300px; outline:none; transition:border-color .25s; }
+  .newsletter-form input:focus { border-color:var(--gold); }
+  .newsletter-form input::placeholder { color:var(--muted); }
+
+  /* FOOTER */
+  footer { background:var(--dark); border-top:1px solid var(--border); padding:70px 60px 30px; }
+  .footer-grid { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:48px; margin-bottom:50px; }
+  .footer-brand p { color:var(--muted); font-size:.9rem; line-height:1.8; margin-top:16px; max-width:280px; }
+  .footer-domain { display:flex; align-items:center; gap:8px; margin-top:16px; color:var(--gold); font-size:.9rem; font-weight:700; text-decoration:none; }
+  .footer-domain:hover { color:var(--gold-light); }
+  .social-links { display:flex; gap:12px; margin-top:20px; }
+  .social-btn { width:42px; height:42px; border:1px solid rgba(255,255,255,0.1); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; color:var(--muted); text-decoration:none; transition:all .25s; background:rgba(255,255,255,0.02); }
+  .social-btn:hover { border-color:var(--gold); color:#fff; background:var(--gold); transform:translateY(-3px); box-shadow:0 5px 15px rgba(6,182,212,.3); }
+  .footer-col h4 { font-size:.85rem; font-weight:700; letter-spacing:1px; color:#fff; margin-bottom:20px; }
+  .footer-col ul { list-style:none; }
+  .footer-col li { margin-bottom:12px; }
+  .footer-col a { color:var(--muted); text-decoration:none; font-size:.9rem; transition:color .25s; }
+  .footer-col a:hover { color:var(--gold); padding-right:4px; }
+  .footer-bottom { display:flex; align-items:center; justify-content:space-between; padding-top:26px; border-top:1px solid rgba(255,255,255,0.05); flex-wrap:wrap; gap:12px; }
+  .footer-bottom p { font-size:.85rem; color:var(--muted); }
+  .footer-bottom a { color:var(--gold); text-decoration:none; font-weight:700; }
+
+  /* ANIMATIONS */
+  @keyframes fadeDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+  .reveal { opacity:0; transform:translateY(30px); transition:opacity .7s ease,transform .7s ease; }
+  .reveal.visible { opacity:1; transform:translateY(0); }
+
+  /* TOAST */
+  .toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(100px); background:var(--gold); color:#fff; padding:14px 28px; border-radius:8px; font-weight:700; font-family:'Cairo',sans-serif; font-size:.95rem; z-index:999; transition:transform .4s cubic-bezier(.34,1.56,.64,1); box-shadow:0 10px 40px rgba(0,0,0,.5); }
+  .toast.show { transform:translateX(-50%) translateY(0); }
+  .toast.error { background:#E74C3C; }
+
+  /* RESPONSIVE */
+  @media(max-width:900px){
+    nav { padding:14px 20px; }
+    .nav-links { display:none; }
+    .hamburger { display:flex; }
+    section { padding:60px 20px; }
+    .categories { padding:18px 20px; }
+    .features-strip { padding:50px 20px; }
+    .contact-grid { grid-template-columns:1fr; gap:40px; }
+    .footer-grid { grid-template-columns:1fr 1fr; gap:36px; }
+    footer { padding:50px 20px 30px; }
+    .footer-bottom { flex-direction:column; align-items:center; text-align:center; }
+    .cta-section { padding:60px 20px; }
+    .form-row { grid-template-columns:1fr; }
+    .hero-stats { gap:30px; }
+    .hero { padding:120px 20px 60px; }
+  }
+</style>
 </head>
 <body>
 
-    <div id="login-overlay">
-        <h2>مدخل الإدارة الآمن</h2>
-        <button onclick="login()" style="background:var(--primary); color:#fff; border:none; padding:15px 40px; border-radius:8px; cursor:pointer; font-weight:900; font-size:1.1rem;">تسجيل الدخول بجوجل</button>
-        <p id="error-msg" style="color:red; margin-top:15px; display:none;">عذراً، ليس لديك صلاحية الوصول.</p>
+<nav id="navbar">
+  <a href="#" class="logo-wrap">
+    <div class="logo-icon">3E</div>
+    <div class="logo-text">
+      <span class="logo-en">3Engs</span>
+      <span class="logo-ar">المهندسون الثلاثة</span>
+    </div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#products">المنتجات</a></li>
+    <li><a href="#courses">الدورات</a></li>
+    <li><a href="#books">الكتب</a></li>
+    <li><a href="#testimonials">الآراء</a></li>
+    <li><a href="#contact">تواصل معنا</a></li>
+    <li id="auth-desktop"><button onclick="loginWithGoogle()" class="nav-cta" style="border:none; cursor:pointer;">تسجيل الدخول</button></li>
+  </ul>
+  <div class="hamburger" id="hamburger" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#products" onclick="closeMenu()">المنتجات الرقمية</a>
+  <a href="#courses" onclick="closeMenu()">الدورات التعليمية</a>
+  <a href="#books" onclick="closeMenu()">الكتب</a>
+  <a href="#testimonials" onclick="closeMenu()">آراء الطلاب</a>
+  <a href="#contact" onclick="closeMenu()">تواصل معنا</a>
+  <div id="auth-mobile">
+    <a href="#" class="m-cta" onclick="loginWithGoogle(); closeMenu()">تسجيل الدخول (Google)</a>
+  </div>
+</div>
+
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-dots" id="heroDots"></div>
+  <div class="hero-badge">✦ المهندسون الثلاثة — 3Engs.com ✦</div>
+  <h1 class="hero-h1">تعلّم. ابنِ. <span class="gold">تميّز.</span></h1>
+  <p class="hero-sub">منصة 3Engs — رفيقك في الهندسة والتقنية. منتجات رقمية، دورات متخصصة، وكتب مختارة بعناية من مهندسين لمهندسين.</p>
+  <div class="hero-btns">
+    <a href="#products" class="btn-primary">استعرض المنتجات ↓</a>
+    <a href="#courses" class="btn-outline">الدورات التعليمية</a>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><span class="stat-num">+200</span><div class="stat-label">منتج رقمي</div></div>
+    <div class="stat"><span class="stat-num">+50</span><div class="stat-label">دورة تعليمية</div></div>
+    <div class="stat"><span class="stat-num">+8K</span><div class="stat-label">طالب راضٍ</div></div>
+    <div class="stat"><span class="stat-num">4.9★</span><div class="stat-label">تقييم المنصة</div></div>
+  </div>
+</section>
+
+<div class="categories">
+  <button class="cat-btn active" onclick="filterCat(this,'all')">جميع المنتجات</button>
+  <button class="cat-btn" onclick="filterCat(this,'course')">دورات تعليمية</button>
+  <button class="cat-btn" onclick="filterCat(this,'ebook')">كتب رقمية</button>
+  <button class="cat-btn" onclick="filterCat(this,'tool')">أدوات وبرمجيات</button>
+  <button class="cat-btn" onclick="filterCat(this,'template')">قوالب وملفات</button>
+</div>
+
+<section id="products">
+  <div class="section-header reveal">
+    <div>
+      <div class="section-tag">المنتجات المميزة</div>
+      <div class="gold-divider"></div>
+      <h2 class="section-title">أفضل <span class="gold">المنتجات الرقمية</span></h2>
+      <p class="section-desc">مجموعة مختارة من أعلى المنتجات تقييماً وأكثرها مبيعاً</p>
+    </div>
+    <a href="#" class="view-all">عرض الكل ←</a>
+  </div>
+  <div class="products-grid" id="productsGrid">
+    <div class="product-card reveal" data-cat="tool">
+      <span class="card-badge">جديد</span>
+      <div class="card-thumb type-tool">🛠️</div>
+      <div class="card-body">
+        <div class="card-type">أدوات</div>
+        <div class="card-title">حزمة أدوات المطور المتكاملة</div>
+        <div class="card-desc">مجموعة شاملة من السكريبتات والأدوات لتسريع عملك البرمجي</div>
+        <div class="card-footer">
+          <div><span class="price-old">$49</span><span class="price-current">$29</span></div>
+          <div><span class="card-stars">★★★★★</span><span class="card-reviews">(124)</span></div>
+        </div>
+        <button class="btn-card" onclick="addToCart(this)">أضف للسلة</button>
+      </div>
+    </div>
+    <div class="product-card reveal" data-cat="template">
+      <span class="card-badge sale">خصم 40%</span>
+      <div class="card-thumb type-template">🎨</div>
+      <div class="card-body">
+        <div class="card-type">قوالب</div>
+        <div class="card-title">قوالب تصميم UI/UX الاحترافية</div>
+        <div class="card-desc">50+ قالب جاهز للاستخدام لمشاريع التطبيقات والمواقع</div>
+        <div class="card-footer">
+          <div><span class="price-old">$79</span><span class="price-current">$47</span></div>
+          <div><span class="card-stars">★★★★☆</span><span class="card-reviews">(87)</span></div>
+        </div>
+        <button class="btn-card" onclick="addToCart(this)">أضف للسلة</button>
+      </div>
+    </div>
+    <div class="product-card reveal" data-cat="ebook">
+      <span class="card-badge free">مجاني</span>
+      <div class="card-thumb type-ebook">📗</div>
+      <div class="card-body">
+        <div class="card-type">كتاب رقمي</div>
+        <div class="card-title">دليل البرمجة للمبتدئين</div>
+        <div class="card-desc">كتاب شامل يأخذك من الصفر حتى بناء مشاريعك الأولى بثقة</div>
+        <div class="card-footer">
+          <div><span class="price-current" style="color:#10B981">مجاناً</span></div>
+          <div><span class="card-stars">★★★★★</span><span class="card-reviews">(312)</span></div>
+        </div>
+        <button class="btn-card" onclick="addToCart(this)">تحميل مجاني</button>
+      </div>
+    </div>
+    <div class="product-card reveal" data-cat="course">
+      <div class="card-thumb type-course">🎓</div>
+      <div class="card-body">
+        <div class="card-type">دورة</div>
+        <div class="card-title">إتقان Python من الصفر للاحتراف</div>
+        <div class="card-desc">دورة تفاعلية في Python تشمل المشاريع العملية والتمارين الهندسية</div>
+        <div class="card-footer">
+          <div><span class="price-old">$89</span><span class="price-current">$55</span></div>
+          <div><span class="card-stars">★★★★★</span><span class="card-reviews">(203)</span></div>
+        </div>
+        <button class="btn-card" onclick="addToCart(this)">أضف للسلة</button>
+      </div>
+    </div>
+    <div class="product-card reveal" data-cat="template">
+      <div class="card-thumb type-template">📊</div>
+      <div class="card-body">
+        <div class="card-type">قوالب</div>
+        <div class="card-title">قوالب تقارير الهندسة الاحترافية</div>
+        <div class="card-desc">30+ قالب Word وExcel جاهز للتقارير والعروض الهندسية</div>
+        <div class="card-footer">
+          <div><span class="price-current">$35</span></div>
+          <div><span class="card-stars">★★★★☆</span><span class="card-reviews">(56)</span></div>
+        </div>
+        <button class="btn-card" onclick="addToCart(this)">أضف للسلة</button>
+      </div>
+    </div>
+    <div class="product-card reveal" data-cat="ebook">
+      <span class="card-badge">الأكثر مبيعاً</span>
+      <div class="card-thumb type-ebook">📘</div>
+      <div class="card-body">
+        <div class="card-type">كتاب رقمي</div>
+        <div class="card-title">أسرار ريادة الأعمال الرقمية</div>
+        <div class="card-desc">بناء مشاريع الأعمال الرقمية الناجحة من منظور هندسي عملي</div>
+        <div class="card-footer">
+          <div><span class="price-old">$39</span><span class="price-current">$24</span></div>
+          <div><span class="card-stars">★★★★★</span><span class="card-reviews">(418)</span></div>
+        </div>
+        <button class="btn-card" onclick="addToCart(this)">أضف للسلة</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="features-strip">
+  <div class="features-grid">
+    <div class="feature reveal"><div class="feature-icon">🔒</div><div class="feature-text"><h4>دفع آمن 100%</h4><p>جميع معاملاتك محمية بتشفير SSL وبوابات دفع معتمدة دولياً</p></div></div>
+    <div class="feature reveal"><div class="feature-icon">⚡</div><div class="feature-text"><h4>تسليم فوري</h4><p>احصل على منتجاتك الرقمية فور إتمام الشراء مباشرة في بريدك</p></div></div>
+    <div class="feature reveal"><div class="feature-icon">🔄</div><div class="feature-text"><h4>ضمان الاسترداد</h4><p>نضمن استرداد أموالك خلال 30 يوماً إذا لم تكن راضياً</p></div></div>
+    <div class="feature reveal"><div class="feature-icon">🎧</div><div class="feature-text"><h4>دعم متواصل</h4><p>تواصل مع فريق 3Engs عبر واتساب أو info@3engs.com في أي وقت</p></div></div>
+  </div>
+</div>
+
+<section id="courses">
+  <div class="section-header reveal">
+    <div>
+      <div class="section-tag">الدورات التعليمية</div>
+      <div class="gold-divider"></div>
+      <h2 class="section-title">تعلّم من <span class="gold">مهندسين حقيقيين</span></h2>
+      <p class="section-desc">دورات متخصصة صُممت من مهندسين لمهندسين — نظري وتطبيقي</p>
+    </div>
+    <a href="#" class="view-all">كل الدورات ←</a>
+  </div>
+  <div class="courses-grid">
+    <div class="course-card reveal">
+      <div class="course-thumb c1">🤖<div class="course-overlay">الذكاء الاصطناعي</div></div>
+      <div class="course-body">
+        <div class="course-title">الذكاء الاصطناعي — من الصفر للتطبيق الهندسي</div>
+        <div class="course-desc">دورة شاملة تغطي AI وML مع تطبيقات عملية في الهندسة باستخدام Python وTensorFlow</div>
+        <div class="course-meta">
+          <div class="meta-item">⏱ 40 ساعة</div>
+          <div class="meta-item">📹 120 درس</div>
+          <div class="meta-item">🎯 متقدم</div>
+        </div>
+        <div class="course-footer">
+          <div class="instructor"><div class="instr-avatar">3E</div><div><div class="instr-name">فريق 3Engs</div><div class="instr-role">مهندسون متخصصون</div></div></div>
+          <div><div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:900;color:var(--gold)">$89</div><button class="btn-card" style="margin-top:7px;padding:8px 16px;width:auto" onclick="addToCart(this)">اشترك</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="course-card reveal">
+      <div class="course-thumb c2">⚡<div class="course-overlay">الأنظمة المدمجة</div></div>
+      <div class="course-body">
+        <div class="course-title">ESP32 والأنظمة المدمجة — من الأساسيات للمشاريع</div>
+        <div class="course-desc">ابنِ مشاريع ESP32 مع Firebase والذكاء الاصطناعي والتحكم الرقمي بطريقة عملية</div>
+        <div class="course-meta">
+          <div class="meta-item">⏱ 35 ساعة</div>
+          <div class="meta-item">📹 90 درس</div>
+          <div class="meta-item">🎯 وسط</div>
+        </div>
+        <div class="course-footer">
+          <div class="instructor"><div class="instr-avatar">3E</div><div><div class="instr-name">فريق 3Engs</div><div class="instr-role">مهندسون متخصصون</div></div></div>
+          <div><div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:900;color:var(--gold)">$75</div><button class="btn-card" style="margin-top:7px;padding:8px 16px;width:auto" onclick="addToCart(this)">اشترك</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="course-card reveal">
+      <div class="course-thumb c3">🔧<div class="course-overlay">التحكم الرقمي PID</div></div>
+      <div class="course-body">
+        <div class="course-title">التحكم الرقمي — P Controller حتى PID كاملاً</div>
+        <div class="course-desc">تعلّم أنظمة التحكم المفتوح والمغلق عملياً بالـ Arduino وPython بدون MATLAB</div>
+        <div class="course-meta">
+          <div class="meta-item">⏱ 28 ساعة</div>
+          <div class="meta-item">📹 75 درس</div>
+          <div class="meta-item">🎯 مبتدئ</div>
+        </div>
+        <div class="course-footer">
+          <div class="instructor"><div class="instr-avatar">3E</div><div><div class="instr-name">فريق 3Engs</div><div class="instr-role">مهندسون متخصصون</div></div></div>
+          <div><div style="font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:900;color:var(--gold)">$65</div><button class="btn-card" style="margin-top:7px;padding:8px 16px;width:auto" onclick="addToCart(this)">اشترك</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="books">
+  <div class="section-header reveal">
+    <div>
+      <div class="section-tag">مكتبة الكتب</div>
+      <div class="gold-divider"></div>
+      <h2 class="section-title">الكتب <span class="gold">الهندسية المختارة</span></h2>
+      <p class="section-desc">مكتبة رقمية في التقنية والهندسة والبرمجة لكل المستويات</p>
+    </div>
+    <a href="#" class="view-all">المكتبة الكاملة ←</a>
+  </div>
+  <div class="books-grid">
+    <div class="book-card reveal" onclick="addToCart(this)"><div class="book-cover b1"><div class="book-spine"></div>🤖</div><div class="book-title">مستقبل الذكاء الاصطناعي</div><div class="book-author">فريق 3Engs</div><div class="book-price">$18</div></div>
+    <div class="book-card reveal" onclick="addToCart(this)"><div class="book-cover b2"><div class="book-spine"></div>💡</div><div class="book-title">ريادة الأعمال في العصر الرقمي</div><div class="book-author">فريق 3Engs</div><div class="book-price">$22</div></div>
+    <div class="book-card reveal" onclick="addToCart(this)"><div class="book-cover b3"><div class="book-spine"></div>🔐</div><div class="book-title">الأمن السيبراني للمهندسين</div><div class="book-author">فريق 3Engs</div><div class="book-price">$15</div></div>
+    <div class="book-card reveal" onclick="addToCart(this)"><div class="book-cover b4"><div class="book-spine"></div>📈</div><div class="book-title">التسويق الرقمي المتقدم</div><div class="book-author">فريق 3Engs</div><div class="book-price">$19</div></div>
+    <div class="book-card reveal" onclick="addToCart(this)"><div class="book-cover b5"><div class="book-spine"></div>⚙️</div><div class="book-title">هندسة الأنظمة المدمجة</div><div class="book-author">فريق 3Engs</div><div class="book-price">$25</div></div>
+    <div class="book-card reveal" onclick="addToCart(this)"><div class="book-cover b6"><div class="book-spine"></div>💻</div><div class="book-title">البرمجة للمهندسين</div><div class="book-author">فريق 3Engs</div><div class="book-price">$20</div></div>
+  </div>
+</section>
+
+<section id="testimonials">
+  <div class="section-header reveal">
+    <div>
+      <div class="section-tag">آراء الطلاب</div>
+      <div class="gold-divider"></div>
+      <h2 class="section-title">ماذا يقول <span class="gold">طلابنا</span></h2>
+    </div>
+  </div>
+  <div class="test-grid">
+    <div class="test-card reveal"><div class="test-stars">★★★★★</div><div class="test-text">دورة ESP32 مع Firebase غيّرت أسلوبي في العمل كلياً. المحتوى عملي ومباشر وما في حشو. أنصح بـ 3Engs لكل مهندس.</div><div class="test-author"><div class="author-avatar">عم</div><div><div class="author-name">عمر محمد</div><div class="author-role">مهندس إلكترونيات</div></div></div></div>
+    <div class="test-card reveal"><div class="test-stars">★★★★★</div><div class="test-text">كتاب هندسة الأنظمة المدمجة كان مرجعي الأساسي في مشروعي. محتوى متكامل وبسعر ممتاز. شكراً فريق 3Engs!</div><div class="test-author"><div class="author-avatar">رأ</div><div><div class="author-name">رنا الأحمد</div><div class="author-role">طالبة هندسة كهرباء</div></div></div></div>
+    <div class="test-card reveal"><div class="test-stars">★★★★★</div><div class="test-text">دورة التحكم الرقمي كانت بالضبط اللي كنت محتاجه. شرح واضح وتطبيق فعلي بالأردوينو بدون تعقيد. ممتاز!</div><div class="test-author"><div class="author-avatar">خس</div><div><div class="author-name">خالد السعد</div><div class="author-role">مهندس ميكاترونيكس</div></div></div></div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="section-header reveal">
+    <div>
+      <div class="section-tag">تواصل معنا</div>
+      <div class="gold-divider"></div>
+      <h2 class="section-title">نحن هنا <span class="gold">لمساعدتك</span></h2>
+      <p class="section-desc">تواصل مع فريق 3Engs عبر أي قناة تناسبك</p>
+    </div>
+  </div>
+  <div class="contact-grid">
+    <div class="reveal">
+      <div class="contact-links">
+        <a class="contact-link" href="https://wa.me/972592753159" target="_blank" rel="noopener">
+          <div class="contact-link-icon icon-wa">💬</div>
+          <div><div class="contact-link-label">واتساب</div><div class="contact-link-value" dir="ltr">+972 592 753 159</div></div>
+        </a>
+        <a class="contact-link" href="mailto:info@3engs.com">
+          <div class="contact-link-icon icon-mail">📧</div>
+          <div><div class="contact-link-label">البريد الإلكتروني</div><div class="contact-link-value" dir="ltr">info@3engs.com</div></div>
+        </a>
+        <a class="contact-link" href="https://www.instagram.com/3engs_team" target="_blank" rel="noopener">
+          <div class="contact-link-icon icon-ig">📸</div>
+          <div><div class="contact-link-label">إنستغرام</div><div class="contact-link-value">@3engs_team</div></div>
+        </a>
+        <a class="contact-link" href="https://www.tiktok.com/@3engs" target="_blank" rel="noopener">
+          <div class="contact-link-icon icon-tt">🎵</div>
+          <div><div class="contact-link-label">تيكتوك</div><div class="contact-link-value">@3engs</div></div>
+        </a>
+        <a class="contact-link" href="https://www.facebook.com/3engs" target="_blank" rel="noopener">
+          <div class="contact-link-icon icon-fb">👥</div>
+          <div><div class="contact-link-label">فيسبوك</div><div class="contact-link-value">3Engs | المهندسون الثلاثة</div></div>
+        </a>
+      </div>
     </div>
 
-    <div class="sidebar">
-        <h2>3Engs Admin</h2>
-        <div class="nav-item active" onclick="showSection('hero-edit')">تعديل الواجهة (Hero)</div>
-        <div class="nav-item" onclick="showSection('products-manage')">إدارة المنتجات</div>
-        <div class="nav-item" onclick="showSection('messages')">الرسائل الواردة</div>
-        <div class="nav-item" onclick="logout()" style="margin-top:50px; color:#ff4d4d;">تسجيل الخروج</div>
+    <div class="contact-form-wrap reveal">
+      <h3>أرسل لنا رسالة</h3>
+      <p>سنرد عليك على info@3engs.com خلال 24 ساعة</p>
+      <div class="form-row">
+        <div class="form-group"><label>الاسم الكامل</label><input type="text" id="cf-name" placeholder="اسمك الكريم"></div>
+        <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="cf-email" placeholder="email@example.com" dir="ltr"></div>
+      </div>
+      <div class="form-group"><label>موضوع الرسالة</label><input type="text" id="cf-subject" placeholder="كيف يمكننا مساعدتك؟"></div>
+      <div class="form-group"><label>الرسالة</label><textarea id="cf-message" rows="5" placeholder="اكتب رسالتك هنا..."></textarea></div>
+      <button class="btn-submit" id="submitBtn" onclick="submitContactForm()">
+        <span id="submitText">إرسال الرسالة ✉️</span>
+      </button>
     </div>
+  </div>
+</section>
 
-    <div class="main-content">
-        <div id="hero-edit" class="admin-section">
-            <div class="card">
-                <h3>تعديل نصوص واجهة الموقع الرئيسي</h3>
-                <div class="form-group">
-                    <label>العنوان الرئيسي (H1)</label>
-                    <input type="text" id="hero-title" placeholder="مثلاً: تعلم. ابنِ. تميز.">
-                </div>
-                <div class="form-group">
-                    <label>الوصف الفرعي</label>
-                    <textarea id="hero-desc" rows="3"></textarea>
-                </div>
-                <button class="btn-save" onclick="updateHero()">حفظ التعديلات</button>
-            </div>
-        </div>
+<div class="cta-section">
+  <h2>كن أول من يعرف <span class="gold">جديد 3Engs</span></h2>
+  <p>اشترك في نشرتنا البريدية واحصل على خصم 20% على أول عملية شراء</p>
+  <div class="newsletter-form">
+    <input type="email" id="nlEmail" placeholder="أدخل بريدك الإلكتروني" dir="ltr">
+    <button class="btn-primary" onclick="subscribeNewsletter()">اشترك الآن</button>
+  </div>
+</div>
 
-        <div id="products-manage" class="admin-section" style="display:none;">
-            <div class="card">
-                <h3>إضافة منتج/دورة جديدة</h3>
-                <div class="form-group">
-                    <label>اسم المنتج</label>
-                    <input type="text" id="p-title">
-                </div>
-                <div class="form-row" style="display:flex; gap:10px;">
-                    <div class="form-group" style="flex:1;">
-                        <label>السعر</label>
-                        <input type="text" id="p-price">
-                    </div>
-                    <div class="form-group" style="flex:1;">
-                        <label>التصنيف</label>
-                        <select id="p-cat">
-                            <option value="course">دورة</option>
-                            <option value="ebook">كتاب</option>
-                            <option value="tool">أداة</option>
-                        </select>
-                    </div>
-                </div>
-                <button class="btn-save" onclick="addProduct()">إضافة للموقع</button>
-            </div>
-        </div>
-
-        <div id="messages" class="admin-section" style="display:none;">
-            <div class="card">
-                <h3>رسائل تواصل معنا</h3>
-                <table id="msg-table">
-                    <thead>
-                        <tr>
-                            <th>الاسم</th>
-                            <th>الإيميل</th>
-                            <th>الرسالة</th>
-                            <th>التاريخ</th>
-                        </tr>
-                    </thead>
-                    <tbody id="msg-body">
-                        </tbody>
-                </table>
-            </div>
-        </div>
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <a href="#" class="logo-wrap" style="text-decoration:none">
+        <div class="logo-icon">3E</div>
+        <div class="logo-text"><span class="logo-en">3Engs</span><span class="logo-ar">المهندسون الثلاثة</span></div>
+      </a>
+      <p>منصة 3Engs — منتجات رقمية، دورات تعليمية، وكتب متخصصة من مهندسين لمهندسين.</p>
+      <a href="https://www.3engs.com" class="footer-domain" target="_blank">🌐 www.3engs.com</a>
+      <div class="social-links">
+        <a href="https://wa.me/972592753159" class="social-btn" target="_blank" title="واتساب">💬</a>
+        <a href="https://www.instagram.com/3engs_team" class="social-btn" target="_blank" title="إنستغرام">📸</a>
+        <a href="https://www.tiktok.com/@3engs" class="social-btn" target="_blank" title="تيكتوك">🎵</a>
+        <a href="https://www.facebook.com/3engs" class="social-btn" target="_blank" title="فيسبوك">👥</a>
+      </div>
     </div>
+    <div class="footer-col">
+      <h4>المحتوى</h4>
+      <ul>
+        <li><a href="#products">المنتجات الرقمية</a></li>
+        <li><a href="#courses">الدورات التعليمية</a></li>
+        <li><a href="#books">الكتب الهندسية</a></li>
+        <li><a href="#">القوالب والأدوات</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>الشركة</h4>
+      <ul>
+        <li><a href="#">من نحن</a></li>
+        <li><a href="#">الأسئلة الشائعة</a></li>
+        <li><a href="#">مدونتنا</a></li>
+        <li><a href="#">الشراكات</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>الدعم</h4>
+      <ul>
+        <li><a href="mailto:info@3engs.com">info@3engs.com</a></li>
+        <li><a href="https://wa.me/972592753159" target="_blank">واتساب مباشر</a></li>
+        <li><a href="#">سياسة الخصوصية</a></li>
+        <li><a href="#">ضمان الاسترداد</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2024 <a href="https://www.3engs.com" target="_blank">3Engs.com</a> — المهندسون الثلاثة. جميع الحقوق محفوظة.</p>
+    <p>صُنع بـ ❤️ من مهندسين للمهندسين</p>
+  </div>
+</footer>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, updateDoc, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+<div class="toast" id="toast">✓ تمت العملية بنجاح!</div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyALJiF8l_wnk_6FU6etQpz44Z43lSORXQk",
-            authDomain: "engs-website.firebaseapp.com",
-            projectId: "engs-website",
-            storageBucket: "engs-website.firebasestorage.app",
-            messagingSenderId: "1028163586505",
-            appId: "1:1028163586505:web:c09de00bb30a3369ca4018"
-        };
+<script>
+  // DOTS
+  const dc = document.getElementById('heroDots');
+  for(let i=0;i<25;i++){
+    const d=document.createElement('div');
+    d.className='dot';
+    d.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;animation-duration:${6+Math.random()*10}s;animation-delay:${Math.random()*8}s;width:${2+Math.random()*2}px;height:${2+Math.random()*2}px;box-shadow:0 0 8px var(--gold);`;
+    dc.appendChild(d);
+  }
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
+  // REVEAL
+  const obs=new IntersectionObserver((entries)=>{
+    entries.forEach((e,i)=>{ if(e.isIntersecting){ setTimeout(()=>e.target.classList.add('visible'),i*70); obs.unobserve(e.target); } });
+  },{threshold:.08});
+  document.querySelectorAll('.reveal').forEach(r=>obs.observe(r));
 
-        const admins = ["hosam2564491@gmail.com", "info@3engs.com"];
+  // NAV
+  window.addEventListener('scroll',()=>{
+    document.getElementById('navbar').style.padding=window.scrollY>60?'12px 60px':'18px 60px';
+  });
 
-        window.login = () => signInWithPopup(auth, provider);
-        window.logout = () => signOut(auth);
+  // MOBILE MENU
+  function toggleMenu(){ document.getElementById('hamburger').classList.toggle('open'); document.getElementById('mobileMenu').classList.toggle('open'); }
+  function closeMenu(){ document.getElementById('hamburger').classList.remove('open'); document.getElementById('mobileMenu').classList.remove('open'); }
 
-        onAuthStateChanged(auth, (user) => {
-            if (user && admins.includes(user.email)) {
-                document.getElementById('login-overlay').style.display = 'none';
-                loadMessages();
-            } else if (user) {
-                document.getElementById('error-msg').style.display = 'block';
-                setTimeout(() => signOut(auth), 2000);
-            }
-        });
+  // FILTER
+  function filterCat(btn,cat){
+    document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.product-card').forEach(card=>{
+      const show=cat==='all'||card.dataset.cat===cat;
+      if(show){ card.style.display=''; requestAnimationFrame(()=>{card.style.opacity='1';card.style.transform='';});
+      } else { card.style.opacity='0'; card.style.transform='scale(0.95)'; setTimeout(()=>card.style.display='none',300); }
+    });
+  }
 
-        window.showSection = (id) => {
-            document.querySelectorAll('.admin-section').forEach(s => s.style.display = 'none');
-            document.getElementById(id).style.display = 'block';
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            event.target.classList.add('active');
-        };
+  // TOAST
+  function showToast(msg,err){
+    const t=document.getElementById('toast');
+    t.textContent=msg; t.className='toast'+(err?' error':'');
+    t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3200);
+  }
 
-        // وظيفة تحديث نصوص الموقع
-        window.updateHero = async () => {
-            const title = document.getElementById('hero-title').value;
-            const desc = document.getElementById('hero-desc').value;
-            await setDoc(doc(db, "content", "hero"), { title, desc });
-            alert("تم التحديث بنجاح!");
-        };
+  // ADD TO CART
+  function addToCart(btn){
+    const orig=btn.textContent;
+    btn.textContent='✓ تمت الإضافة'; btn.style.background='var(--gold)'; btn.style.color='#fff';
+    showToast('✓ تمت الإضافة إلى السلة!');
+    if(window.fbLogEvent) window.fbLogEvent('add_to_cart');
+    setTimeout(()=>{ btn.textContent=orig; btn.style.background=''; btn.style.color=''; },2200);
+  }
 
-        // وظيفة إضافة منتج
-        window.addProduct = async () => {
-            const title = document.getElementById('p-title').value;
-            const price = document.getElementById('p-price').value;
-            const cat = document.getElementById('p-cat').value;
-            await addDoc(collection(db, "products"), { title, price, cat, timestamp: new Date() });
-            alert("تمت إضافة المنتج!");
-        };
+  // CONTACT FORM → FIREBASE
+  async function submitContactForm(){
+    const name=document.getElementById('cf-name').value.trim();
+    const email=document.getElementById('cf-email').value.trim();
+    const subject=document.getElementById('cf-subject').value.trim();
+    const message=document.getElementById('cf-message').value.trim();
+    if(!name||!email||!message){ showToast('⚠️ يرجى ملء جميع الحقول المطلوبة',true); return; }
+    if(!email.includes('@')){ showToast('⚠️ يرجى إدخال بريد إلكتروني صحيح',true); return; }
+    const btn=document.getElementById('submitBtn');
+    btn.classList.add('loading');
+    document.getElementById('submitText').textContent='جاري الإرسال...';
+    try{
+      await window.fbAddDoc(window.fbCollection(window.fbDb,'contact_messages'),{
+        name,email,subject,message,
+        timestamp:window.fbServerTimestamp(),
+        source:'website'
+      });
+      showToast('✓ تم إرسال رسالتك بنجاح! سنرد عليك قريباً 🎉');
+      if(window.fbLogEvent) window.fbLogEvent('contact_form_submit');
+      ['cf-name','cf-email','cf-subject','cf-message'].forEach(id=>document.getElementById(id).value='');
+    }catch(err){
+      console.error(err);
+      showToast('⚠️ حدث خطأ. تواصل معنا عبر واتساب مباشرة',true);
+    }finally{
+      btn.classList.remove('loading');
+      document.getElementById('submitText').textContent='إرسال الرسالة ✉️';
+    }
+  }
 
-        // جلب الرسائل من فايربيز
-        function loadMessages() {
-            const q = query(collection(db, "contact_messages"), orderBy("timestamp", "desc"));
-            onSnapshot(q, (snapshot) => {
-                const tbody = document.getElementById('msg-body');
-                tbody.innerHTML = '';
-                snapshot.forEach(doc => {
-                    const m = doc.data();
-                    tbody.innerHTML += `<tr><td>${m.name}</td><td>${m.email}</td><td>${m.message}</td><td>${m.timestamp?.toDate().toLocaleDateString('ar-EG')}</td></tr>`;
-                });
-            });
-        }
-    </script>
+  // NEWSLETTER → FIREBASE
+  async function subscribeNewsletter(){
+    const email=document.getElementById('nlEmail').value.trim();
+    const inp=document.getElementById('nlEmail');
+    if(!email||!email.includes('@')){ inp.style.borderColor='#E74C3C'; setTimeout(()=>inp.style.borderColor='',1500); return; }
+    try{
+      await window.fbAddDoc(window.fbCollection(window.fbDb,'newsletter_subscribers'),{
+        email,timestamp:window.fbServerTimestamp(),source:'homepage_cta'
+      });
+      showToast('✓ تم الاشتراك! خصم 20% في طريقه لبريدك 🎉');
+      if(window.fbLogEvent) window.fbLogEvent('newsletter_subscribe');
+      inp.value='';
+    }catch(err){
+      showToast('⚠️ البريد مسجل مسبقاً أو حدث خطأ!',true);
+    }
+  }
+</script>
 </body>
 </html>
