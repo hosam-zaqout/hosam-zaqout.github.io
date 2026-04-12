@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Pharmacy Assistant Pro</title>
+
+<style>
+  body {
+    background: #202123;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: white;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    direction: rtl;
+  }
+  #header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: #111;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+  }
+  #title { font-size: 18px; font-weight: bold; color: #2a7fff; }
+  
+  #chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+  }
+  .message {
+    max-width: 80%;
+    padding: 12px;
+    margin: 8px 0;
+    border-radius: 15px;
+    line-height: 1.5;
+    word-wrap: break-word;
+    position: relative;
+  }
+  .user { background: #2a7fff; align-self: flex-start; border-bottom-right-radius: 2px; text-align: right; }
+  .bot { background: #3a3a3a; align-self: flex-end; border-bottom-left-radius: 2px; text-align: right; }
+  .ack { background: #0f9d58; align-self: center; font-style: italic; font-size: 0.85em; border-radius: 5px; }
+
+  #inputArea, #voiceArea {
+    display: flex;
+    padding: 10px;
+    background: #111;
+    gap: 10px;
+  }
+  #text {
+    flex: 1;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background: #222;
+    color: white;
+    text-align: right;
+  }
+  button {
+    background: #2a7fff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: 0.3s;
+  }
+  button:active { transform: scale(0.95); }
+
+  /* Modal Settings */
+  #settingsModal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0; top: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.9);
+  }
+  .modal-content {
+    background: #2c2c2c;
+    margin: 10% auto;
+    padding: 25px;
+    width: 85%;
+    max-width: 450px;
+    border-radius: 15px;
+    text-align: center;
+  }
+  .setting-item { 
+    display: flex; 
+    gap: 10px; 
+    margin-bottom: 12px; 
+    align-items: center;
+    direction: ltr; 
+  }
+  .setting-item input { 
+    padding: 10px; 
+    background: #444; 
+    border: 1px solid #555; 
+    color: white; 
+    border-radius: 6px;
+    flex: 1;
+  }
+  .med-drawer { max-width: 70px; }
+
+  #voiceStatus {
+    text-align: center;
+    font-size: 14px;
+    color: #ffeb3b;
+    background: #111;
+    padding-bottom: 5px;
+  }
+</style>
+</head>
+<body>
+
+<div id="header">
+    <div id="title">💊 الصيدلي الذكي</div>
+    <button onclick="toggleSettings()" style="background:transparent; font-size: 24px; padding:0;">⚙️</button>
+</div>
+
+<div id="settingsModal">
+  <div class="modal-content">
+    <h3 style="margin-top:0;">إعدادات الأدوية والأدراج</h3>
+    <div id="medicinesList"></div>
+    <hr style="border: 0.5px solid #444; margin: 20px 0;">
+    <button onclick="saveAndClose()" style="background:#0f9d58; width: 100%; font-weight: bold;">✅ حفظ وإغلاق</button>
+  </div>
+</div>
+
+<div id="chat"></div>
+<div id="voiceStatus"></div>
+
+<div id="inputArea">
+  <input id="text" placeholder="اكتب الأعراض أو استخدم الميكروفون...">
+  <button onclick="sendMessage()">إرسال</button>
+</div>
+
+<div id="voiceArea">
+  <button id="startVoiceBtn" style="background:#0f9d58; flex: 2; font-weight: bold;">🎤 تحدث الآن</button>
+  <select id="voiceLang" style="flex: 1; padding: 5px; background: #333; color: white; border-radius: 8px; border: 1px solid #555;">
+    <option value="ar-SA">العربية (SA)</option>
+    <option value="ar-EG">العربية (EG)</option>
+    <option value="en-US">English (US)</option>
+  </select>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+// --- Firebase Configuration ---
+const firebaseConfig = {
+  apiKey: "AIzaSyCwFqNPtxDFwlBSgzF72DmK8Lgs8THH2vE",
+  databaseURL: "https://smart-pharmcy-5e908-default-rtdb.asia-southeast1.firebasedatabase.app/"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// --- Settings & LocalStorage Logic ---
+const defaultMeds = [
+    {name: "Paracetamol", drawer: 1},
+    {name: "Ibuprofen", drawer: 2},
+    {name: "Cough Syrup", drawer: 3},
+    {name: "Allergy Tablet", drawer: 4}
+];
+
+let savedMeds = JSON.parse(localStorage.getItem('pharmacyMeds')) || defaultMeds;
+
+function renderSettings() {
+    const list = document.getElementById('medicinesList');
+    list.innerHTML = "";
+    savedMeds.forEach((med, index) => {
+        list.innerHTML += `
+            <div class="setting-item">
+                <input type="text" class="med-name" value="${med.name}" placeholder="اسم الدواء">
+                <input type="number" class="med-drawer" value="${med.drawer}" placeholder="درج">
+            </div>`;
+    });
+}
+
+window.toggleSettings = function() {
+    renderSettings();
+    document.getElementById('settingsModal').style.display = 'block';
+}
+
+window.saveAndClose = function() {
+    const names = document.querySelectorAll('.med-name');
+    const drawers = document.querySelectorAll('.med-drawer');
+    let newMeds = [];
+    names.forEach((input, i) => {
+        if(input.value.trim() !== "") {
+            newMeds.push({ name: input.value.trim(), drawer: parseInt(drawers[i].value) || 0 });
+        }
+    });
+    localStorage.setItem('pharmacyMeds', JSON.stringify(newMeds));
+    savedMeds = newMeds;
+    document.getElementById('settingsModal').style.display = 'none';
+    addMessage("✅ تم تحديث قائمة الأدوية", "ack");
+}
+
+function generateSystemPrompt() {
+    let medLines = savedMeds.map(m => `${m.name}->${m.drawer}`).join('\n');
+    return `You are a smart pharmacy assistant.
+Available Medicines and their drawers:
+${medLines}
+User will describe symptoms. Identify the medicine.
+Respond ONLY in this exact format:
+medicine:name
+drawer:number
+description:text (briefly in Arabic)`;
+}
+
+// --- Chat & AI Logic ---
+function addMessage(text, type) {
+    const chat = document.getElementById("chat");
+    let div = document.createElement("div");
+    div.className = "message " + type;
+    div.innerText = text;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+}
+
+window.sendMessage = async function() {
+    let input = document.getElementById("text");
+    let text = input.value.trim();
+    if (!text) return;
+
+    addMessage(text, "user");
+    input.value = "";
+
+    const API_KEY = "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";
+
+    try {
+        let response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${API_KEY}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                model: "deepseek/deepseek-chat",
+                messages: [
+                    { role: "system", content: generateSystemPrompt() },
+                    { role: "user", content: text }
+                ]
+            })
+        });
+
+        let result = await response.json();
+        let reply = result.choices[0].message.content;
+        addMessage(reply, "bot");
+
+        // Parse and send to Firebase
+        let medMatch = reply.match(/medicine\s*:\s*(.+)/i);
+        let drawerMatch = reply.match(/drawer\s*:\s*(\d+)/i);
+        
+        if (medMatch && drawerMatch) {
+            set(ref(db, "medicine"), {
+                name: medMatch[1].trim(),
+                drawer: parseInt(drawerMatch[1].trim()),
+                time: Date.now(),
+                time_text: new Date().toLocaleString('ar-EG')
+            });
+        }
+    } catch (e) {
+        addMessage("⚠️ عذراً، حدث خطأ في الاتصال بالسيرفر", "bot");
+    }
+}
+
+// --- Google Voice Recognition (Web Speech API) ---
+let recognition;
+if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+        document.getElementById("voiceStatus").innerText = "🎤 جاري الاستماع... تحدث الآن";
+        document.getElementById("startVoiceBtn").style.background = "#f44336";
+    };
+
+    recognition.onend = () => {
+        document.getElementById("voiceStatus").innerText = "";
+        document.getElementById("startVoiceBtn").style.background = "#0f9d58";
+    };
+
+    recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById("text").value = transcript;
+        sendMessage(); // إرسال النص فوراً بعد التعرف عليه
+    };
+
+    recognition.onerror = (e) => {
+        document.getElementById("voiceStatus").innerText = "❌ خطأ في الميكروفون: " + e.error;
+    };
+}
+
+document.getElementById("startVoiceBtn").onclick = () => {
+    if (recognition) {
+        recognition.lang = document.getElementById("voiceLang").value;
+        recognition.start();
+    } else {
+        alert("متصفحك لا يدعم التعرف على الصوت");
+    }
+};
+
+// Firebase ACK listener
+onValue(ref(db, "ack"), (snapshot) => {
+    const data = snapshot.val();
+    if (data) addMessage(`✅ استلام ناجح: ${data.name} (درج ${data.drawer})`, "ack");
+});
+
+// Initial Render
+renderSettings();
+</script>
+
+</body>
+</html>
