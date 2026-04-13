@@ -1454,6 +1454,37 @@ footer {
   .admin-stats { grid-template-columns: 1fr; }
 }
 
+/* ===== LANG & CURRENCY ===== */
+.lang-btn {
+  background: rgba(0,212,255,0.1);
+  border: 1px solid var(--border);
+  color: var(--primary);
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 800;
+  font-family: var(--font-body);
+  transition: all 0.3s;
+  letter-spacing: 1px;
+}
+.lang-btn:hover { background: rgba(0,212,255,0.2); box-shadow: var(--glow-sm); }
+
+.currency-select-wrap select {
+  background: rgba(0,212,255,0.08);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-family: var(--font-body);
+  outline: none;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.currency-select-wrap select:hover { border-color: var(--primary); }
+.currency-select-wrap select option { background: var(--bg-card2); color: var(--text-primary); }
+
 /* ===== WHATSAPP BTN ===== */
 .whatsapp-float {
   position: fixed;
@@ -1528,18 +1559,31 @@ footer {
     <li><a href="#newsletter" onclick="smooth(event,'newsletter')">التواصل</a></li>
   </ul>
   <div class="nav-actions">
+    <!-- Language Switcher -->
+    <button class="lang-btn" id="langBtn" onclick="toggleLang()" title="Switch Language">
+      <span id="langIcon">EN</span>
+    </button>
+    <!-- Currency Switcher -->
+    <div class="currency-select-wrap">
+      <select id="currencySelect" onchange="changeCurrency(this.value)" title="العملة">
+        <option value="ILS">₪ شيكل</option>
+        <option value="USD">$ دولار</option>
+        <option value="JOD">د.أ دينار</option>
+        <option value="SAR">ر.س ريال</option>
+      </select>
+    </div>
     <button class="cart-btn" onclick="openCart()">
       <i class="fas fa-shopping-cart"></i>
       <span class="cart-count" id="cartCount">0</span>
     </button>
     <div id="authButtons">
-      <button class="btn-outline" onclick="showAuth('login')" style="font-size:0.85rem;padding:9px 18px;">دخول</button>
-      <button class="btn-primary" onclick="showAuth('signup')" style="font-size:0.85rem;padding:9px 18px;">تسجيل</button>
+      <button class="btn-outline" onclick="showAuth('login')" style="font-size:0.85rem;padding:9px 18px;" data-ar="دخول" data-en="Login">دخول</button>
+      <button class="btn-primary" onclick="showAuth('signup')" style="font-size:0.85rem;padding:9px 18px;" data-ar="تسجيل" data-en="Register">تسجيل</button>
     </div>
     <div id="userMenu" style="display:none;align-items:center;gap:10px;">
       <span id="userName" style="font-size:0.85rem;color:var(--text-secondary);"></span>
-      <button class="btn-outline" onclick="handleSignOut()" style="font-size:0.82rem;padding:7px 14px;">خروج</button>
-      <button class="admin-btn admin-btn-primary admin-btn-sm" onclick="showAdmin()" id="adminBtn" style="display:none;">لوحة الإدارة</button>
+      <button class="btn-outline" onclick="handleSignOut()" style="font-size:0.82rem;padding:7px 14px;" data-ar="خروج" data-en="Logout">خروج</button>
+      <button class="admin-btn admin-btn-primary admin-btn-sm" onclick="showAdmin()" id="adminBtn" style="display:none;" data-ar="لوحة الإدارة" data-en="Admin">لوحة الإدارة</button>
     </div>
   </div>
 </nav>
@@ -1987,6 +2031,11 @@ footer {
               <input class="admin-form-input" id="prod-badge" placeholder="جديد">
             </div>
             <div class="admin-form-group full">
+              <label class="admin-form-label">رابط صورة المنتج (URL) — اختياري</label>
+              <input class="admin-form-input" id="prod-image" placeholder="https://example.com/image.jpg">
+              <span style="font-size:0.75rem;color:var(--text-secondary);margin-top:4px;">ارفع الصورة على Imgur أو أي موقع ثم انسخ الرابط هنا</span>
+            </div>
+            <div class="admin-form-group full">
               <label class="admin-form-label">الوصف</label>
               <textarea class="admin-form-textarea" id="prod-desc" placeholder="وصف المنتج..."></textarea>
             </div>
@@ -2060,6 +2109,11 @@ footer {
             <div class="admin-form-group">
               <label class="admin-form-label">عنوان المحاضر</label>
               <input class="admin-form-input" id="c-instructor-title" placeholder="مهندس كهربائي">
+            </div>
+            <div class="admin-form-group full">
+              <label class="admin-form-label">رابط صورة الدورة (URL) — اختياري</label>
+              <input class="admin-form-input" id="c-image" placeholder="https://example.com/image.jpg">
+              <span style="font-size:0.75rem;color:var(--text-secondary);margin-top:4px;">يمكنك رفع الصورة على Imgur أو Google Drive ونسخ الرابط هنا</span>
             </div>
             <div class="admin-form-group full">
               <label class="admin-form-label">وصف الدورة</label>
@@ -2266,6 +2320,29 @@ footer {
           </div>
           <button class="admin-btn admin-btn-primary" style="margin-top:16px;" onclick="saveFooter()">حفظ الفوتر</button>
         </div>
+        <!-- Currency & WhatsApp settings -->
+        <div class="admin-form-card">
+          <div class="admin-form-title">💰 العملة والواتساب</div>
+          <div class="admin-form-grid">
+            <div class="admin-form-group">
+              <label class="admin-form-label">العملة الافتراضية</label>
+              <select class="admin-form-select" id="admin-currency">
+                <option value="ILS">₪ شيكل إسرائيلي</option>
+                <option value="USD">$ دولار أمريكي</option>
+                <option value="JOD">د.أ دينار أردني</option>
+                <option value="SAR">ر.س ريال سعودي</option>
+              </select>
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">رقم الواتساب (مع رمز الدولة)</label>
+              <input class="admin-form-input" id="admin-whatsapp-num" placeholder="972592753159" dir="ltr">
+              <span style="font-size:0.75rem;color:var(--text-secondary);margin-top:4px;">بدون + أو 00 في البداية — مثال: 972592753159</span>
+            </div>
+          </div>
+          <button class="admin-btn admin-btn-primary" style="margin-top:16px;" onclick="saveCurrencyWhatsapp()">
+            <i class="fas fa-save" style="margin-left:6px;"></i> حفظ
+          </button>
+        </div>
       </div>
 
       <!-- Users Section -->
@@ -2317,11 +2394,118 @@ footer {
 </div>
 
 <!-- WHATSAPP FLOAT -->
-<a href="https://wa.me/00972592753159" target="_blank" class="whatsapp-float" id="waFloat">
+<a href="#" onclick="openWhatsAppDirect(event)" class="whatsapp-float" id="waFloat" title="تواصل معنا على واتساب">
   <i class="fab fa-whatsapp"></i>
 </a>
 
 <script>
+// ========== LANGUAGE & CURRENCY ==========
+let currentLang = 'ar';
+let currentCurrency = 'ILS';
+const currencies = {
+  ILS: { symbol: '₪', rate: 1, name: 'شيكل' },
+  USD: { symbol: '$', rate: 0.27, name: 'Dollar' },
+  JOD: { symbol: 'د.أ', rate: 0.19, name: 'دينار' },
+  SAR: { symbol: 'ر.س', rate: 1.01, name: 'ريال' }
+};
+
+const translations = {
+  ar: {
+    products: 'المنتجات', courses: 'الدورات', books: 'الكتب',
+    testimonials: 'آراء العملاء', newsletter: 'التواصل',
+    login: 'دخول', register: 'تسجيل', logout: 'خروج', admin: 'لوحة الإدارة',
+    addToCart: 'أضف', enrollNow: 'سجّل الآن', cartTitle: '🛒 سلة المشتريات',
+    cartEmpty: 'السلة فارغة', total: 'الإجمالي', checkout: 'إتمام الشراء',
+    orderWhatsapp: 'طلب عبر واتساب', subscribe: 'اشتراك',
+    filterAll: 'الكل', filterTool: 'أدوات', filterBook: 'كتب',
+    filterCourse: 'دورات', filterTemplate: 'قوالب',
+    beginner: 'مبتدئ', intermediate: 'متوسط', advanced: 'متقدم',
+    tool: 'أداة', book: 'كتاب', course: 'دورة', template: 'قالب',
+    dir: 'rtl', lang: 'ar'
+  },
+  en: {
+    products: 'Products', courses: 'Courses', books: 'Books',
+    testimonials: 'Reviews', newsletter: 'Contact',
+    login: 'Login', register: 'Register', logout: 'Logout', admin: 'Admin Panel',
+    addToCart: 'Add', enrollNow: 'Enroll Now', cartTitle: '🛒 Shopping Cart',
+    cartEmpty: 'Cart is empty', total: 'Total', checkout: 'Checkout',
+    orderWhatsapp: 'Order via WhatsApp', subscribe: 'Subscribe',
+    filterAll: 'All', filterTool: 'Tools', filterBook: 'Books',
+    filterCourse: 'Courses', filterTemplate: 'Templates',
+    beginner: 'Beginner', intermediate: 'Intermediate', advanced: 'Advanced',
+    tool: 'Tool', book: 'Book', course: 'Course', template: 'Template',
+    dir: 'ltr', lang: 'en'
+  }
+};
+
+function t(key) { return translations[currentLang][key] || key; }
+
+function toggleLang() {
+  currentLang = currentLang === 'ar' ? 'en' : 'ar';
+  const tr = translations[currentLang];
+  document.documentElement.lang = tr.lang;
+  document.documentElement.dir = tr.dir;
+  document.getElementById('langBtn').querySelector('#langIcon').textContent = currentLang === 'ar' ? 'EN' : 'عر';
+  applyTranslations();
+  renderProducts(); renderCourses(); renderBooks(); renderTestimonials();
+  updateCartUI();
+}
+
+function applyTranslations() {
+  const tr = translations[currentLang];
+  // Navbar links
+  const navLinks = document.querySelectorAll('.nav-links a');
+  const navKeys = ['products','courses','books','testimonials','newsletter'];
+  navLinks.forEach((a,i) => { if(navKeys[i]) a.textContent = tr[navKeys[i]]; });
+  // Auth buttons
+  document.querySelectorAll('[data-ar]').forEach(el => {
+    el.textContent = currentLang === 'ar' ? el.dataset.ar : el.dataset.en;
+  });
+  // Cart
+  const cartTitle = document.querySelector('.cart-title');
+  if(cartTitle) cartTitle.textContent = tr.cartTitle;
+}
+
+function changeCurrency(val) {
+  currentCurrency = val;
+  siteData.settings.currency = val;
+  saveToFirestore();
+  renderProducts(); renderCourses(); renderBooks();
+  updateCartUI();
+  document.getElementById('currencySelect').value = val;
+}
+
+function formatPrice(priceILS) {
+  const c = currencies[currentCurrency];
+  const converted = (priceILS * c.rate).toFixed(currentCurrency === 'ILS' ? 0 : 2);
+  return `${c.symbol}${converted}`;
+}
+
+function saveCurrencyWhatsapp() {
+  const cur = document.getElementById('admin-currency').value;
+  const wa = document.getElementById('admin-whatsapp-num').value.trim().replace(/\D/g,'');
+  siteData.settings.currency = cur;
+  siteData.settings.whatsappNum = wa || '972592753159';
+  changeCurrency(cur);
+  updateWhatsappLinks();
+  saveToFirestore();
+  showToast('تم الحفظ ✅', 'success');
+}
+
+function updateWhatsappLinks() {
+  const num = siteData.settings.whatsappNum || '972592753159';
+  // Footer social links
+  document.querySelectorAll('a[data-wa]').forEach(a => {
+    a.href = `https://wa.me/${num}`;
+  });
+}
+
+function openWhatsAppDirect(e) {
+  e.preventDefault();
+  const num = siteData.settings.whatsappNum || '972592753159';
+  window.open(`https://wa.me/${num}`, '_blank');
+}
+
 // ========== DATA ==========
 let siteData = {
   products: [
@@ -2372,20 +2556,43 @@ let siteData = {
 
 let cart = [];
 
-// Load from localStorage
-function loadLocal() {
-  const saved = localStorage.getItem('3engs_data');
-  if (saved) {
-    try {
-      const d = JSON.parse(saved);
-      Object.assign(siteData, d);
-    } catch(e) {}
+// ========== FIRESTORE DATA SYNC ==========
+async function loadFromFirestore() {
+  try {
+    const docRef = window.fbDoc(window.firebaseDb, 'siteConfig', 'main');
+    const snap = await window.fbGetDoc(docRef);
+    if (snap.exists()) {
+      const d = snap.data();
+      if (d.products) siteData.products = d.products;
+      if (d.courses) siteData.courses = d.courses;
+      if (d.books) siteData.books = d.books;
+      if (d.testimonials) siteData.testimonials = d.testimonials;
+      if (d.settings) siteData.settings = Object.assign(siteData.settings, d.settings);
+    }
+  } catch(e) {
+    console.warn('Firestore load failed, using defaults:', e.message);
   }
 }
 
-function saveLocal() {
-  localStorage.setItem('3engs_data', JSON.stringify(siteData));
+async function saveToFirestore() {
+  try {
+    const docRef = window.fbDoc(window.firebaseDb, 'siteConfig', 'main');
+    await window.fbSetDoc(docRef, {
+      products: siteData.products,
+      courses: siteData.courses,
+      books: siteData.books,
+      testimonials: siteData.testimonials,
+      settings: siteData.settings,
+      updatedAt: new Date().toISOString()
+    });
+  } catch(e) {
+    console.warn('Firestore save failed:', e.message);
+    showToast('تعذّر الحفظ على الخادم — تحقق من قواعد Firestore', 'error');
+  }
 }
+
+// Legacy fallback
+function saveLocal() { saveToFirestore(); }
 
 // ========== AUTH ==========
 window.onAuthChange = function(user) {
@@ -2515,14 +2722,17 @@ function initReveal() {
 function renderProducts(filter = 'all') {
   const grid = document.getElementById('productsGrid');
   const filtered = filter === 'all' ? siteData.products : siteData.products.filter(p => p.type === filter);
-  
+  const typeLabels = { tool: t('tool'), book: t('book'), course: t('course'), template: t('template') };
+
   grid.innerHTML = filtered.map((p, realIdx) => {
     const idx = siteData.products.indexOf(p);
-    const typeLabels = { tool: 'أداة', book: 'كتاب', course: 'دورة', template: 'قالب' };
+    const thumbContent = p.image
+      ? `<img src="${p.image}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;">`
+      : `<span style="font-size:3.5rem;position:relative;z-index:1;">${p.icon || '📦'}</span>`;
     return `
     <div class="product-card reveal" style="animation-delay:${(realIdx % 3) * 0.1}s">
       <div class="product-thumb" style="background:linear-gradient(135deg, hsl(${idx*60},60%,20%), hsl(${idx*60+40},70%,30%));">
-        <span style="font-size:3.5rem;position:relative;z-index:1;">${p.icon || '📦'}</span>
+        ${thumbContent}
         ${p.badge ? `<div class="product-badge">${p.badge}</div>` : ''}
       </div>
       <div class="product-body">
@@ -2531,11 +2741,11 @@ function renderProducts(filter = 'all') {
         <div class="product-desc">${p.desc}</div>
         <div class="product-footer">
           <div class="product-price">
-            ${p.oldPrice ? `<span class="old-price">₪${p.oldPrice}</span>` : ''}
-            ₪${p.price}
+            ${p.oldPrice ? `<span class="old-price">${formatPrice(p.oldPrice)}</span>` : ''}
+            ${formatPrice(p.price)}
           </div>
           <button class="add-cart-btn" onclick='addToCart(${JSON.stringify(p).replace(/'/g, "\\'")})'>
-            <i class="fas fa-cart-plus" style="margin-left:4px;"></i> أضف
+            <i class="fas fa-cart-plus" style="margin-left:4px;"></i> ${t('addToCart')}
           </button>
         </div>
       </div>
@@ -2552,14 +2762,21 @@ function filterProducts(type, btn) {
 
 // ========== COURSES ==========
 function renderCourses() {
-  const levels = { beginner: { label: 'مبتدئ', cls: 'level-beginner' }, intermediate: { label: 'متوسط', cls: 'level-intermediate' }, advanced: { label: 'متقدم', cls: 'level-advanced' } };
+  const levels = {
+    beginner: { label: t('beginner'), cls: 'level-beginner' },
+    intermediate: { label: t('intermediate'), cls: 'level-intermediate' },
+    advanced: { label: t('advanced'), cls: 'level-advanced' }
+  };
   document.getElementById('coursesGrid').innerHTML = siteData.courses.map((c, i) => {
     const lv = levels[c.level] || { label: c.level, cls: 'level-beginner' };
+    const thumbContent = c.image
+      ? `<img src="${c.image}" alt="${c.name}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;">`
+      : `<span style="font-size:4rem;position:relative;z-index:1;">${c.icon || '🎓'}</span>`;
     return `
     <div class="course-card reveal reveal-delay-${i+1}">
-      <div class="course-thumb" style="background:linear-gradient(135deg, hsl(${i*80+200},70%,25%), hsl(${i*80+240},80%,35%));">
-        <span style="font-size:4rem;position:relative;z-index:1;">${c.icon || '🎓'}</span>
-        <div class="course-level ${lv.cls}">${lv.label}</div>
+      <div class="course-thumb" style="background:linear-gradient(135deg, hsl(${i*80+200},70%,25%), hsl(${i*80+240},80%,35%));position:relative;overflow:hidden;">
+        ${thumbContent}
+        <div class="course-level ${lv.cls}" style="position:absolute;top:14px;right:14px;">${lv.label}</div>
       </div>
       <div class="course-body">
         <div class="course-name">${c.name}</div>
@@ -2576,9 +2793,9 @@ function renderCourses() {
           </div>
         </div>
         <div class="course-footer">
-          <div class="product-price">₪${c.price}</div>
+          <div class="product-price">${formatPrice(c.price)}</div>
           <button class="add-cart-btn" onclick='addToCart({name:${JSON.stringify(c.name)},price:${c.price},icon:${JSON.stringify(c.icon||"🎓")},type:"course"})'>
-            <i class="fas fa-cart-plus" style="margin-left:4px;"></i> سجّل الآن
+            <i class="fas fa-cart-plus" style="margin-left:4px;"></i> ${t('enrollNow')}
           </button>
         </div>
       </div>
@@ -2598,7 +2815,7 @@ function renderBooks() {
       </div>
       <div class="book-title">${b.title}</div>
       <div class="book-author">${b.author}</div>
-      <div class="book-price">₪${b.price}</div>
+      <div class="book-price">${formatPrice(b.price)}</div>
     </div>
   `).join('');
   initReveal();
@@ -2649,18 +2866,18 @@ function updateCartUI() {
   countEl.style.display = count > 0 ? 'flex' : 'none';
 
   const total = cart.reduce((s, p) => s + Number(p.price), 0);
-  document.getElementById('cartTotal').textContent = `₪${total}`;
+  document.getElementById('cartTotal').textContent = formatPrice(total);
 
   const itemsEl = document.getElementById('cartItems');
   if (cart.length === 0) {
-    itemsEl.innerHTML = '<div class="cart-empty"><i class="fas fa-shopping-bag"></i><p>السلة فارغة</p></div>';
+    itemsEl.innerHTML = `<div class="cart-empty"><i class="fas fa-shopping-bag"></i><p>${t('cartEmpty')}</p></div>`;
   } else {
     itemsEl.innerHTML = cart.map((p, i) => `
       <div class="cart-item">
         <div class="cart-item-icon">${p.icon || '📦'}</div>
         <div class="cart-item-info">
           <div class="cart-item-name">${p.name}</div>
-          <div class="cart-item-price">₪${p.price}</div>
+          <div class="cart-item-price">${formatPrice(p.price)}</div>
         </div>
         <button class="cart-item-remove" onclick="removeFromCart(${i})"><i class="fas fa-trash"></i></button>
       </div>
@@ -2684,17 +2901,22 @@ function closeCart() {
 }
 
 function checkout() {
-  if (cart.length === 0) return showToast('السلة فارغة!', 'error');
-  openWhatsApp();
+  if (cart.length === 0) return showToast(currentLang === 'ar' ? 'السلة فارغة!' : 'Cart is empty!', 'error');
+  const num = siteData.settings.whatsappNum || '972592753159';
+  const items = cart.map(p => `- ${p.name}: ${formatPrice(p.price)}`).join('\n');
+  const total = cart.reduce((s, p) => s + Number(p.price), 0);
+  const msg = currentLang === 'ar'
+    ? `مرحباً، أود الشراء:\n${items}\nالإجمالي: ${formatPrice(total)}`
+    : `Hello, I'd like to purchase:\n${items}\nTotal: ${formatPrice(total)}`;
+  window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
 function openWhatsApp() {
-  const items = cart.map(p => `- ${p.name}: ₪${p.price}`).join('\n');
-  const total = cart.reduce((s, p) => s + Number(p.price), 0);
+  const num = siteData.settings.whatsappNum || '972592753159';
   const msg = cart.length > 0
-    ? `مرحباً، أود الشراء:\n${items}\nالإجمالي: ₪${total}`
-    : 'مرحباً، أود الاستفسار عن منتجاتكم';
-  window.open(`https://wa.me/00972592753159?text=${encodeURIComponent(msg)}`, '_blank');
+    ? (currentLang === 'ar' ? `مرحباً، أود الاستفسار عن منتجاتكم` : `Hello, I'd like to ask about your products`)
+    : '';
+  window.open(`https://wa.me/${num}${msg ? '?text=' + encodeURIComponent(msg) : ''}`, '_blank');
 }
 
 // ========== TOAST ==========
@@ -2777,6 +2999,9 @@ function loadAdminData() {
   document.getElementById('footer-website-input').value = s.footerWebsite || '';
   document.getElementById('footer-desc-input').value = s.footerDesc || '';
   document.getElementById('footer-copy-input').value = s.footerCopy || '';
+  // Currency & WhatsApp
+  document.getElementById('admin-currency').value = s.currency || 'ILS';
+  document.getElementById('admin-whatsapp-num').value = s.whatsappNum || '972592753159';
   // Logo
   document.getElementById('logo-url-input').value = s.logoUrl || '';
   document.getElementById('site-name-input').value = s.siteName || '3Engs';
@@ -2835,12 +3060,13 @@ function saveProduct() {
     oldPrice: Number(document.getElementById('prod-old-price').value) || null,
     icon: document.getElementById('prod-icon').value || '📦',
     badge: document.getElementById('prod-badge').value,
-    desc: document.getElementById('prod-desc').value
+    desc: document.getElementById('prod-desc').value,
+    image: document.getElementById('prod-image').value.trim() || null
   };
   if (!prod.name) return showToast('أدخل اسم المنتج', 'error');
   if (idx !== '') siteData.products[parseInt(idx)] = prod;
   else siteData.products.push(prod);
-  saveLocal(); renderProducts(); renderProductsTable(); clearProductForm();
+  saveToFirestore(); renderProducts(); renderProductsTable(); clearProductForm();
   showToast('تم حفظ المنتج ✅', 'success');
 }
 
@@ -2854,20 +3080,22 @@ function editProduct(i) {
   document.getElementById('prod-icon').value = p.icon || '';
   document.getElementById('prod-badge').value = p.badge || '';
   document.getElementById('prod-desc').value = p.desc || '';
+  document.getElementById('prod-image').value = p.image || '';
   document.querySelector('#section-products .admin-form-title').textContent = '✏️ تعديل المنتج';
 }
 
 function deleteProduct(i) {
   if (!confirm('حذف هذا المنتج؟')) return;
   siteData.products.splice(i, 1);
-  saveLocal(); renderProducts(); renderProductsTable();
+  saveToFirestore(); renderProducts(); renderProductsTable();
   showToast('تم حذف المنتج', 'info');
 }
 
 function clearProductForm() {
-  ['prod-name','prod-price','prod-old-price','prod-icon','prod-badge','prod-desc'].forEach(id => document.getElementById(id).value = '');
+  ['prod-name','prod-price','prod-old-price','prod-icon','prod-badge','prod-desc','prod-image'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('prod-edit-index').value = '';
   document.getElementById('prod-type').value = 'tool';
+  document.querySelector('#section-products .admin-form-title').textContent = '➕ إضافة / تعديل منتج';
 }
 
 // Courses Admin
@@ -2897,12 +3125,13 @@ function saveCourse() {
     icon: document.getElementById('c-icon').value || '🎓',
     instructor: document.getElementById('c-instructor').value,
     instructorTitle: document.getElementById('c-instructor-title').value,
-    desc: document.getElementById('c-desc').value
+    desc: document.getElementById('c-desc').value,
+    image: document.getElementById('c-image').value.trim() || null
   };
   if (!c.name) return showToast('أدخل اسم الدورة', 'error');
   if (idx !== '') siteData.courses[parseInt(idx)] = c;
   else siteData.courses.push(c);
-  saveLocal(); renderCourses(); renderCoursesTable(); clearCourseForm();
+  saveToFirestore(); renderCourses(); renderCoursesTable(); clearCourseForm();
   showToast('تم حفظ الدورة ✅', 'success');
 }
 
@@ -2918,17 +3147,18 @@ function editCourse(i) {
   document.getElementById('c-instructor').value = c.instructor;
   document.getElementById('c-instructor-title').value = c.instructorTitle;
   document.getElementById('c-desc').value = c.desc;
+  document.getElementById('c-image').value = c.image || '';
 }
 
 function deleteCourse(i) {
   if (!confirm('حذف هذه الدورة؟')) return;
   siteData.courses.splice(i, 1);
-  saveLocal(); renderCourses(); renderCoursesTable();
+  saveToFirestore(); renderCourses(); renderCoursesTable();
   showToast('تم الحذف', 'info');
 }
 
 function clearCourseForm() {
-  ['c-name','c-price','c-duration','c-lectures','c-icon','c-instructor','c-instructor-title','c-desc'].forEach(id => document.getElementById(id).value = '');
+  ['c-name','c-price','c-duration','c-lectures','c-icon','c-instructor','c-instructor-title','c-desc','c-image'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('course-edit-index').value = '';
 }
 
@@ -2961,25 +3191,14 @@ function saveBook() {
   if (!b.title) return showToast('أدخل عنوان الكتاب', 'error');
   if (idx !== '') siteData.books[parseInt(idx)] = b;
   else siteData.books.push(b);
-  saveLocal(); renderBooks(); renderBooksTable(); clearBookForm();
+  saveToFirestore(); renderBooks(); renderBooksTable(); clearBookForm();
   showToast('تم حفظ الكتاب ✅', 'success');
-}
-
-function editBook(i) {
-  const b = siteData.books[i];
-  document.getElementById('book-edit-index').value = i;
-  document.getElementById('b-title').value = b.title;
-  document.getElementById('b-author').value = b.author;
-  document.getElementById('b-price').value = b.price;
-  document.getElementById('b-icon').value = b.icon || '';
-  document.getElementById('b-color1').value = b.color1 || '#7C3AED';
-  document.getElementById('b-color2').value = b.color2 || '#00D4FF';
 }
 
 function deleteBook(i) {
   if (!confirm('حذف هذا الكتاب؟')) return;
   siteData.books.splice(i, 1);
-  saveLocal(); renderBooks(); renderBooksTable();
+  saveToFirestore(); renderBooks(); renderBooksTable();
   showToast('تم الحذف', 'info');
 }
 
@@ -3014,7 +3233,7 @@ function saveTestimonial() {
   if (!t.name) return showToast('أدخل اسم العميل', 'error');
   if (idx !== '') siteData.testimonials[parseInt(idx)] = t;
   else siteData.testimonials.push(t);
-  saveLocal(); renderTestimonials(); renderTestimonialsTable(); clearTestimonialForm();
+  saveToFirestore(); renderTestimonials(); renderTestimonialsTable(); clearTestimonialForm();
   showToast('تم حفظ التقييم ✅', 'success');
 }
 
@@ -3030,7 +3249,7 @@ function editTestimonial(i) {
 function deleteTestimonial(i) {
   if (!confirm('حذف هذا التقييم؟')) return;
   siteData.testimonials.splice(i, 1);
-  saveLocal(); renderTestimonials(); renderTestimonialsTable();
+  saveToFirestore(); renderTestimonials(); renderTestimonialsTable();
 }
 
 function clearTestimonialForm() {
@@ -3049,13 +3268,13 @@ function applyColor(varName, val) {
 }
 
 function saveColors() {
-  saveLocal();
+  saveToFirestore();
   showToast('تم حفظ الألوان ✅', 'success');
 }
 
 function resetColors() {
   siteData.settings.colors = { primary: '#00D4FF', accent: '#7C3AED', secondary: '#FF6B35', bgDark: '#050A14', bgCard: '#0D1626', gold: '#FFD700' };
-  saveLocal(); applySettings(); loadAdminData();
+  saveToFirestore(); applySettings(); loadAdminData();
   showToast('تم إعادة الألوان للافتراضي', 'info');
 }
 
@@ -3070,7 +3289,7 @@ function saveFooter() {
   s.footerWebsite = document.getElementById('footer-website-input').value;
   s.footerDesc = document.getElementById('footer-desc-input').value;
   s.footerCopy = document.getElementById('footer-copy-input').value;
-  saveLocal(); applySettings();
+  saveToFirestore(); applySettings();
   showToast('تم حفظ الفوتر ✅', 'success');
 }
 
@@ -3080,7 +3299,7 @@ function saveLogo() {
   const name = document.getElementById('site-name-input').value;
   siteData.settings.logoUrl = url;
   siteData.settings.siteName = name;
-  saveLocal(); applySettings();
+  saveToFirestore(); applySettings();
   if (url) document.getElementById('logo-preview').innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
   showToast('تم حفظ الشعار ✅', 'success');
 }
@@ -3099,34 +3318,26 @@ function uploadLogoFile(event) {
   reader.readAsDataURL(file);
 }
 
-// Users
-async function loadUsers() {
-  try {
-    const snap = await window.fbGetDocs(window.fbCollection(window.firebaseDb, 'users'));
-    const tbody = document.getElementById('users-table-body');
-    if (snap.empty) {
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-secondary);">لا يوجد مستخدمون مسجلون بعد</td></tr>';
-      return;
-    }
-    tbody.innerHTML = snap.docs.map(d => {
-      const u = d.data();
-      const isAdmin = window.ADMIN_EMAILS.includes(u.email);
-      return `<tr>
-        <td>${u.name || '—'}</td>
-        <td>${u.email || '—'}</td>
-        <td><span class="${isAdmin ? 'badge-admin' : 'badge-user'}">${isAdmin ? 'مدير' : 'مستخدم'}</span></td>
-        <td>${u.createdAt ? new Date(u.createdAt).toLocaleDateString('ar') : '—'}</td>
-      </tr>`;
-    }).join('');
-    document.getElementById('dash-users').textContent = snap.size;
-  } catch(e) {
-    showToast('خطأ في تحميل المستخدمين: ' + e.message, 'error');
-  }
-}
-
 // ========== INIT ==========
-document.addEventListener('DOMContentLoaded', () => {
-  loadLocal();
+document.addEventListener('DOMContentLoaded', async () => {
+  // Wait for Firebase to be ready then load data
+  const waitFirebase = () => new Promise(resolve => {
+    const check = setInterval(() => {
+      if (window.firebaseDb && window.fbGetDoc) { clearInterval(check); resolve(); }
+    }, 100);
+    setTimeout(() => { clearInterval(check); resolve(); }, 5000);
+  });
+  await waitFirebase();
+  await loadFromFirestore();
+
+  // Apply currency from settings
+  if (siteData.settings.currency) {
+    currentCurrency = siteData.settings.currency;
+    document.getElementById('currencySelect').value = currentCurrency;
+  }
+  // Apply whatsapp num
+  updateWhatsappLinks();
+
   applySettings();
   renderProducts();
   renderCourses();
