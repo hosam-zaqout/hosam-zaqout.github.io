@@ -2616,7 +2616,22 @@ window.onAuthChange = function(user) {
 
 async function handleGoogleAuth() {
   try {
-    await window.fbSignInWithPopup(window.firebaseAuth, window.googleProvider);
+    const result = await window.fbSignInWithPopup(window.firebaseAuth, window.googleProvider);
+    const user = result.user;
+    // Save to Firestore on first login
+    const userRef = window.fbDoc(window.firebaseDb, 'users', user.uid);
+    const snap = await window.fbGetDoc(userRef);
+    if (!snap.exists()) {
+      await window.fbSetDoc(userRef, {
+        name: user.displayName || '',
+        email: user.email,
+        displayName: user.displayName || '',
+        photoURL: user.photoURL || '',
+        createdAt: new Date().toISOString(),
+        role: 'user',
+        provider: 'google'
+      });
+    }
     showMainSite();
     showToast('تم تسجيل الدخول بنجاح! 🎉', 'success');
   } catch(e) {
@@ -3195,6 +3210,18 @@ function saveBook() {
   showToast('تم حفظ الكتاب ✅', 'success');
 }
 
+function editBook(i) {
+  const b = siteData.books[i];
+  document.getElementById('book-edit-index').value = i;
+  document.getElementById('b-title').value = b.title;
+  document.getElementById('b-author').value = b.author;
+  document.getElementById('b-price').value = b.price;
+  document.getElementById('b-icon').value = b.icon || '';
+  document.getElementById('b-color1').value = b.color1 || '#7C3AED';
+  document.getElementById('b-color2').value = b.color2 || '#00D4FF';
+  document.querySelector('#section-books .admin-form-title').textContent = '✏️ تعديل الكتاب';
+}
+
 function deleteBook(i) {
   if (!confirm('حذف هذا الكتاب؟')) return;
   siteData.books.splice(i, 1);
@@ -3316,6 +3343,42 @@ function uploadLogoFile(event) {
     applySettings();
   };
   reader.readAsDataURL(file);
+}
+
+// ========== USERS ==========
+async function loadUsers() {
+  const tbody = document.getElementById('users-table-body');
+  tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--primary);">
+    <i class="fas fa-spinner fa-spin"></i> جاري التحميل...
+  </td></tr>`;
+  try {
+    const snap = await window.fbGetDocs(window.fbCollection(window.firebaseDb, 'users'));
+    if (snap.empty) {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-secondary);">
+        لا يوجد مستخدمون في قاعدة البيانات بعد.<br>
+        <small style="font-size:0.78rem;">المستخدمون يظهرون هنا بعد تسجيل دخولهم لأول مرة</small>
+      </td></tr>`;
+      document.getElementById('dash-users').textContent = '0';
+      return;
+    }
+    tbody.innerHTML = snap.docs.map(d => {
+      const u = d.data();
+      const isAdmin = window.ADMIN_EMAILS.includes(u.email);
+      const date = u.createdAt ? new Date(u.createdAt).toLocaleDateString('ar-SA') : '—';
+      return `<tr>
+        <td>${u.name || u.displayName || '—'}</td>
+        <td style="direction:ltr;text-align:right;">${u.email || '—'}</td>
+        <td><span class="${isAdmin ? 'badge-admin' : 'badge-user'}">${isAdmin ? 'مدير' : 'مستخدم'}</span></td>
+        <td>${date}</td>
+      </tr>`;
+    }).join('');
+    document.getElementById('dash-users').textContent = snap.size;
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--secondary);">
+      خطأ: ${e.message}<br>
+      <small>تأكد من قواعد Firestore</small>
+    </td></tr>`;
+  }
 }
 
 // ========== INIT ==========
