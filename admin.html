@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>3ENG.s | لوحة التحكم</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --p:#F59E0B;--pd:#D97706;--pl:#FCD34D;
+  --ac:#0EA5E9;--dk:#0F172A;--d2:#1E293B;
+  --d3:#334155;--cd:#1E293B;--br:rgba(245,158,11,.2);
+  --b2:rgba(255,255,255,.07);--tx:#F1F5F9;
+  --mt:#94A3B8;--ok:#10B981;--er:#EF4444;
+  --sw:260px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:var(--tx);overflow-x:hidden;}
+
+/* ===SIDEBAR=== */
+.sidebar{
+  width:var(--sw);height:100vh;background:var(--d2);
+  border-left:1px solid var(--br);
+  position:fixed;top:0;right:0;z-index:200;
+  display:flex;flex-direction:column;
+  overflow-y:auto;transition:transform .3s ease;
+}
+.sidebar::-webkit-scrollbar{width:4px;}
+.sidebar::-webkit-scrollbar-thumb{background:var(--br);border-radius:4px;}
+
+.sb-logo{padding:20px 18px;border-bottom:1px solid var(--br);display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.sb-logo img{width:40px;height:40px;border-radius:50%;background:white;padding:3px;object-fit:contain;}
+.sb-logo .lname{font-size:1.05rem;font-weight:900;color:var(--p);}
+.sb-logo .lsub{font-size:.62rem;color:var(--mt);font-weight:600;}
+
+.admin-info{margin:12px 16px;background:rgba(245,158,11,.1);border:1px solid var(--br);border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.aav{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--pd),var(--p));display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:800;color:var(--dk);flex-shrink:0;}
+.aname{font-size:.82rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.arole{font-size:.68rem;color:var(--p);font-weight:700;}
+
+.nav-sec{padding:14px 18px 6px;font-size:.62rem;font-weight:900;color:var(--mt);letter-spacing:2px;text-transform:uppercase;flex-shrink:0;}
+.nitem{display:flex;align-items:center;gap:10px;padding:10px 18px;color:var(--mt);cursor:pointer;font-size:.84rem;font-weight:700;transition:all .2s;border-right:3px solid transparent;margin:1px 0;user-select:none;flex-shrink:0;}
+.nitem:hover{background:rgba(245,158,11,.07);color:var(--tx);}
+.nitem.active{background:rgba(245,158,11,.12);color:var(--p);border-right-color:var(--p);}
+.nitem .ni{font-size:1rem;width:20px;text-align:center;flex-shrink:0;}
+.nitem .nbadge{margin-right:auto;background:var(--p);color:var(--dk);font-size:.62rem;font-weight:900;padding:2px 7px;border-radius:20px;min-width:20px;text-align:center;}
+
+.sb-foot{margin-top:auto;padding:14px 16px;border-top:1px solid var(--br);flex-shrink:0;}
+.btn-logout{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.1);color:var(--er);font-family:'Cairo',sans-serif;font-size:.86rem;font-weight:700;cursor:pointer;transition:all .25s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-logout:hover{background:rgba(239,68,68,.2);}
+
+/* ===OVERLAY=== */
+.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:199;}
+.sb-overlay.show{display:block;}
+
+/* ===MAIN=== */
+.main{margin-right:var(--sw);min-height:100vh;display:flex;flex-direction:column;}
+
+/* ===TOPBAR=== */
+.topbar{
+  padding:14px 24px;background:var(--d2);border-bottom:1px solid var(--br);
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;gap:12px;
+}
+.tb-left{display:flex;align-items:center;gap:12px;min-width:0;}
+.mob-toggle{background:none;border:none;color:var(--p);font-size:1.4rem;cursor:pointer;padding:4px;display:none;flex-shrink:0;}
+.tb-title{font-size:1rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tb-right{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.btn-preview{background:rgba(14,165,233,.12);color:var(--ac);padding:9px 16px;border:1px solid rgba(14,165,233,.3);border-radius:8px;font-family:'Cairo',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .25s;text-decoration:none;white-space:nowrap;}
+.btn-preview:hover{background:rgba(14,165,233,.22);}
+.btn-save{background:linear-gradient(135deg,var(--p),var(--pd));color:var(--dk);padding:9px 18px;border:none;border-radius:8px;font-family:'Cairo',sans-serif;font-size:.84rem;font-weight:800;cursor:pointer;transition:all .25s;white-space:nowrap;}
+.btn-save:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(245,158,11,.4);}
+
+/* ===CONTENT=== */
+.content{padding:22px 24px;flex:1;}
+.panel{display:none;animation:fin .3s ease;}
+.panel.active{display:block;}
+@keyframes fin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===STATS=== */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:22px;}
+.scard{background:var(--cd);border:1px solid var(--br);border-radius:12px;padding:18px;transition:transform .2s;}
+.scard:hover{transform:translateY(-2px);}
+.scard .si{font-size:1.6rem;margin-bottom:6px;}
+.scard .sn{font-size:1.8rem;font-weight:900;}
+.scard .sl{font-size:.76rem;color:var(--mt);font-weight:600;margin-top:3px;}
+.s1 .sn{color:var(--p);} .s2 .sn{color:var(--ac);} .s3 .sn{color:var(--ok);} .s4 .sn{color:#8B5CF6;}
+
+/* ===PANEL CARD=== */
+.pc{background:var(--cd);border:1px solid var(--br);border-radius:14px;padding:22px;margin-bottom:18px;}
+.pc h3{font-size:.95rem;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+
+/* ===FORM=== */
+.cg{margin-bottom:14px;}
+.cg label{display:block;font-size:.76rem;font-weight:700;color:var(--mt);margin-bottom:6px;letter-spacing:.5px;}
+.ci,.cs,.cta{width:100%;padding:10px 13px;background:rgba(15,23,42,.7);border:1px solid var(--b2);border-radius:8px;color:var(--tx);font-family:'Cairo',sans-serif;font-size:.86rem;outline:none;transition:border-color .25s;resize:vertical;}
+.ci:focus,.cs:focus,.cta:focus{border-color:var(--p);}
+.ci::placeholder,.cta::placeholder{color:var(--mt);}
+.cs option{background:var(--d2);}
+.cc{width:100%;height:42px;border-radius:8px;border:1px solid var(--b2);background:none;cursor:pointer;padding:2px;}
+
+/* ===BTNS=== */
+.btn-add{background:rgba(16,185,129,.12);color:var(--ok);border:1px solid rgba(16,185,129,.3);padding:9px 16px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:.84rem;font-weight:700;cursor:pointer;transition:all .25s;display:inline-flex;align-items:center;gap:7px;}
+.btn-add:hover{background:rgba(16,185,129,.22);}
+.btn-del{background:rgba(239,68,68,.12);color:var(--er);border:1px solid rgba(239,68,68,.25);padding:7px 12px;border-radius:6px;font-family:'Cairo',sans-serif;font-size:.78rem;font-weight:700;cursor:pointer;transition:all .25s;}
+.btn-del:hover{background:rgba(239,68,68,.22);}
+.btn-edit{background:rgba(245,158,11,.12);color:var(--p);border:1px solid var(--br);padding:7px 12px;border-radius:6px;font-family:'Cairo',sans-serif;font-size:.78rem;font-weight:700;cursor:pointer;transition:all .25s;}
+.btn-edit:hover{background:rgba(245,158,11,.22);}
+.btn-sm{padding:8px 16px;border-radius:8px;border:none;font-family:'Cairo',sans-serif;font-size:.84rem;font-weight:800;cursor:pointer;transition:all .25s;background:var(--p);color:var(--dk);}
+.btn-sm:hover{background:var(--pl);}
+
+/* ===TABLE=== */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.dtbl{width:100%;border-collapse:collapse;min-width:500px;}
+.dtbl th{padding:10px 14px;text-align:right;font-size:.72rem;font-weight:800;color:var(--mt);letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--br);background:rgba(15,23,42,.5);}
+.dtbl td{padding:12px 14px;font-size:.82rem;border-bottom:1px solid var(--b2);vertical-align:middle;}
+.dtbl tr:hover td{background:rgba(245,158,11,.04);}
+.dtbl tr:last-child td{border-bottom:none;}
+
+/* ===BADGE=== */
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:.7rem;font-weight:700;}
+.ba{background:rgba(245,158,11,.2);color:var(--p);border:1px solid rgba(245,158,11,.3);}
+.bu{background:rgba(14,165,233,.2);color:var(--ac);border:1px solid rgba(14,165,233,.3);}
+.bok{background:rgba(16,185,129,.2);color:var(--ok);border:1px solid rgba(16,185,129,.3);}
+
+/* ===ITEM ROW=== */
+.irow{display:flex;align-items:center;gap:12px;padding:12px;background:rgba(15,23,42,.5);border-radius:10px;margin-bottom:8px;border:1px solid var(--b2);transition:border-color .2s;}
+.irow:hover{border-color:var(--br);}
+.iemoji{font-size:1.5rem;flex-shrink:0;}
+.iinfo{flex:1;min-width:0;}
+.ititle{font-size:.88rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.imeta{font-size:.74rem;color:var(--mt);margin-top:2px;}
+.iacts{display:flex;gap:7px;flex-shrink:0;}
+
+/* ===IMAGE UPLOAD=== */
+.img-zone{border:2px dashed var(--br);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:border-color .25s;position:relative;}
+.img-zone:hover{border-color:var(--p);}
+.img-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.img-zone .iz-icon{font-size:1.8rem;margin-bottom:6px;}
+.img-zone p{font-size:.78rem;color:var(--mt);}
+.img-zone .iz-hint{font-size:.7rem;color:var(--mt);margin-top:4px;opacity:.7;}
+.img-preview{width:100%;max-height:160px;object-fit:cover;border-radius:8px;margin-top:10px;display:none;}
+.img-url-row{display:flex;gap:8px;margin-top:10px;align-items:center;}
+.img-url-row input{flex:1;}
+.img-loading{display:none;align-items:center;gap:8px;margin-top:8px;font-size:.8rem;color:var(--p);}
+.img-loading.show{display:flex;}
+.mini-spin{width:16px;height:16px;border:2px solid var(--br);border-top-color:var(--p);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.img-prog{width:100%;height:4px;background:var(--b2);border-radius:4px;margin-top:8px;overflow:hidden;display:none;}
+.img-prog.show{display:block;}
+.img-prog-bar{height:100%;background:linear-gradient(90deg,var(--p),var(--pl));border-radius:4px;width:0%;transition:width .3s;}
+
+/* ===COLORS ROW=== */
+.colors-row{display:flex;gap:14px;flex-wrap:wrap;align-items:center;}
+.color-item{display:flex;flex-direction:column;align-items:center;gap:5px;}
+.color-item label{font-size:.7rem;color:var(--mt);text-align:center;}
+.cswatch{width:46px;height:46px;border-radius:10px;border:2px solid var(--b2);cursor:pointer;}
+
+/* ===MODAL=== */
+.modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,.88);backdrop-filter:blur(10px);z-index:500;align-items:center;justify-content:center;padding:16px;}
+.modal.show{display:flex;}
+.mbox{background:var(--d2);border:1px solid var(--br);border-radius:16px;padding:28px;width:100%;max-width:500px;max-height:92vh;overflow-y:auto;animation:min .3s ease;}
+@keyframes min{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.mbox::-webkit-scrollbar{width:4px;}
+.mbox::-webkit-scrollbar-thumb{background:var(--br);border-radius:4px;}
+.mhdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.mhdr h3{font-size:1rem;font-weight:800;}
+.mclose{background:none;border:none;color:var(--mt);font-size:1.3rem;cursor:pointer;transition:color .2s;line-height:1;}
+.mclose:hover{color:var(--tx);}
+.mfoot{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--br);}
+
+/* ===TOAST=== */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--ok);color:white;padding:11px 22px;border-radius:10px;font-weight:700;font-size:.88rem;z-index:999;transition:transform .4s cubic-bezier(.34,1.56,.64,1);box-shadow:0 8px 30px rgba(0,0,0,.4);max-width:90vw;text-align:center;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.toast.warn{background:var(--p);color:var(--dk);}
+.toast.err{background:var(--er);}
+
+/* ===LOADING SCREEN=== */
+.auth-loading{position:fixed;inset:0;background:var(--dk);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:16px;}
+.auth-loading .spin{width:48px;height:48px;border:3px solid var(--br);border-top-color:var(--p);border-radius:50%;animation:spin .8s linear infinite;}
+.auth-loading p{font-size:.95rem;color:var(--mt);font-weight:600;}
+
+/* ===RESPONSIVE=== */
+@media(max-width:768px){
+  .sidebar{transform:translateX(100%);}
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-right:0;}
+  .mob-toggle{display:block;}
+  .tb-right .btn-preview{display:none;}
+  .g2,.g3{grid-template-columns:1fr;}
+  .content{padding:16px;}
+  .topbar{padding:12px 16px;}
+  .stats-grid{grid-template-columns:1fr 1fr;}
+  .pc{padding:16px;}
+  .colors-row .color-item{flex:1;min-width:60px;}
+}
+@media(max-width:400px){
+  .stats-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="auth-loading" id="authLoad">
+  <div class="spin"></div>
+  <p>جاري التحقق من الصلاحيات...</p>
+</div>
+
+<div class="sb-overlay" id="sbOverlay" onclick="closeSb()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sb-logo">
+    <img src="logo.jpg" alt="3ENG.s" onerror="this.style.display='none'">
+    <div><div class="lname">3ENG.s</div><div class="lsub">Admin Dashboard</div></div>
+  </div>
+  <div class="admin-info">
+    <div class="aav" id="aAv">A</div>
+    <div style="min-width:0"><div class="aname" id="aName">الأدمن</div><div class="arole">🛡️ مدير النظام</div></div>
+  </div>
+
+  <div class="nav-sec">لوحة التحكم</div>
+  <div class="nitem active" onclick="showP('dashboard',this)"><span class="ni">🏠</span> الرئيسية</div>
+
+  <div class="nav-sec">إدارة المحتوى</div>
+  <div class="nitem" onclick="showP('hero',this)"><span class="ni">🎯</span> القسم الرئيسي</div>
+  <div class="nitem" onclick="showP('products',this)"><span class="ni">📦</span> المنتجات <span class="nbadge" id="pc">0</span></div>
+  <div class="nitem" onclick="showP('courses',this)"><span class="ni">🎓</span> الدورات <span class="nbadge" id="cc">0</span></div>
+  <div class="nitem" onclick="showP('books',this)"><span class="ni">📚</span> الكتب <span class="nbadge" id="bc">0</span></div>
+  <div class="nitem" onclick="showP('testimonials',this)"><span class="ni">⭐</span> آراء الطلاب</div>
+
+  <div class="nav-sec">إدارة الموقع</div>
+  <div class="nitem" onclick="showP('users',this)"><span class="ni">👥</span> المستخدمون <span class="nbadge" id="uc">0</span></div>
+  <div class="nitem" onclick="showP('messages',this)"><span class="ni">💬</span> الرسائل <span class="nbadge" id="mc">0</span></div>
+  <div class="nitem" onclick="showP('newsletter',this)"><span class="ni">📧</span> النشرة البريدية</div>
+  <div class="nitem" onclick="showP('design',this)"><span class="ni">🎨</span> تصميم الموقع</div>
+  <div class="nitem" onclick="showP('brand',this)"><span class="ni">💡</span> الشعار والهوية</div>
+  <div class="nitem" onclick="showP('social',this)"><span class="ni">🔗</span> منصات التواصل</div>
+
+  <div class="sb-foot">
+    <button class="btn-logout" onclick="doLogout()">🚪 تسجيل الخروج</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div class="tb-left">
+      <button class="mob-toggle" onclick="openSb()">☰</button>
+      <div class="tb-title" id="tbTitle">🏠 الرئيسية</div>
+    </div>
+    <div class="tb-right">
+      <a href="index.html" target="_blank" class="btn-preview">👁️ معاينة</a>
+      <button class="btn-save" onclick="saveAllSections()">💾 حفظ الكل</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="panel active" id="p-dashboard">
+      <div class="stats-grid">
+        <div class="scard s1"><div class="si">👥</div><div class="sn" id="ds-u">0</div><div class="sl">المستخدمون</div></div>
+        <div class="scard s2"><div class="si">📦</div><div class="sn" id="ds-p">0</div><div class="sl">المنتجات</div></div>
+        <div class="scard s3"><div class="si">💬</div><div class="sn" id="ds-m">0</div><div class="sl">الرسائل</div></div>
+        <div class="scard s4"><div class="si">📧</div><div class="sn" id="ds-s">0</div><div class="sl">المشتركون</div></div>
+      </div>
+      <div class="g2">
+        <div class="pc"><h3>💬 آخر الرسائل</h3><div id="dMsgs"><div style="color:var(--mt);text-align:center;padding:20px;font-size:.85rem">جاري التحميل...</div></div></div>
+        <div class="pc"><h3>👤 آخر المستخدمين</h3><div id="dUsers"><div style="color:var(--mt);text-align:center;padding:20px;font-size:.85rem">جاري التحميل...</div></div></div>
+      </div>
+    </div>
+
+    <!-- HERO -->
+    <div class="panel" id="p-hero">
+      <div class="pc"><h3>🎯 نص القسم الرئيسي</h3>
+        <div class="g2">
+          <div class="cg"><label>العنوان - السطر الأول</label><input class="ci" id="h-l1" placeholder="تعلّم. ابنِ."></div>
+          <div class="cg"><label>الكلمة المميزة (ذهبية)</label><input class="ci" id="h-l2" placeholder="تميّز."></div>
+        </div>
+        <div class="cg"><label>النص التوضيحي</label><textarea class="cta" id="h-sub" rows="3" placeholder="منصة 3ENG.s..."></textarea></div>
+        <div class="g2">
+          <div class="cg"><label>نص زر 1</label><input class="ci" id="h-b1" placeholder="استعرض المنتجات"></div>
+          <div class="cg"><label>نص زر 2</label><input class="ci" id="h-b2" placeholder="الدورات التعليمية"></div>
+        </div>
+        <div class="cg"><label>نص الشارة العلوية</label><input class="ci" id="h-badge" placeholder="المهندسون الثلاثة — 3ENG.s"></div>
+      </div>
+      <div class="pc"><h3>📊 الإحصائيات</h3>
+        <div class="g2">
+          <div><div class="cg"><label>رقم 1</label><input class="ci" id="s1n" placeholder="+200"></div><div class="cg"><label>تسمية 1</label><input class="ci" id="s1l" placeholder="منتج رقمي"></div></div>
+          <div><div class="cg"><label>رقم 2</label><input class="ci" id="s2n" placeholder="+50"></div><div class="cg"><label>تسمية 2</label><input class="ci" id="s2l" placeholder="دورة تعليمية"></div></div>
+          <div><div class="cg"><label>رقم 3</label><input class="ci" id="s3n" placeholder="+8K"></div><div class="cg"><label>تسمية 3</label><input class="ci" id="s3l" placeholder="طالب راضٍ"></div></div>
+          <div><div class="cg"><label>رقم 4</label><input class="ci" id="s4n" placeholder="4.9★"></div><div class="cg"><label>تسمية 4</label><input class="ci" id="s4l" placeholder="تقييم المنصة"></div></div>
+        </div>
+        <button class="btn-sm" onclick="saveSec('hero')">💾 حفظ Hero</button>
+      </div>
+    </div>
+
+    <!-- PRODUCTS -->
+    <div class="panel" id="p-products">
+      <div class="pc"><h3>📦 إدارة المنتجات</h3>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+          <button class="btn-add" onclick="openModal('product')">➕ إضافة منتج</button>
+        </div>
+        <div id="prodList"><div style="color:var(--mt);text-align:center;padding:30px">جاري التحميل...</div></div>
+      </div>
+    </div>
+
+    <!-- COURSES -->
+    <div class="panel" id="p-courses">
+      <div class="pc"><h3>🎓 إدارة الدورات</h3>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+          <button class="btn-add" onclick="openModal('course')">➕ إضافة دورة</button>
+        </div>
+        <div id="courseList"><div style="color:var(--mt);text-align:center;padding:30px">جاري التحميل...</div></div>
+      </div>
+    </div>
+
+    <!-- BOOKS -->
+    <div class="panel" id="p-books">
+      <div class="pc"><h3>📚 إدارة الكتب</h3>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+          <button class="btn-add" onclick="openModal('book')">➕ إضافة كتاب</button>
+        </div>
+        <div id="bookList"><div style="color:var(--mt);text-align:center;padding:30px">جاري التحميل...</div></div>
+      </div>
+    </div>
+
+    <!-- TESTIMONIALS -->
+    <div class="panel" id="p-testimonials">
+      <div class="pc"><h3>⭐ آراء الطلاب</h3>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+          <button class="btn-add" onclick="openModal('testimonial')">➕ إضافة رأي</button>
+        </div>
+        <div id="testList"><div style="color:var(--mt);text-align:center;padding:30px">جاري التحميل...</div></div>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="panel" id="p-users">
+      <div class="pc"><h3>👥 جميع المستخدمين</h3>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+          <div style="font-size:.82rem;color:var(--mt)" id="uCount">0 مستخدم</div>
+          <input class="ci" style="width:200px" placeholder="🔍 بحث..." id="uSearch" oninput="filterUsers()">
+        </div>
+        <div class="tbl-wrap">
+          <table class="dtbl">
+            <thead><tr><th>المستخدم</th><th>البريد</th><th>الدور</th><th>طريقة التسجيل</th><th>التاريخ</th><th>إجراء</th></tr></thead>
+            <tbody id="uTable"><tr><td colspan="6" style="text-align:center;color:var(--mt);padding:30px">جاري التحميل...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- MESSAGES -->
+    <div class="panel" id="p-messages">
+      <div class="pc"><h3>💬 رسائل التواصل</h3>
+        <div id="msgList"><div style="color:var(--mt);text-align:center;padding:30px">جاري التحميل...</div></div>
+      </div>
+    </div>
+
+    <!-- NEWSLETTER -->
+    <div class="panel" id="p-newsletter">
+      <div class="pc"><h3>📧 مشتركو النشرة</h3>
+        <div id="nlList"><div style="color:var(--mt);text-align:center;padding:30px">جاري التحميل...</div></div>
+      </div>
+    </div>
+
+    <!-- DESIGN -->
+    <div class="panel" id="p-design">
+      <div class="pc"><h3>🎨 ألوان الموقع</h3>
+        <p style="font-size:.8rem;color:var(--mt);margin-bottom:16px">الألوان تُطبَّق فوراً على الموقع الرئيسي بعد الحفظ</p>
+        <div class="colors-row">
+          <div class="color-item"><input type="color" class="cswatch" id="col-primary" value="#F59E0B"><label>الرئيسي</label></div>
+          <div class="color-item"><input type="color" class="cswatch" id="col-dark" value="#0F172A"><label>الخلفية</label></div>
+          <div class="color-item"><input type="color" class="cswatch" id="col-card" value="#1E293B"><label>البطاقات</label></div>
+          <div class="color-item"><input type="color" class="cswatch" id="col-text" value="#F1F5F9"><label>النصوص</label></div>
+          <div class="color-item"><input type="color" class="cswatch" id="col-accent" value="#0EA5E9"><label>الثانوي</label></div>
+        </div>
+        <button class="btn-sm" style="margin-top:16px" onclick="saveSec('design')">💾 حفظ الألوان</button>
+      </div>
+      <div class="pc"><h3>🔧 إعدادات عامة</h3>
+        <div class="cg"><label>اسم الموقع (في تبويب المتصفح)</label><input class="ci" id="site-title" placeholder="3ENG.s | المهندسون الثلاثة"></div>
+        <div class="cg"><label>وصف الموقع (SEO)</label><textarea class="cta" id="site-desc" rows="2" placeholder="منصة 3ENG.s للهندسة..."></textarea></div>
+        <button class="btn-sm" onclick="saveSec('siteConfig')">💾 حفظ الإعدادات</button>
+      </div>
+    </div>
+
+    <!-- BRAND -->
+    <div class="panel" id="p-brand">
+      <div class="pc"><h3>💡 الشعار والهوية</h3>
+        <div class="g2">
+          <div>
+            <div class="cg"><label>اسم العلامة التجارية</label><input class="ci" id="br-name" placeholder="3ENG.s"></div>
+            <div class="cg"><label>الشعار الفرعي (Slogan)</label><input class="ci" id="br-slogan" placeholder="Smart Idea • الهندسة الكهربائية"></div>
+            <div class="cg"><label>التخصص</label><input class="ci" id="br-niche" placeholder="الهندسة الكهربائية والأنظمة المدمجة"></div>
+            <div class="cg"><label>رابط الشعار (URL)</label><input class="ci" id="br-logo" placeholder="logo.jpg"></div>
+          </div>
+          <div>
+            <div class="cg"><label>رفع شعار جديد</label></div>
+            <div class="img-zone" id="logoZone">
+              <input type="file" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml" onchange="uploadLogoFile(this)">
+              <div class="iz-icon">📁</div>
+              <p>اضغط لرفع الشعار</p>
+              <div class="iz-hint">PNG, JPG, SVG — أقل من 2MB</div>
+            </div>
+            <div class="img-loading" id="logoLoading"><div class="mini-spin"></div><span>جاري الرفع...</span></div>
+            <img class="img-preview" id="logoPreview" src="" alt="">
+          </div>
+        </div>
+        <button class="btn-sm" onclick="saveSec('brand')">💾 حفظ الهوية</button>
+      </div>
+    </div>
+
+    <!-- SOCIAL -->
+    <div class="panel" id="p-social">
+      <div class="pc"><h3>🔗 منصات التواصل الاجتماعي</h3>
+        <div class="g2">
+          <div class="cg"><label>💬 رقم واتساب (بدون +)</label><input class="ci" id="s-wa" placeholder="972592753159" dir="ltr"></div>
+          <div class="cg"><label>📧 البريد الإلكتروني</label><input class="ci" id="s-email" placeholder="info@3engs.com" dir="ltr"></div>
+          <div class="cg"><label>🌐 الدومين</label><input class="ci" id="s-domain" placeholder="www.3engs.com" dir="ltr"></div>
+          <div class="cg"><label>📸 رابط إنستغرام</label><input class="ci" id="s-ig" placeholder="https://instagram.com/..." dir="ltr"></div>
+          <div class="cg"><label>🎵 رابط تيكتوك</label><input class="ci" id="s-tt" placeholder="https://tiktok.com/@..." dir="ltr"></div>
+          <div class="cg"><label>👥 رابط فيسبوك</label><input class="ci" id="s-fb" placeholder="https://facebook.com/..." dir="ltr"></div>
+          <div class="cg"><label>▶️ يوتيوب (اختياري)</label><input class="ci" id="s-yt" placeholder="https://youtube.com/..." dir="ltr"></div>
+        </div>
+        <button class="btn-sm" onclick="saveSec('social')">💾 حفظ الروابط</button>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <div class="mbox">
+    <div class="mhdr">
+      <h3 id="mTitle">إضافة</h3>
+      <button class="mclose" onclick="closeModal()">✕</button>
+    </div>
+    <div id="mBody"></div>
+    <div class="mfoot">
+      <button class="btn-del" onclick="closeModal()">إلغاء</button>
+      <button class="btn-sm" onclick="saveModal()">💾 حفظ</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  getFirestore, collection, getDocs, doc, setDoc, addDoc,
+  deleteDoc, serverTimestamp, getDoc, updateDoc, query, orderBy, limit
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import {
+  getStorage, ref, uploadBytesResumable, getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+const CFG = {
+  apiKey:"AIzaSyALJiF8l_wnk_6FU6etQpz44Z43lSORXQk",
+  authDomain:"engs-website.firebaseapp.com",
+  projectId:"engs-website",
+  storageBucket:"engs-website.firebasestorage.app",
+  messagingSenderId:"1028163586505",
+  appId:"1:1028163586505:web:c09de00bb30a3369ca4018",
+  measurementId:"G-GZJCYL5YM8"
+};
+const ADMINS = ['hosam2564491@gmail.com','info@3engs.com'];
+
+const app = initializeApp(CFG);
+getAnalytics(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+// ===AUTH===
+onAuthStateChanged(auth, async user => {
+  if (!user || !ADMINS.includes(user.email)) {
+    window.location.href = 'auth.html'; return;
+  }
+  document.getElementById('authLoad').style.display = 'none';
+  const name = user.displayName || user.email.split('@')[0];
+  document.getElementById('aName').textContent = name;
+  document.getElementById('aAv').textContent = name[0].toUpperCase();
+  loadAll();
+});
+
+window.doLogout = async () => { await signOut(auth); window.location.href = 'auth.html'; };
+
+// ===LOAD ALL===
+async function loadAll() {
+  loadDashboard(); loadProducts(); loadCourses(); loadBooks();
+  loadTestimonials(); loadUsers(); loadMessages(); loadNewsletter(); loadConfig();
+}
+
+// ===DASHBOARD===
+async function loadDashboard() {
+  const [us,ps,ms,ss] = await Promise.all([
+    getDocs(collection(db,'users')),
+    getDocs(collection(db,'products')),
+    getDocs(collection(db,'contact_messages')),
+    getDocs(collection(db,'newsletter_subscribers'))
+  ]);
+  const setN = (id,v) => { document.getElementById(id).textContent = v; };
+  setN('ds-u',us.size); setN('ds-p',ps.size); setN('ds-m',ms.size); setN('ds-s',ss.size);
+  setN('uc',us.size); setN('pc',ps.size); setN('mc',ms.size);
+
+  // Recent messages
+  const mq = query(collection(db,'contact_messages'), orderBy('timestamp','desc'), limit(4));
+  const mSnap = await getDocs(mq);
+  let mHTML = '';
+  mSnap.forEach(d => { const m=d.data();
+    mHTML += `<div class="irow"><div class="iemoji">💬</div><div class="iinfo"><div class="ititle">${m.name||'—'}</div><div class="imeta">${m.email||''}</div></div></div>`;
+  });
+  document.getElementById('dMsgs').innerHTML = mHTML || '<p style="color:var(--mt);text-align:center;padding:20px;font-size:.82rem">لا توجد رسائل</p>';
+
+  // Recent users
+  const uq = query(collection(db,'users'), orderBy('createdAt','desc'), limit(4));
+  const uSnap = await getDocs(uq);
+  let uHTML = '';
+  uSnap.forEach(d => { const u=d.data();
+    uHTML += `<div class="irow"><div class="iemoji">👤</div><div class="iinfo"><div class="ititle">${u.displayName||'مستخدم'}</div><div class="imeta">${u.email||''}</div></div><span class="badge ${u.role==='admin'?'ba':'bu'}">${u.role==='admin'?'أدمن':'مستخدم'}</span></div>`;
+  });
+  document.getElementById('dUsers').innerHTML = uHTML || '<p style="color:var(--mt);text-align:center;padding:20px;font-size:.82rem">لا يوجد مستخدمون</p>';
+}
+
+// ===PRODUCTS===
+window._prods = [];
+async function loadProducts() {
+  const snap = await getDocs(collection(db,'products'));
+  window._prods = [];
+  snap.forEach(d => window._prods.push({id:d.id,...d.data()}));
+  document.getElementById('pc').textContent = window._prods.length;
+  renderProds();
+}
+function renderProds() {
+  const el = document.getElementById('prodList');
+  if (!window._prods.length) { el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد منتجات</p>'; return; }
+  el.innerHTML = window._prods.map(p => `
+    <div class="irow">
+      <div class="iemoji">${p.emoji||'📦'}</div>
+      <div class="iinfo">
+        <div class="ititle">${p.title||''}</div>
+        <div class="imeta">${p.type||''} • $${p.price||0}${p.imageUrl?` • <span style="color:var(--ok)">✓ صورة</span>`:''}</div>
+      </div>
+      <div class="iacts">
+        <button class="btn-edit" onclick="editItem('product','${p.id}')">✏️</button>
+        <button class="btn-del" onclick="delItem('products','${p.id}',loadProducts)">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+// ===COURSES===
+window._courses = [];
+async function loadCourses() {
+  const snap = await getDocs(collection(db,'courses'));
+  window._courses = [];
+  snap.forEach(d => window._courses.push({id:d.id,...d.data()}));
+  document.getElementById('cc').textContent = window._courses.length;
+  const el = document.getElementById('courseList');
+  if (!window._courses.length) { el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد دورات</p>'; return; }
+  el.innerHTML = window._courses.map(c => `
+    <div class="irow">
+      <div class="iemoji">${c.emoji||'🎓'}</div>
+      <div class="iinfo">
+        <div class="ititle">${c.title||''}</div>
+        <div class="imeta">${c.category||''} • ${c.duration||''} • $${c.price||0}${c.imageUrl?` • <span style="color:var(--ok)">✓ صورة</span>`:''}</div>
+      </div>
+      <div class="iacts">
+        <button class="btn-edit" onclick="editItem('course','${c.id}')">✏️</button>
+        <button class="btn-del" onclick="delItem('courses','${c.id}',loadCourses)">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+// ===BOOKS===
+window._books = [];
+async function loadBooks() {
+  const snap = await getDocs(collection(db,'books'));
+  window._books = [];
+  snap.forEach(d => window._books.push({id:d.id,...d.data()}));
+  document.getElementById('bc').textContent = window._books.length;
+  const el = document.getElementById('bookList');
+  if (!window._books.length) { el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد كتب</p>'; return; }
+  el.innerHTML = window._books.map(b => `
+    <div class="irow">
+      <div class="iemoji">${b.emoji||'📚'}</div>
+      <div class="iinfo">
+        <div class="ititle">${b.title||''}</div>
+        <div class="imeta">${b.author||''} • $${b.price||0}</div>
+      </div>
+      <div class="iacts">
+        <button class="btn-edit" onclick="editItem('book','${b.id}')">✏️</button>
+        <button class="btn-del" onclick="delItem('books','${b.id}',loadBooks)">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+// ===TESTIMONIALS===
+window._tests = [];
+async function loadTestimonials() {
+  const snap = await getDocs(collection(db,'testimonials'));
+  window._tests = [];
+  snap.forEach(d => window._tests.push({id:d.id,...d.data()}));
+  const el = document.getElementById('testList');
+  if (!window._tests.length) { el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد آراء</p>'; return; }
+  el.innerHTML = window._tests.map(t => `
+    <div class="irow">
+      <div class="iemoji">⭐</div>
+      <div class="iinfo">
+        <div class="ititle">${t.name||''} — ${t.role||''}</div>
+        <div class="imeta">${(t.text||'').substring(0,70)}...</div>
+      </div>
+      <div class="iacts">
+        <button class="btn-edit" onclick="editItem('testimonial','${t.id}')">✏️</button>
+        <button class="btn-del" onclick="delItem('testimonials','${t.id}',loadTestimonials)">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+// ===USERS — Fixed for Google users===
+window._users = [];
+async function loadUsers() {
+  const snap = await getDocs(collection(db,'users'));
+  window._users = [];
+  snap.forEach(d => window._users.push({id:d.id,...d.data()}));
+  document.getElementById('uc').textContent = window._users.length;
+  document.getElementById('uCount').textContent = window._users.length + ' مستخدم';
+  renderUsers(window._users);
+}
+function renderUsers(list) {
+  const tbody = document.getElementById('uTable');
+  if (!list.length) { tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--mt);padding:30px">لا يوجد مستخدمون</td></tr>'; return; }
+  tbody.innerHTML = list.map(u => {
+    const initial = (u.displayName||u.email||'U')[0].toUpperCase();
+    const date = u.createdAt?.toDate?.()?.toLocaleDateString('ar') || '—';
+    // Detect registration method
+    const method = u.provider === 'google' ? '<span style="color:var(--ok)">🔵 Google</span>' :
+                   u.provider === 'email' ? '📧 إيميل' : '—';
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:9px">
+        ${u.photoURL ? `<img src="${u.photoURL}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;border:1px solid var(--br)" onerror="this.style.display='none'">` :
+        `<div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--pd),var(--p));display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:800;color:var(--dk)">${initial}</div>`}
+        <span>${u.displayName||'—'}</span>
+      </div></td>
+      <td dir="ltr" style="color:var(--mt);font-size:.78rem">${u.email||'—'}</td>
+      <td><span class="badge ${u.role==='admin'?'ba':'bu'}">${u.role==='admin'?'🛡️ أدمن':'👤 مستخدم'}</span></td>
+      <td style="font-size:.8rem">${method}</td>
+      <td style="color:var(--mt);font-size:.76rem">${date}</td>
+      <td><button class="btn-edit" style="font-size:.74rem" onclick="toggleRole('${u.id}','${u.role}')">${u.role==='admin'?'↓ مستخدم':'↑ أدمن'}</button></td>
+    </tr>`;
+  }).join('');
+}
+window.filterUsers = () => {
+  const q = document.getElementById('uSearch').value.toLowerCase();
+  renderUsers(window._users.filter(u => (u.displayName||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q)));
+};
+window.toggleRole = async (uid, role) => {
+  const nr = role === 'admin' ? 'user' : 'admin';
+  await updateDoc(doc(db,'users',uid), {role:nr});
+  toast('✅ تم تغيير الدور'); loadUsers();
+};
+
+// ===MESSAGES===
+async function loadMessages() {
+  const q2 = query(collection(db,'contact_messages'), orderBy('timestamp','desc'));
+  const snap = await getDocs(q2);
+  let html = '';
+  snap.forEach(d => {
+    const m=d.data(); const dt = m.timestamp?.toDate?.()?.toLocaleDateString('ar')||'—';
+    html += `<div class="irow" style="flex-direction:column;align-items:flex-start">
+      <div style="display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="font-size:1.5rem">💬</div>
+          <div><div style="font-size:.88rem;font-weight:700">${m.name||'—'} <span style="color:var(--mt);font-size:.76rem" dir="ltr">&lt;${m.email||''}&gt;</span></div>
+          <div style="font-size:.74rem;color:var(--mt)">${dt} • ${m.subject||'بدون موضوع'}</div></div>
+        </div>
+        <button class="btn-del" onclick="delItem('contact_messages','${d.id}',loadMessages)">🗑️</button>
+      </div>
+      <div style="background:rgba(15,23,42,.6);padding:10px 14px;border-radius:8px;font-size:.83rem;color:var(--mt);width:100%;line-height:1.7">${m.message||''}</div>
+    </div>`;
+  });
+  document.getElementById('msgList').innerHTML = html || '<p style="color:var(--mt);text-align:center;padding:30px">لا توجد رسائل</p>';
+  document.getElementById('mc').textContent = snap.size;
+  document.getElementById('ds-m').textContent = snap.size;
+}
+
+// ===NEWSLETTER===
+async function loadNewsletter() {
+  const q2 = query(collection(db,'newsletter_subscribers'), orderBy('timestamp','desc'));
+  const snap = await getDocs(q2);
+  let emails = [];
+  snap.forEach(d => emails.push({id:d.id,...d.data()}));
+  document.getElementById('nlList').innerHTML =
+    `<p style="margin-bottom:14px;font-size:.84rem;color:var(--mt)">إجمالي المشتركين: <strong style="color:var(--p)">${emails.length}</strong></p>` +
+    (emails.map(e => `<div class="irow"><div class="iemoji">📧</div><div class="iinfo"><div class="ititle" dir="ltr">${e.email||''}</div><div class="imeta">${e.timestamp?.toDate?.()?.toLocaleDateString('ar')||'—'}</div></div><button class="btn-del" onclick="delItem('newsletter_subscribers','${e.id}',loadNewsletter)">🗑️</button></div>`).join('') || '<p style="color:var(--mt);text-align:center;padding:20px">لا يوجد مشتركون</p>');
+  document.getElementById('ds-s').textContent = emails.length;
+}
+
+// ===CONFIG===
+async function loadConfig() {
+  try {
+    const snap = await getDoc(doc(db,'site_config','main'));
+    if (!snap.exists()) return;
+    const cfg = snap.data();
+    if (cfg.hero) {
+      const h=cfg.hero;
+      ['l1','l2','sub','b1','b2','badge'].forEach(k=>{const el=document.getElementById('h-'+k);if(el&&h[k])el.value=h[k];});
+      ['1','2','3','4'].forEach(i=>{
+        const s=cfg.hero['stat'+i];
+        if(s){const n=document.getElementById('s'+i+'n'),l=document.getElementById('s'+i+'l');if(n)n.value=s.num||'';if(l)l.value=s.label||'';}
+      });
+    }
+    if (cfg.social) { const s=cfg.social; ['wa','email','domain','ig','tt','fb','yt'].forEach(k=>{const el=document.getElementById('s-'+k);if(el&&s[k])el.value=s[k];}); }
+    if (cfg.brand) { const b=cfg.brand; ['name','slogan','niche'].forEach(k=>{const el=document.getElementById('br-'+k);if(el&&b[k])el.value=b[k];}); if(b.logoUrl)document.getElementById('br-logo').value=b.logoUrl; }
+    if (cfg.design?.colors) { const c=cfg.design.colors; ['primary','dark','card','text','accent'].forEach(k=>{const el=document.getElementById('col-'+k);if(el&&c[k])el.value=c[k];}); }
+    if (cfg.siteTitle) document.getElementById('site-title').value=cfg.siteTitle;
+    if (cfg.siteDesc) document.getElementById('site-desc').value=cfg.siteDesc;
+  } catch(e) { console.log('Config load:', e); }
+}
+
+// ===SAVE SECTIONS===
+window.saveSec = async (sec) => {
+  let data = {};
+  const g = id => document.getElementById(id)?.value||'';
+  if (sec==='hero') {
+    data.hero = {
+      l1:g('h-l1'),l2:g('h-l2'),sub:g('h-sub'),b1:g('h-b1'),b2:g('h-b2'),badge:g('h-badge'),
+      stat1:{num:g('s1n'),label:g('s1l')}, stat2:{num:g('s2n'),label:g('s2l')},
+      stat3:{num:g('s3n'),label:g('s3l')}, stat4:{num:g('s4n'),label:g('s4l')}
+    };
+  } else if (sec==='social') {
+    data.social={wa:g('s-wa'),email:g('s-email'),domain:g('s-domain'),ig:g('s-ig'),tt:g('s-tt'),fb:g('s-fb'),yt:g('s-yt')};
+  } else if (sec==='brand') {
+    data.brand={name:g('br-name'),slogan:g('br-slogan'),niche:g('br-niche'),logoUrl:g('br-logo')};
+  } else if (sec==='design') {
+    data.design={colors:{primary:g('col-primary'),dark:g('col-dark'),card:g('col-card'),text:g('col-text'),accent:g('col-accent')}};
+  } else if (sec==='siteConfig') {
+    data.siteTitle=g('site-title'); data.siteDesc=g('site-desc');
+  }
+  await setDoc(doc(db,'site_config','main'),data,{merge:true});
+  toast('✅ تم حفظ '+({hero:'الـ Hero',social:'الروابط',brand:'الهوية',design:'الألوان',siteConfig:'الإعدادات'}[sec]||sec));
+};
+
+window.saveAllSections = async () => {
+  await Promise.all(['hero','social','brand','design','siteConfig'].map(s=>window.saveSec(s)));
+  toast('✅ تم حفظ جميع التغييرات!');
+};
+
+// ===DELETE===
+window.delItem = async (col,id,reloadFn) => {
+  if (!confirm('هل أنت متأكد من الحذف؟ لا يمكن التراجع.')) return;
+  await deleteDoc(doc(db,col,id));
+  toast('🗑️ تم الحذف','warn');
+  if(reloadFn) reloadFn();
+};
+
+// ===IMAGE UPLOAD to Firebase Storage===
+let _uploadedImageUrl = '';
+
+window.uploadImageFile = async function(input, progressId, loadingId, previewId, urlId) {
+  const file = input.files[0];
+  if (!file) return;
+  const maxSize = 5 * 1024 * 1024; // 5MB
+  if (file.size > maxSize) { toast('⚠️ الصورة أكبر من 5MB','err'); return; }
+  const allowed = ['image/jpeg','image/png','image/gif','image/webp','image/svg+xml'];
+  if (!allowed.includes(file.type)) { toast('⚠️ صيغة غير مدعومة. استخدم: JPG, PNG, GIF, WebP, SVG','err'); return; }
+
+  const loading = document.getElementById(loadingId);
+  const prog = document.getElementById(progressId);
+  const preview = document.getElementById(previewId);
+  if(loading) loading.classList.add('show');
+  if(prog) prog.classList.add('show');
+
+  const ext = file.name.split('.').pop();
+  const fileName = `uploads/${Date.now()}_${Math.random().toString(36).substr(2,6)}.${ext}`;
+  const storageRef = ref(storage, fileName);
+  const task = uploadBytesResumable(storageRef, file);
+
+  task.on('state_changed',
+    snap => {
+      const pct = (snap.bytesTransferred/snap.totalBytes)*100;
+      if(prog) prog.querySelector('.img-prog-bar').style.width = pct+'%';
+    },
+    err => {
+      if(loading) loading.classList.remove('show');
+      if(prog) prog.classList.remove('show');
+      toast('⚠️ فشل الرفع: '+err.message,'err');
+    },
+    async () => {
+      const url = await getDownloadURL(task.snapshot.ref);
+      _uploadedImageUrl = url;
+      if(loading) loading.classList.remove('show');
+      if(prog) { prog.classList.remove('show'); prog.querySelector('.img-prog-bar').style.width='100%'; }
+      if(preview) { preview.src=url; preview.style.display='block'; }
+      if(urlId) document.getElementById(urlId).value=url;
+      toast('✅ تم رفع الصورة بنجاح!');
+    }
+  );
+};
+
+// Logo upload
+window.uploadLogoFile = function(input) {
+  window.uploadImageFile(input, 'logoProgBar', 'logoLoading', 'logoPreview', 'br-logo');
+};
+
+// ===MODAL FORMS===
+const mForms = {
+  product: `
+    <div class="cg"><label>اسم المنتج *</label><input class="ci" id="m-title" placeholder="اسم المنتج"></div>
+    <div class="cg"><label>الوصف</label><textarea class="cta" id="m-desc" rows="3" placeholder="وصف المنتج"></textarea></div>
+    <div class="g2">
+      <div class="cg"><label>السعر الحالي ($) *</label><input class="ci" id="m-price" type="number" min="0" placeholder="29"></div>
+      <div class="cg"><label>السعر القديم ($)</label><input class="ci" id="m-oldPrice" type="number" min="0" placeholder="49"></div>
+    </div>
+    <div class="g2">
+      <div class="cg"><label>النوع *</label>
+        <select class="cs" id="m-type"><option value="tool">أداة</option><option value="template">قالب</option><option value="ebook">كتاب رقمي</option><option value="course">دورة</option></select>
+      </div>
+      <div class="cg"><label>الإيموجي</label><input class="ci" id="m-emoji" placeholder="🛠️" style="font-size:1.2rem"></div>
+    </div>
+    <div class="g2">
+      <div class="cg"><label>الشارة</label>
+        <select class="cs" id="m-badge"><option value="">بدون</option><option value="new">جديد</option><option value="best">الأكثر مبيعاً</option><option value="sale">خصم</option><option value="free">مجاني</option></select>
+      </div>
+      <div class="cg" style="display:flex;align-items:center;gap:8px;padding-top:24px">
+        <input type="checkbox" id="m-free" style="width:18px;height:18px;accent-color:var(--p)">
+        <label style="color:var(--tx);font-size:.86rem;cursor:pointer" for="m-free">منتج مجاني</label>
+      </div>
+    </div>
+    <div class="cg">
+      <label>صورة المنتج (اختيارية)</label>
+      <div style="font-size:.75rem;color:var(--mt);margin-bottom:8px">الأنواع المقبولة: JPG, PNG, GIF, WebP, SVG — الحد الأقصى: 5MB</div>
+      <div class="img-zone">
+        <input type="file" accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml" onchange="uploadImageFile(this,'mProdProg','mProdLoad','mProdPreview','m-imageUrl')">
+        <div class="iz-icon">🖼️</div>
+        <p>اضغط لرفع صورة المنتج</p>
+      </div>
+      <div class="img-loading" id="mProdLoad"><div class="mini-spin"></div><span>جاري الرفع...</span></div>
+      <div class="img-prog" id="mProdProg"><div class="img-prog-bar"></div></div>
+      <img class="img-preview" id="mProdPreview" src="" alt="">
+      <input class="ci" id="m-imageUrl" placeholder="أو أدخل رابط الصورة مباشرة" dir="ltr" style="margin-top:8px">
+    </div>`,
+
+  course: `
+    <div class="cg"><label>اسم الدورة *</label><input class="ci" id="m-title" placeholder="اسم الدورة"></div>
+    <div class="cg"><label>الوصف</label><textarea class="cta" id="m-desc" rows="3" placeholder="وصف الدورة"></textarea></div>
+    <div class="g2">
+      <div class="cg"><label>التخصص *</label><input class="ci" id="m-category" placeholder="الهندسة الكهربائية"></div>
+      <div class="cg"><label>الإيموجي</label><input class="ci" id="m-emoji" placeholder="⚡" style="font-size:1.2rem"></div>
+    </div>
+    <div class="g3">
+      <div class="cg"><label>المدة</label><input class="ci" id="m-duration" placeholder="30 ساعة"></div>
+      <div class="cg"><label>عدد الدروس</label><input class="ci" id="m-lessons" placeholder="90 درس"></div>
+      <div class="cg"><label>السعر ($)</label><input class="ci" id="m-price" type="number" min="0" placeholder="75"></div>
+    </div>
+    <div class="cg"><label>المستوى</label>
+      <select class="cs" id="m-level"><option value="مبتدئ">مبتدئ</option><option value="وسط">وسط</option><option value="متقدم">متقدم</option></select>
+    </div>
+    <div class="cg">
+      <label>صورة الدورة (مهمة!)</label>
+      <div style="font-size:.75rem;color:var(--mt);margin-bottom:8px">📌 الأنواع المقبولة: <strong style="color:var(--p)">JPG, PNG, GIF, WebP, SVG</strong> — الحد الأقصى: 5MB<br>💡 أنسب أبعاد: 800×450 بكسل (نسبة 16:9)</div>
+      <div class="img-zone">
+        <input type="file" accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml" onchange="uploadImageFile(this,'mCourProg','mCourLoad','mCourPreview','m-imageUrl')">
+        <div class="iz-icon">🖼️</div>
+        <p>اضغط لرفع صورة الدورة</p>
+        <div class="iz-hint">JPG • PNG • GIF • WebP • SVG (حتى 5MB)</div>
+      </div>
+      <div class="img-loading" id="mCourLoad"><div class="mini-spin"></div><span>جاري الرفع...</span></div>
+      <div class="img-prog" id="mCourProg"><div class="img-prog-bar"></div></div>
+      <img class="img-preview" id="mCourPreview" src="" alt="">
+      <input class="ci" id="m-imageUrl" placeholder="أو أدخل رابط الصورة مباشرة (https://...)" dir="ltr" style="margin-top:8px">
+    </div>`,
+
+  book: `
+    <div class="cg"><label>عنوان الكتاب *</label><input class="ci" id="m-title" placeholder="عنوان الكتاب"></div>
+    <div class="cg"><label>المؤلف</label><input class="ci" id="m-author" placeholder="فريق 3ENG.s"></div>
+    <div class="g2">
+      <div class="cg"><label>السعر ($)</label><input class="ci" id="m-price" type="number" min="0" placeholder="19"></div>
+      <div class="cg"><label>الإيموجي</label><input class="ci" id="m-emoji" placeholder="📘" style="font-size:1.2rem"></div>
+    </div>
+    <div class="cg"><label>الوصف</label><textarea class="cta" id="m-desc" rows="3" placeholder="وصف الكتاب"></textarea></div>
+    <div class="cg">
+      <label>صورة الغلاف (اختيارية)</label>
+      <div class="img-zone">
+        <input type="file" accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml" onchange="uploadImageFile(this,'mBookProg','mBookLoad','mBookPreview','m-imageUrl')">
+        <div class="iz-icon">📖</div>
+        <p>اضغط لرفع صورة الغلاف</p>
+        <div class="iz-hint">JPG • PNG • WebP (حتى 5MB)</div>
+      </div>
+      <div class="img-loading" id="mBookLoad"><div class="mini-spin"></div><span>جاري الرفع...</span></div>
+      <div class="img-prog" id="mBookProg"><div class="img-prog-bar"></div></div>
+      <img class="img-preview" id="mBookPreview" src="" alt="">
+      <input class="ci" id="m-imageUrl" placeholder="أو أدخل رابط الصورة مباشرة" dir="ltr" style="margin-top:8px">
+    </div>`,
+
+  testimonial: `
+    <div class="cg"><label>اسم الطالب *</label><input class="ci" id="m-name" placeholder="محمد أحمد"></div>
+    <div class="cg"><label>المسمى / التخصص</label><input class="ci" id="m-role" placeholder="مهندس إلكترونيات"></div>
+    <div class="cg"><label>نص التقييم *</label><textarea class="cta" id="m-text" rows="4" placeholder="رأي الطالب..."></textarea></div>
+    <div class="cg"><label>التقييم</label>
+      <select class="cs" id="m-rating"><option value="5">★★★★★ ممتاز</option><option value="4">★★★★☆ جيد جداً</option><option value="3">★★★☆☆ جيد</option></select>
+    </div>`
+};
+
+window._mType = ''; window._mId = null;
+
+window.openModal = (type, id=null) => {
+  window._mType = type; window._mId = id;
+  const labels = {product:'منتج',course:'دورة',book:'كتاب',testimonial:'رأي'};
+  document.getElementById('mTitle').textContent = (id?'تعديل ':'إضافة ') + (labels[type]||type);
+  document.getElementById('mBody').innerHTML = mForms[type]||'';
+  _uploadedImageUrl = '';
+
+  // Fill if editing
+  if (id) {
+    const colMap = {product:window._prods,course:window._courses,book:window._books,testimonial:window._tests};
+    const item = colMap[type]?.find(i=>i.id===id);
+    if (item) {
+      Object.keys(item).forEach(k => {
+        const el = document.getElementById('m-'+k);
+        if (el && k !== 'id') {
+          if (el.type === 'checkbox') el.checked = !!item[k];
+          else el.value = item[k]||'';
+        }
+      });
+      if (item.imageUrl) {
+        _uploadedImageUrl = item.imageUrl;
+        const prev = document.getElementById('mProdPreview')||document.getElementById('mCourPreview')||document.getElementById('mBookPreview');
+        if(prev){prev.src=item.imageUrl;prev.style.display='block';}
+      }
+    }
+  }
+  document.getElementById('modal').classList.add('show');
+};
+
+window.editItem = (type,id) => window.openModal(type,id);
+window.closeModal = () => document.getElementById('modal').classList.remove('show');
+
+window.saveModal = async () => {
+  const type = window._mType; const id = window._mId;
+  const g = eid => document.getElementById(eid)?.value||'';
+  const gc = eid => document.getElementById(eid)?.checked||false;
+
+  // Get image URL (uploaded or manual)
+  const manualUrl = g('m-imageUrl');
+  const finalImgUrl = manualUrl || _uploadedImageUrl || '';
+
+  let data = {updatedAt:serverTimestamp()};
+  if (type==='product') {
+    if (!g('m-title')) {toast('⚠️ اسم المنتج مطلوب','err');return;}
+    data={...data,title:g('m-title'),desc:g('m-desc'),price:parseFloat(g('m-price'))||0,oldPrice:parseFloat(g('m-oldPrice'))||0,type:g('m-type'),emoji:g('m-emoji'),badge:g('m-badge'),isFree:gc('m-free'),imageUrl:finalImgUrl};
+  } else if (type==='course') {
+    if (!g('m-title')) {toast('⚠️ اسم الدورة مطلوب','err');return;}
+    data={...data,title:g('m-title'),desc:g('m-desc'),category:g('m-category'),emoji:g('m-emoji'),duration:g('m-duration'),lessons:g('m-lessons'),price:parseFloat(g('m-price'))||0,level:g('m-level'),imageUrl:finalImgUrl};
+  } else if (type==='book') {
+    if (!g('m-title')) {toast('⚠️ عنوان الكتاب مطلوب','err');return;}
+    data={...data,title:g('m-title'),author:g('m-author'),price:parseFloat(g('m-price'))||0,emoji:g('m-emoji'),desc:g('m-desc'),imageUrl:finalImgUrl};
+  } else if (type==='testimonial') {
+    if (!g('m-name')||!g('m-text')) {toast('⚠️ الاسم والنص مطلوبان','err');return;}
+    data={...data,name:g('m-name'),role:g('m-role'),text:g('m-text'),rating:parseInt(g('m-rating'))||5};
+  }
+
+  const colMap={product:'products',course:'courses',book:'books',testimonial:'testimonials'};
+  if (id) { await setDoc(doc(db,colMap[type],id),data,{merge:true}); }
+  else { data.createdAt=serverTimestamp(); await addDoc(collection(db,colMap[type]),data); }
+
+  closeModal(); toast('✅ تم الحفظ بنجاح!');
+  const reloads = {product:loadProducts,course:loadCourses,book:loadBooks,testimonial:loadTestimonials};
+  if(reloads[type]) reloads[type]();
+};
+
+// ===TOAST===
+function toast(msg, type='') {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast '+(type||'');
+  t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3200);
+}
+window.toast = toast;
+</script>
+
+<script>
+// ===SIDEBAR MOBILE===
+function openSb(){document.getElementById('sidebar').classList.add('open');document.getElementById('sbOverlay').classList.add('show');}
+function closeSb(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sbOverlay').classList.remove('show');}
+
+const panelTitles = {
+  dashboard:'🏠 الرئيسية',hero:'🎯 القسم الرئيسي',products:'📦 المنتجات',
+  courses:'🎓 الدورات',books:'📚 الكتب',testimonials:'⭐ آراء الطلاب',
+  users:'👥 المستخدمون',messages:'💬 الرسائل',newsletter:'📧 النشرة',
+  design:'🎨 التصميم',brand:'💡 الهوية',social:'🔗 التواصل'
+};
+
+function showP(id, el) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nitem').forEach(n=>n.classList.remove('active'));
+  const panel = document.getElementById('p-'+id);
+  if(panel) panel.classList.add('active');
+  if(el) el.classList.add('active');
+  document.getElementById('tbTitle').textContent = panelTitles[id]||id;
+  closeSb();
+}
+</script>
+</body>
+</html>
