@@ -6,27 +6,26 @@
 <title>3ENG.s | لوحة التحكم</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
-:root{--p:#F59E0B;--pd:#D97706;--pl:#FCD34D;--ac:#0EA5E9;--dk:#0F172A;--d2:#1E293B;--cd:#1E293B;--br:rgba(245,158,11,.2);--b2:rgba(255,255,255,.07);--tx:#F1F5F9;--mt:#94A3B8;--ok:#10B981;--er:#EF4444;--sw:260px;}
+:root{--p:#F59E0B;--pd:#D97706;--pl:#FCD34D;--ac:#0EA5E9;--dk:#0F172A;--d2:#1E293B;--cd:#1E293B;--br:rgba(245,158,11,.2);--b2:rgba(255,255,255,.07);--tx:#F1F5F9;--mt:#94A3B8;--ok:#10B981;--er:#EF4444;--sw:265px;}
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:var(--tx);overflow-x:hidden;}
 .sidebar{width:var(--sw);height:100vh;background:var(--d2);border-left:1px solid var(--br);position:fixed;top:0;right:0;z-index:200;display:flex;flex-direction:column;overflow-y:auto;transition:transform .3s ease;}
-.sidebar::-webkit-scrollbar{width:4px;} .sidebar::-webkit-scrollbar-thumb{background:var(--br);border-radius:4px;}
+.sidebar::-webkit-scrollbar{width:4px;}.sidebar::-webkit-scrollbar-thumb{background:var(--br);border-radius:4px;}
 .sb-logo{padding:18px;border-bottom:1px solid var(--br);display:flex;align-items:center;gap:10px;flex-shrink:0;}
 .sb-logo img{width:40px;height:40px;border-radius:50%;background:white;padding:3px;object-fit:contain;}
-.sb-logo .ln{font-size:1rem;font-weight:900;color:var(--p);} .sb-logo .ls{font-size:.6rem;color:var(--mt);}
+.sb-logo .ln{font-size:1rem;font-weight:900;color:var(--p);}.sb-logo .ls{font-size:.6rem;color:var(--mt);}
 .ainfo{margin:12px 14px;background:rgba(245,158,11,.1);border:1px solid var(--br);border-radius:10px;padding:10px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
 .aav{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--pd),var(--p));display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:800;color:var(--dk);flex-shrink:0;}
-.aname{font-size:.8rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;} .arole{font-size:.65rem;color:var(--p);font-weight:700;}
+.aname{font-size:.8rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}.arole{font-size:.65rem;color:var(--p);font-weight:700;}
 .ns{padding:12px 16px 5px;font-size:.6rem;font-weight:900;color:var(--mt);letter-spacing:2px;text-transform:uppercase;flex-shrink:0;}
 .ni{display:flex;align-items:center;gap:10px;padding:10px 16px;color:var(--mt);cursor:pointer;font-size:.82rem;font-weight:700;transition:all .2s;border-right:3px solid transparent;margin:1px 0;user-select:none;flex-shrink:0;}
-.ni:hover{background:rgba(245,158,11,.07);color:var(--tx);} .ni.active{background:rgba(245,158,11,.12);color:var(--p);border-right-color:var(--p);}
+.ni:hover{background:rgba(245,158,11,.07);color:var(--tx);}.ni.active{background:rgba(245,158,11,.12);color:var(--p);border-right-color:var(--p);}
 .ni .ic{font-size:.95rem;width:20px;text-align:center;flex-shrink:0;}
 .ni .nb{margin-right:auto;background:var(--p);color:var(--dk);font-size:.6rem;font-weight:900;padding:2px 7px;border-radius:20px;min-width:18px;text-align:center;}
 .sb-foot{margin-top:auto;padding:14px;border-top:1px solid var(--br);flex-shrink:0;}
 .btn-logout{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.1);color:var(--er);font-family:'Cairo',sans-serif;font-size:.84rem;font-weight:700;cursor:pointer;transition:all .25s;display:flex;align-items:center;justify-content:center;gap:8px;}
 .btn-logout:hover{background:rgba(239,68,68,.2);}
-.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:199;}
-.sb-overlay.show{display:block;}
+.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:199;}.sb-overlay.show{display:block;}
 .main{margin-right:var(--sw);min-height:100vh;display:flex;flex-direction:column;}
 .topbar{padding:12px 20px;background:var(--d2);border-bottom:1px solid var(--br);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;gap:10px;}
 .tb-l{display:flex;align-items:center;gap:10px;min-width:0;}
@@ -34,23 +33,43 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
 .tb-title{font-size:.95rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .tb-r{display:flex;align-items:center;gap:8px;flex-shrink:0;}
 .btn-preview{background:rgba(14,165,233,.12);color:var(--ac);padding:8px 14px;border:1px solid rgba(14,165,233,.3);border-radius:8px;font-family:'Cairo',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;transition:all .25s;text-decoration:none;white-space:nowrap;}
-.btn-save{background:linear-gradient(135deg,var(--p),var(--pd));color:var(--dk);padding:8px 16px;border:none;border-radius:8px;font-family:'Cairo',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer;transition:all .25s;white-space:nowrap;}
+.btn-save{background:linear-gradient(135deg,var(--p),var(--pd));color:var(--dk);padding:8px 16px;border:none;border-radius:8px;font-family:'Cairo',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer;white-space:nowrap;}
 .btn-save:hover{box-shadow:0 4px 16px rgba(245,158,11,.4);}
 .content{padding:20px;flex:1;}
-.panel{display:none;animation:fin .3s ease;} .panel.active{display:block;}
+.panel{display:none;animation:fin .3s ease;}.panel.active{display:block;}
 @keyframes fin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:20px;}
-.scard{background:var(--cd);border:1px solid var(--br);border-radius:12px;padding:16px;transition:transform .2s;} .scard:hover{transform:translateY(-2px);}
-.scard .si{font-size:1.5rem;margin-bottom:5px;} .scard .sn{font-size:1.7rem;font-weight:900;} .scard .sl{font-size:.73rem;color:var(--mt);font-weight:600;margin-top:3px;}
-.s1 .sn{color:var(--p);} .s2 .sn{color:var(--ac);} .s3 .sn{color:var(--ok);} .s4 .sn{color:#8B5CF6;}
+.scard{background:var(--cd);border:1px solid var(--br);border-radius:12px;padding:16px;transition:transform .2s;}.scard:hover{transform:translateY(-2px);}
+.scard .si{font-size:1.5rem;margin-bottom:5px;}.scard .sn{font-size:1.7rem;font-weight:900;}.scard .sl{font-size:.73rem;color:var(--mt);margin-top:3px;}
+.s1 .sn{color:var(--p);}.s2 .sn{color:var(--ac);}.s3 .sn{color:var(--ok);}.s4 .sn{color:#8B5CF6;}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;}
 .pc{background:var(--cd);border:1px solid var(--br);border-radius:14px;padding:20px;margin-bottom:16px;}
 .pc h3{font-size:.92rem;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
-.cg{margin-bottom:13px;} .cg label{display:block;font-size:.74rem;font-weight:700;color:var(--mt);margin-bottom:6px;}
+.cg{margin-bottom:13px;}.cg label{display:block;font-size:.74rem;font-weight:700;color:var(--mt);margin-bottom:6px;}
 .ci,.cs,.cta{width:100%;padding:10px 12px;background:rgba(15,23,42,.7);border:1px solid var(--b2);border-radius:8px;color:var(--tx);font-family:'Cairo',sans-serif;font-size:.84rem;outline:none;transition:border-color .25s;resize:vertical;}
-.ci:focus,.cs:focus,.cta:focus{border-color:var(--p);} .ci::placeholder,.cta::placeholder{color:var(--mt);} .cs option{background:var(--d2);}
+.ci:focus,.cs:focus,.cta:focus{border-color:var(--p);}.ci::placeholder,.cta::placeholder{color:var(--mt);}.cs option{background:var(--d2);}
 .cc{width:100%;height:42px;border-radius:8px;border:1px solid var(--b2);background:none;cursor:pointer;padding:2px;}
+/* Upload zone */
+.upzone{border:2px dashed var(--br);border-radius:10px;padding:16px;text-align:center;cursor:pointer;transition:all .25s;position:relative;background:rgba(15,23,42,.4);}
+.upzone:hover{border-color:var(--p);background:rgba(245,158,11,.05);}
+.upzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.upzone .uz-icon{font-size:1.6rem;margin-bottom:6px;}
+.upzone p{font-size:.78rem;color:var(--mt);}
+.upzone .uz-hint{font-size:.68rem;color:var(--mt);opacity:.7;margin-top:3px;}
+.up-prog{display:none;margin-top:8px;}
+.up-prog.show{display:block;}
+.up-bar-wrap{width:100%;height:5px;background:var(--b2);border-radius:4px;overflow:hidden;margin-bottom:5px;}
+.up-bar{height:100%;background:linear-gradient(90deg,var(--p),var(--pl));width:0;transition:width .3s;border-radius:4px;}
+.up-info{font-size:.72rem;color:var(--p);display:flex;align-items:center;gap:6px;}
+.mini-spin{width:12px;height:12px;border:2px solid var(--br);border-top-color:var(--p);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.img-preview-thumb{width:80px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--br);margin-top:8px;display:none;}
+.file-preview-row{display:flex;align-items:center;gap:10px;margin-top:8px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:8px 12px;font-size:.78rem;color:var(--ok);display:none;}
+.file-preview-row .fp-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.file-preview-row .fp-remove{cursor:pointer;color:var(--er);font-size:.9rem;flex-shrink:0;}
+/* btns */
 .btn-add{background:rgba(16,185,129,.12);color:var(--ok);border:1px solid rgba(16,185,129,.3);padding:9px 16px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .25s;display:inline-flex;align-items:center;gap:7px;}
 .btn-add:hover{background:rgba(16,185,129,.22);}
 .btn-del{background:rgba(239,68,68,.12);color:var(--er);border:1px solid rgba(239,68,68,.25);padding:6px 11px;border-radius:6px;font-family:'Cairo',sans-serif;font-size:.76rem;font-weight:700;cursor:pointer;transition:all .25s;}
@@ -59,45 +78,50 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
 .btn-edit:hover{background:rgba(245,158,11,.22);}
 .btn-sm{padding:8px 16px;border-radius:8px;border:none;font-family:'Cairo',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer;transition:all .25s;background:var(--p);color:var(--dk);}
 .btn-sm:hover{background:var(--pl);}
+/* table */
 .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 .dtbl{width:100%;border-collapse:collapse;min-width:500px;}
 .dtbl th{padding:10px 13px;text-align:right;font-size:.7rem;font-weight:800;color:var(--mt);letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--br);background:rgba(15,23,42,.5);}
 .dtbl td{padding:11px 13px;font-size:.8rem;border-bottom:1px solid var(--b2);vertical-align:middle;}
-.dtbl tr:hover td{background:rgba(245,158,11,.04);} .dtbl tr:last-child td{border-bottom:none;}
+.dtbl tr:hover td{background:rgba(245,158,11,.04);}.dtbl tr:last-child td{border-bottom:none;}
 .badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:.68rem;font-weight:700;}
 .ba{background:rgba(245,158,11,.2);color:var(--p);border:1px solid rgba(245,158,11,.3);}
 .bu{background:rgba(14,165,233,.2);color:var(--ac);border:1px solid rgba(14,165,233,.3);}
-.bok{background:rgba(16,185,129,.2);color:var(--ok);border:1px solid rgba(16,185,129,.3);}
 .irow{display:flex;align-items:center;gap:11px;padding:12px;background:rgba(15,23,42,.5);border-radius:10px;margin-bottom:8px;border:1px solid var(--b2);transition:border-color .2s;}
 .irow:hover{border-color:var(--br);}
-.iemoji{font-size:1.4rem;flex-shrink:0;} .iinfo{flex:1;min-width:0;} .ititle{font-size:.86rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;} .imeta{font-size:.72rem;color:var(--mt);margin-top:2px;}
+.iemoji{font-size:1.4rem;flex-shrink:0;}.iinfo{flex:1;min-width:0;}.ititle{font-size:.86rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}.imeta{font-size:.72rem;color:var(--mt);margin-top:2px;}
 .iacts{display:flex;gap:7px;flex-shrink:0;}
-/* image hint box */
-.img-hint{background:rgba(245,158,11,.08);border:1px solid var(--br);border-radius:8px;padding:12px 14px;margin-bottom:10px;font-size:.78rem;color:var(--mt);line-height:1.6;}
-.img-hint strong{color:var(--p);}
-.colors-row{display:flex;gap:14px;flex-wrap:wrap;align-items:center;}
+/* colors */
+.colors-row{display:flex;gap:14px;flex-wrap:wrap;}
 .ci-item{display:flex;flex-direction:column;align-items:center;gap:5px;}
-.ci-item label{font-size:.68rem;color:var(--mt);text-align:center;}
+.ci-item label{font-size:.68rem;color:var(--mt);}
 .cswatch{width:44px;height:44px;border-radius:10px;border:2px solid var(--b2);cursor:pointer;}
-.modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,.88);backdrop-filter:blur(10px);z-index:500;align-items:center;justify-content:center;padding:16px;}
+/* modal */
+.modal{display:none;position:fixed;inset:0;background:rgba(15,23,42,.9);backdrop-filter:blur(10px);z-index:500;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto;}
 .modal.show{display:flex;}
-.mbox{background:var(--d2);border:1px solid var(--br);border-radius:16px;padding:26px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;animation:mIn .3s ease;}
+.mbox{background:var(--d2);border:1px solid var(--br);border-radius:16px;padding:26px;width:100%;max-width:600px;margin:auto;animation:mIn .3s ease;}
 @keyframes mIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
-.mbox::-webkit-scrollbar{width:4px;} .mbox::-webkit-scrollbar-thumb{background:var(--br);border-radius:4px;}
+.mbox::-webkit-scrollbar{width:4px;}.mbox::-webkit-scrollbar-thumb{background:var(--br);border-radius:4px;}
 .mhdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
 .mhdr h3{font-size:.97rem;font-weight:800;}
-.mclose{background:none;border:none;color:var(--mt);font-size:1.3rem;cursor:pointer;transition:color .2s;line-height:1;} .mclose:hover{color:var(--tx);}
+.mclose{background:none;border:none;color:var(--mt);font-size:1.3rem;cursor:pointer;}.mclose:hover{color:var(--tx);}
 .mfoot{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid var(--br);}
+/* auth loading */
 .auth-loading{position:fixed;inset:0;background:var(--dk);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:14px;}
 .auth-loading .spin{width:44px;height:44px;border:3px solid var(--br);border-top-color:var(--p);border-radius:50%;animation:spin .8s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg)}}
 .auth-loading p{font-size:.9rem;color:var(--mt);font-weight:600;}
 .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--ok);color:white;padding:11px 22px;border-radius:10px;font-weight:700;font-size:.86rem;z-index:999;transition:transform .4s cubic-bezier(.34,1.56,.64,1);box-shadow:0 8px 30px rgba(0,0,0,.4);max-width:90vw;text-align:center;}
-.toast.show{transform:translateX(-50%) translateY(0);} .toast.warn{background:var(--p);color:var(--dk);} .toast.err{background:var(--er);}
-/* cart in users panel */
-.cart-item{background:rgba(15,23,42,.5);border:1px solid var(--b2);border-radius:8px;padding:10px 14px;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;font-size:.82rem;}
-.cart-item .ci-name{font-weight:700;} .cart-item .ci-price{color:var(--p);font-weight:800;}
-@media(max-width:768px){.sidebar{transform:translateX(100%);}.sidebar.open{transform:translateX(0);}.main{margin-right:0;}.mob-toggle{display:block;}.tb-r .btn-preview{display:none;}.g2,.g3{grid-template-columns:1fr;}.content{padding:14px;}.topbar{padding:10px 14px;}.stats-grid{grid-template-columns:1fr 1fr;}.pc{padding:14px;}.colors-row .ci-item{flex:1;min-width:58px;}}
+.toast.show{transform:translateX(-50%) translateY(0);}.toast.warn{background:var(--p);color:var(--dk);}.toast.err{background:var(--er);}
+/* section separator */
+.sec-sep{height:1px;background:var(--br);margin:16px 0;}
+/* tag input */
+.tag-row{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px;}
+.tag{display:inline-flex;align-items:center;gap:5px;background:rgba(245,158,11,.12);border:1px solid var(--br);color:var(--p);padding:4px 10px;border-radius:20px;font-size:.76rem;font-weight:700;}
+.tag .tx{cursor:pointer;color:var(--er);font-size:.85rem;}
+.tag-input-row{display:flex;gap:8px;margin-top:8px;}
+.tag-input-row input{flex:1;}
+.tag-input-row button{background:var(--p);color:var(--dk);border:none;border-radius:8px;padding:8px 14px;font-family:'Cairo',sans-serif;font-size:.8rem;font-weight:800;cursor:pointer;flex-shrink:0;}
+@media(max-width:768px){.sidebar{transform:translateX(100%);}.sidebar.open{transform:translateX(0);}.main{margin-right:0;}.mob-toggle{display:block;}.tb-r .btn-preview{display:none;}.g2,.g3,.g4{grid-template-columns:1fr;}.content{padding:14px;}.topbar{padding:10px 14px;}.stats-grid{grid-template-columns:1fr 1fr;}.pc{padding:14px;}}
 @media(max-width:400px){.stats-grid{grid-template-columns:1fr;}}
 </style>
 </head>
@@ -105,7 +129,6 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
 <div class="auth-loading" id="authLoad"><div class="spin"></div><p>جاري التحقق من الصلاحيات...</p></div>
 <div class="sb-overlay" id="sbOv" onclick="closeSb()"></div>
 
-<!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
   <div class="sb-logo">
     <img src="logo.jpg" alt="3ENG.s" onerror="this.style.display='none'">
@@ -127,13 +150,13 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
   <div class="ni" onclick="showP('users',this)"><span class="ic">👥</span> المستخدمون <span class="nb" id="uc">0</span></div>
   <div class="ni" onclick="showP('messages',this)"><span class="ic">💬</span> الرسائل <span class="nb" id="mc">0</span></div>
   <div class="ni" onclick="showP('newsletter',this)"><span class="ic">📧</span> النشرة البريدية</div>
+  <div class="ni" onclick="showP('payment',this)"><span class="ic">💳</span> إعدادات الدفع</div>
   <div class="ni" onclick="showP('design',this)"><span class="ic">🎨</span> تصميم الموقع</div>
   <div class="ni" onclick="showP('brand',this)"><span class="ic">💡</span> الشعار والهوية</div>
   <div class="ni" onclick="showP('social',this)"><span class="ic">🔗</span> منصات التواصل</div>
   <div class="sb-foot"><button class="btn-logout" onclick="doLogout()">🚪 تسجيل الخروج</button></div>
 </aside>
 
-<!-- MAIN -->
 <main class="main">
   <div class="topbar">
     <div class="tb-l">
@@ -156,8 +179,8 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
         <div class="scard s4"><div class="si">📧</div><div class="sn" id="ds-s">0</div><div class="sl">المشتركون</div></div>
       </div>
       <div class="g2">
-        <div class="pc"><h3>💬 آخر الرسائل</h3><div id="dMsgs"><div style="color:var(--mt);text-align:center;padding:20px;font-size:.83rem">جاري التحميل...</div></div></div>
-        <div class="pc"><h3>👤 آخر المستخدمين</h3><div id="dUsers"><div style="color:var(--mt);text-align:center;padding:20px;font-size:.83rem">جاري التحميل...</div></div></div>
+        <div class="pc"><h3>💬 آخر الرسائل</h3><div id="dMsgs"><div style="color:var(--mt);text-align:center;padding:20px;font-size:.83rem">جاري...</div></div></div>
+        <div class="pc"><h3>👤 آخر المستخدمين</h3><div id="dUsers"><div style="color:var(--mt);text-align:center;padding:20px;font-size:.83rem">جاري...</div></div></div>
       </div>
     </div>
 
@@ -166,7 +189,7 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
       <div class="pc"><h3>🎯 نص القسم الرئيسي</h3>
         <div class="g2">
           <div class="cg"><label>العنوان - السطر الأول</label><input class="ci" id="h-l1" placeholder="تعلّم. ابنِ."></div>
-          <div class="cg"><label>الكلمة المميزة (ذهبية)</label><input class="ci" id="h-l2" placeholder="تميّز."></div>
+          <div class="cg"><label>الكلمة المميزة</label><input class="ci" id="h-l2" placeholder="تميّز."></div>
         </div>
         <div class="cg"><label>النص التوضيحي</label><textarea class="cta" id="h-sub" rows="3"></textarea></div>
         <div class="g2">
@@ -248,10 +271,57 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
       </div>
     </div>
 
+    <!-- PAYMENT SETTINGS -->
+    <div class="panel" id="p-payment">
+      <div class="pc"><h3>💳 إعدادات الدفع</h3>
+        <p style="font-size:.8rem;color:var(--mt);margin-bottom:16px">اضبط طرق الدفع التي تظهر للمستخدمين عند الشراء</p>
+
+        <div style="background:rgba(245,158,11,.08);border:1px solid var(--br);border-radius:10px;padding:14px;margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <span style="font-size:1.2rem">🅿️</span>
+            <strong style="font-size:.9rem">PayPal</strong>
+            <label style="margin-right:auto;display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.82rem;color:var(--mt)">
+              <input type="checkbox" id="pay-pp-active" style="accent-color:var(--p);width:16px;height:16px"> تفعيل
+            </label>
+          </div>
+          <div class="cg"><label>رابط PayPal.me الخاص بك</label><input class="ci" id="pay-pp-link" placeholder="https://paypal.me/yourname" dir="ltr"></div>
+          <div class="cg"><label>ملاحظة للمستخدم (تظهر عند الدفع)</label><input class="ci" id="pay-pp-note" placeholder="أرسل المبلغ وأرسل لنا صورة الإيصال على واتساب"></div>
+        </div>
+
+        <div style="background:rgba(37,211,102,.08);border:1px solid rgba(37,211,102,.2);border-radius:10px;padding:14px;margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <span style="font-size:1.2rem">💬</span>
+            <strong style="font-size:.9rem">واتساب (Western Union / تحويل)</strong>
+            <label style="margin-right:auto;display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.82rem;color:var(--mt)">
+              <input type="checkbox" id="pay-wa-active" style="accent-color:var(--p);width:16px;height:16px"> تفعيل
+            </label>
+          </div>
+          <div class="cg"><label>رقم واتساب للدفع</label><input class="ci" id="pay-wa-num" placeholder="972592753159" dir="ltr"></div>
+          <div class="cg"><label>تعليمات الدفع للمستخدم</label><textarea class="cta" id="pay-wa-msg" rows="3" placeholder="تواصل معنا على واتساب وأرسل اسم المنتج والمبلغ..."></textarea></div>
+        </div>
+
+        <div style="background:rgba(14,165,233,.08);border:1px solid rgba(14,165,233,.2);border-radius:10px;padding:14px;margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <span style="font-size:1.2rem">🏦</span>
+            <strong style="font-size:.9rem">Fawateer / بوابة دفع إلكترونية</strong>
+            <label style="margin-right:auto;display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.82rem;color:var(--mt)">
+              <input type="checkbox" id="pay-fw-active" style="accent-color:var(--p);width:16px;height:16px"> تفعيل
+            </label>
+          </div>
+          <div class="cg"><label>Merchant ID (من Fawateer)</label><input class="ci" id="pay-fw-mid" placeholder="YOUR_MERCHANT_ID" dir="ltr"></div>
+          <div class="cg"><label>API Key (من Fawateer)</label><input class="ci" id="pay-fw-key" placeholder="YOUR_API_KEY" dir="ltr"></div>
+          <div style="background:rgba(14,165,233,.1);border-radius:8px;padding:10px;font-size:.76rem;color:var(--ac);line-height:1.6">
+            ℹ️ عند تفعيل Fawateer، سيظهر زر "ادفع الآن" يحول المستخدم لصفحة الدفع. تأكد من إضافة domain الموقع في إعدادات Fawateer.
+          </div>
+        </div>
+
+        <button class="btn-sm" onclick="saveSec('payment')">💾 حفظ إعدادات الدفع</button>
+      </div>
+    </div>
+
     <!-- DESIGN -->
     <div class="panel" id="p-design">
       <div class="pc"><h3>🎨 ألوان الموقع</h3>
-        <p style="font-size:.78rem;color:var(--mt);margin-bottom:14px">تغيير ألوان الموقع — تُطبَّق فوراً بعد الحفظ</p>
         <div class="colors-row">
           <div class="ci-item"><input type="color" class="cswatch" id="col-primary" value="#F59E0B"><label>الرئيسي</label></div>
           <div class="ci-item"><input type="color" class="cswatch" id="col-dark" value="#0F172A"><label>الخلفية</label></div>
@@ -262,8 +332,8 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
         <button class="btn-sm" style="margin-top:14px" onclick="saveSec('design')">💾 حفظ الألوان</button>
       </div>
       <div class="pc"><h3>🔧 إعدادات عامة</h3>
-        <div class="cg"><label>اسم الموقع (في تبويب المتصفح)</label><input class="ci" id="site-title" placeholder="3ENG.s | المهندسون الثلاثة"></div>
-        <div class="cg"><label>وصف الموقع (SEO)</label><textarea class="cta" id="site-desc" rows="2" placeholder="منصة 3ENG.s للهندسة..."></textarea></div>
+        <div class="cg"><label>اسم الموقع</label><input class="ci" id="site-title" placeholder="3ENG.s | المهندسون الثلاثة"></div>
+        <div class="cg"><label>وصف الموقع (SEO)</label><textarea class="cta" id="site-desc" rows="2"></textarea></div>
         <button class="btn-sm" onclick="saveSec('siteConfig')">💾 حفظ</button>
       </div>
     </div>
@@ -275,22 +345,18 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
           <div>
             <div class="cg"><label>اسم العلامة التجارية</label><input class="ci" id="br-name" placeholder="3ENG.s"></div>
             <div class="cg"><label>الشعار الفرعي</label><input class="ci" id="br-slogan" placeholder="Smart Idea • الهندسة الكهربائية"></div>
-            <div class="cg"><label>رابط صورة الشعار (URL)</label><input class="ci" id="br-logo" placeholder="https://... أو logo.jpg" dir="ltr"></div>
           </div>
           <div>
-            <div class="img-hint">
-              <strong>📌 لرفع الشعار:</strong><br>
-              بما إنك ما عندك Firebase Storage، ارفع الصورة على أي موقع مجاني:<br>
-              • <strong>imgbb.com</strong> — مجاني وسهل<br>
-              • <strong>postimages.org</strong> — مجاني<br>
-              • <strong>imgur.com</strong> — مجاني<br>
-              ثم انسخ الرابط المباشر (Direct Link) والصقه في الحقل بجانبك.
+            <div class="cg"><label>رفع الشعار</label></div>
+            <div class="upzone" id="logoZone">
+              <input type="file" accept="image/*" onchange="handleUpload(this,'logo','logoPreviewImg','','logoProgWrap','logoProg')">
+              <div class="uz-icon">🖼️</div>
+              <p>اضغط لرفع الشعار</p>
+              <div class="uz-hint">PNG / JPG / SVG — حتى 2MB</div>
             </div>
-            <div class="cg"><label>معاينة الشعار (أدخل الرابط أعلاه)</label></div>
-            <div style="background:rgba(15,23,42,.5);border:1px dashed var(--br);border-radius:8px;padding:20px;text-align:center;">
-              <img id="logoPreview" src="" style="max-width:100px;max-height:100px;display:none;border-radius:50%;background:white;padding:4px;" onerror="this.style.display='none'">
-              <div id="logoPlaceholder" style="font-size:.78rem;color:var(--mt)">الشعار سيظهر هنا</div>
-            </div>
+            <div class="up-prog" id="logoProgWrap"><div class="up-bar-wrap"><div class="up-bar" id="logoProg"></div></div><div class="up-info"><div class="mini-spin"></div><span id="logoProgTxt">جاري الرفع...</span></div></div>
+            <img class="img-preview-thumb" id="logoPreviewImg" src="">
+            <div class="cg" style="margin-top:10px"><label>أو أدخل الرابط مباشرة</label><input class="ci" id="br-logo" placeholder="https://..." dir="ltr" oninput="previewLogo(this.value)"></div>
           </div>
         </div>
         <button class="btn-sm" onclick="saveSec('brand')">💾 حفظ الهوية</button>
@@ -302,13 +368,13 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
       <div class="pc"><h3>🔗 منصات التواصل</h3>
         <div class="g2">
           <div class="cg"><label>💬 رقم واتساب</label><input class="ci" id="s-wa" placeholder="972592753159" dir="ltr"></div>
-          <div class="cg"><label>📧 البريد الإلكتروني</label><input class="ci" id="s-email" placeholder="info@3engs.com" dir="ltr"></div>
+          <div class="cg"><label>📧 البريد</label><input class="ci" id="s-email" placeholder="info@3engs.com" dir="ltr"></div>
           <div class="cg"><label>🌐 الدومين</label><input class="ci" id="s-domain" placeholder="www.3engs.com" dir="ltr"></div>
-          <div class="cg"><label>📸 رابط إنستغرام</label><input class="ci" id="s-ig" placeholder="https://instagram.com/..." dir="ltr"></div>
-          <div class="cg"><label>🎵 رابط تيكتوك</label><input class="ci" id="s-tt" placeholder="https://tiktok.com/@..." dir="ltr"></div>
-          <div class="cg"><label>👥 رابط فيسبوك</label><input class="ci" id="s-fb" placeholder="https://facebook.com/..." dir="ltr"></div>
+          <div class="cg"><label>📸 إنستغرام</label><input class="ci" id="s-ig" placeholder="https://instagram.com/3engs" dir="ltr"></div>
+          <div class="cg"><label>🎵 تيكتوك</label><input class="ci" id="s-tt" placeholder="https://tiktok.com/@3engs" dir="ltr"></div>
+          <div class="cg"><label>👥 فيسبوك</label><input class="ci" id="s-fb" placeholder="https://facebook.com/3engs" dir="ltr"></div>
         </div>
-        <button class="btn-sm" onclick="saveSec('social')">💾 حفظ الروابط</button>
+        <button class="btn-sm" onclick="saveSec('social')">💾 حفظ</button>
       </div>
     </div>
 
@@ -333,14 +399,15 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, setDoc, addDoc, deleteDoc, serverTimestamp, getDoc, updateDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, setDoc, addDoc, deleteDoc, serverTimestamp, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 const CFG={apiKey:"AIzaSyALJiF8l_wnk_6FU6etQpz44Z43lSORXQk",authDomain:"engs-website.firebaseapp.com",projectId:"engs-website",storageBucket:"engs-website.firebasestorage.app",messagingSenderId:"1028163586505",appId:"1:1028163586505:web:c09de00bb30a3369ca4018",measurementId:"G-GZJCYL5YM8"};
 const ADMINS=['hosam2564491@gmail.com','info@3engs.com'];
 const app=initializeApp(CFG); getAnalytics(app);
-const auth=getAuth(app); const db=getFirestore(app);
+const auth=getAuth(app); const db=getFirestore(app); const storage=getStorage(app);
 
-// AUTH CHECK
+// AUTH
 onAuthStateChanged(auth,user=>{
   if(!user||!ADMINS.includes(user.email)){window.location.href='auth.html';return;}
   document.getElementById('authLoad').style.display='none';
@@ -349,9 +416,44 @@ onAuthStateChanged(auth,user=>{
   document.getElementById('aAv').textContent=name[0].toUpperCase();
   loadAll();
 });
-
 window.doLogout=async()=>{await signOut(auth);window.location.href='auth.html';};
 
+// STORAGE UPLOAD — universal
+window.handleUpload=function(input, folder, previewImgId, previewFileId, progWrapId, progBarId){
+  const file=input.files[0]; if(!file)return;
+  const maxMB=folder==='books'?50:5;
+  if(file.size>maxMB*1024*1024){toast(`⚠️ الملف أكبر من ${maxMB}MB`,'err');return;}
+  const progWrap=document.getElementById(progWrapId);
+  const progBar=document.getElementById(progBarId);
+  const progTxt=document.getElementById(progBarId+'Txt')||null;
+  if(progWrap)progWrap.classList.add('show');
+  const ext=file.name.split('.').pop();
+  const path=`${folder}/${Date.now()}_${Math.random().toString(36).substr(2,6)}.${ext}`;
+  const storRef=ref(storage,path);
+  const task=uploadBytesResumable(storRef,file);
+  task.on('state_changed',
+    snap=>{const pct=Math.round(snap.bytesTransferred/snap.totalBytes*100);if(progBar)progBar.style.width=pct+'%';if(progTxt)progTxt.textContent=pct+'%';},
+    err=>{if(progWrap)progWrap.classList.remove('show');toast('⚠️ فشل الرفع: '+err.message,'err');},
+    async()=>{
+      const url=await getDownloadURL(task.snapshot.ref);
+      if(progWrap)progWrap.classList.remove('show');
+      // Image preview
+      if(previewImgId){const img=document.getElementById(previewImgId);if(img){img.src=url;img.style.display='block';}}
+      // File preview row
+      if(previewFileId){
+        const row=document.getElementById(previewFileId);
+        if(row){row.style.display='flex';const nm=row.querySelector('.fp-name');if(nm)nm.textContent=file.name;}
+      }
+      // Store URL in hidden input if exists
+      const urlInput=document.getElementById(folder+'-upload-url')||document.getElementById('m-imageUrl')||document.getElementById('m-fileUrl')||document.getElementById('br-logo');
+      if(urlInput)urlInput.value=url;
+      window['_upload_'+folder]=url;
+      toast('✅ تم الرفع بنجاح!');
+    }
+  );
+};
+
+// LOAD ALL
 async function loadAll(){
   loadDashboard(); loadProducts(); loadCourses(); loadBooks();
   loadTestimonials(); loadUsers(); loadMessages(); loadNewsletter(); loadConfig();
@@ -364,84 +466,70 @@ async function loadDashboard(){
     const s=(id,v)=>document.getElementById(id).textContent=v;
     s('ds-u',us.size);s('ds-p',ps.size);s('ds-m',ms.size);s('ds-s',ss.size);
     s('uc',us.size);s('pc',ps.size);s('mc',ms.size);
-    // Recent msgs
-    let mHTML='';
-    const mArr=[]; ms.forEach(d=>mArr.push(d.data()));
+    let mHTML='',mArr=[]; ms.forEach(d=>mArr.push(d.data()));
     mArr.slice(0,4).forEach(m=>{mHTML+=`<div class="irow"><div class="iemoji">💬</div><div class="iinfo"><div class="ititle">${m.name||'—'}</div><div class="imeta">${m.email||''}</div></div></div>`;});
     document.getElementById('dMsgs').innerHTML=mHTML||'<p style="color:var(--mt);text-align:center;padding:20px;font-size:.8rem">لا توجد رسائل</p>';
-    // Recent users
-    let uHTML='';
-    const uArr=[]; us.forEach(d=>uArr.push(d.data()));
+    let uHTML='',uArr=[]; us.forEach(d=>uArr.push(d.data()));
     uArr.slice(0,4).forEach(u=>{uHTML+=`<div class="irow"><div class="iemoji">👤</div><div class="iinfo"><div class="ititle">${u.displayName||'مستخدم'}</div><div class="imeta">${u.email||''}</div></div><span class="badge ${u.role==='admin'?'ba':'bu'}">${u.role==='admin'?'أدمن':'مستخدم'}</span></div>`;});
     document.getElementById('dUsers').innerHTML=uHTML||'<p style="color:var(--mt);text-align:center;padding:20px;font-size:.8rem">لا يوجد مستخدمون</p>';
-  }catch(e){console.error('Dashboard:',e);}
+  }catch(e){console.error(e);}
 }
 
 // PRODUCTS
 window._prods=[];
 async function loadProducts(){
-  try{
-    const snap=await getDocs(collection(db,'products'));
-    window._prods=[]; snap.forEach(d=>window._prods.push({id:d.id,...d.data()}));
-    document.getElementById('pc').textContent=window._prods.length;
-    const el=document.getElementById('prodList');
-    if(!window._prods.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد منتجات</p>';return;}
-    el.innerHTML=window._prods.map(p=>`<div class="irow"><div class="iemoji">${p.emoji||'📦'}</div><div class="iinfo"><div class="ititle">${p.title||''}</div><div class="imeta">${p.type||''} • $${p.price||0}</div></div><div class="iacts"><button class="btn-edit" onclick="editItem('product','${p.id}')">✏️</button><button class="btn-del" onclick="delItem('products','${p.id}',loadProducts)">🗑️</button></div></div>`).join('');
-  }catch(e){console.error('Products:',e);}
+  const snap=await getDocs(collection(db,'products')); window._prods=[];
+  snap.forEach(d=>window._prods.push({id:d.id,...d.data()}));
+  document.getElementById('pc').textContent=window._prods.length;
+  const el=document.getElementById('prodList');
+  if(!window._prods.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد منتجات</p>';return;}
+  el.innerHTML=window._prods.map(p=>`<div class="irow"><div class="iemoji">${p.emoji||'📦'}</div><div class="iinfo"><div class="ititle">${p.title||''}</div><div class="imeta">${p.type||''} • $${p.price||0} ${p.isFree?'• <span style="color:var(--ok)">مجاني</span>':''}</div></div><div class="iacts"><button class="btn-edit" onclick="editItem('product','${p.id}')">✏️</button><button class="btn-del" onclick="delItem('products','${p.id}',loadProducts)">🗑️</button></div></div>`).join('');
 }
 window.loadProducts=loadProducts;
 
 // COURSES
 window._courses=[];
 async function loadCourses(){
-  try{
-    const snap=await getDocs(collection(db,'courses'));
-    window._courses=[]; snap.forEach(d=>window._courses.push({id:d.id,...d.data()}));
-    document.getElementById('cc').textContent=window._courses.length;
-    const el=document.getElementById('courseList');
-    if(!window._courses.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد دورات — اضغط "إضافة دورة" لإضافة أولى دورة</p>';return;}
-    el.innerHTML=window._courses.map(c=>`<div class="irow"><div class="iemoji">${c.emoji||'🎓'}</div><div class="iinfo"><div class="ititle">${c.title||''}</div><div class="imeta">${c.category||''} • ${c.duration||''} • $${c.price||0}${c.imageUrl?' • <span style="color:var(--ok)">✓ صورة</span>':''}</div></div><div class="iacts"><button class="btn-edit" onclick="editItem('course','${c.id}')">✏️</button><button class="btn-del" onclick="delItem('courses','${c.id}',loadCourses)">🗑️</button></div></div>`).join('');
-  }catch(e){console.error('Courses:',e);}
+  const snap=await getDocs(collection(db,'courses')); window._courses=[];
+  snap.forEach(d=>window._courses.push({id:d.id,...d.data()}));
+  document.getElementById('cc').textContent=window._courses.length;
+  const el=document.getElementById('courseList');
+  if(!window._courses.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد دورات</p>';return;}
+  el.innerHTML=window._courses.map(c=>`<div class="irow"><div class="iemoji">${c.emoji||'🎓'}</div><div class="iinfo"><div class="ititle">${c.title||''}</div><div class="imeta">${c.category||''} • $${c.price||0}${c.oldPrice?` <span style="text-decoration:line-through;color:var(--mt);font-size:.7rem">$${c.oldPrice}</span>`:''}${c.imageUrl?' • <span style="color:var(--ok)">✓ صورة</span>':''}</div></div><div class="iacts"><button class="btn-edit" onclick="editItem('course','${c.id}')">✏️</button><button class="btn-del" onclick="delItem('courses','${c.id}',loadCourses)">🗑️</button></div></div>`).join('');
 }
 window.loadCourses=loadCourses;
 
 // BOOKS
 window._books=[];
 async function loadBooks(){
-  try{
-    const snap=await getDocs(collection(db,'books'));
-    window._books=[]; snap.forEach(d=>window._books.push({id:d.id,...d.data()}));
-    document.getElementById('bc').textContent=window._books.length;
-    const el=document.getElementById('bookList');
-    if(!window._books.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد كتب</p>';return;}
-    el.innerHTML=window._books.map(b=>`<div class="irow"><div class="iemoji">${b.emoji||'📚'}</div><div class="iinfo"><div class="ititle">${b.title||''}</div><div class="imeta">${b.author||''} • $${b.price||0}</div></div><div class="iacts"><button class="btn-edit" onclick="editItem('book','${b.id}')">✏️</button><button class="btn-del" onclick="delItem('books','${b.id}',loadBooks)">🗑️</button></div></div>`).join('');
-  }catch(e){console.error('Books:',e);}
+  const snap=await getDocs(collection(db,'books')); window._books=[];
+  snap.forEach(d=>window._books.push({id:d.id,...d.data()}));
+  document.getElementById('bc').textContent=window._books.length;
+  const el=document.getElementById('bookList');
+  if(!window._books.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد كتب</p>';return;}
+  el.innerHTML=window._books.map(b=>`<div class="irow"><div class="iemoji">${b.emoji||'📚'}</div><div class="iinfo"><div class="ititle">${b.title||''}</div><div class="imeta">${b.author||''} • $${b.price||0} ${b.isFree?'• <span style="color:var(--ok)">مجاني</span>':''} ${b.fileUrl?'• <span style="color:var(--ac)">📄 ملف</span>':''}</div></div><div class="iacts"><button class="btn-edit" onclick="editItem('book','${b.id}')">✏️</button><button class="btn-del" onclick="delItem('books','${b.id}',loadBooks)">🗑️</button></div></div>`).join('');
 }
 window.loadBooks=loadBooks;
 
 // TESTIMONIALS
 window._tests=[];
 async function loadTestimonials(){
-  try{
-    const snap=await getDocs(collection(db,'testimonials'));
-    window._tests=[]; snap.forEach(d=>window._tests.push({id:d.id,...d.data()}));
-    const el=document.getElementById('testList');
-    if(!window._tests.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد آراء</p>';return;}
-    el.innerHTML=window._tests.map(t=>`<div class="irow"><div class="iemoji">⭐</div><div class="iinfo"><div class="ititle">${t.name||''} — ${t.role||''}</div><div class="imeta">${(t.text||'').substring(0,70)}...</div></div><div class="iacts"><button class="btn-edit" onclick="editItem('testimonial','${t.id}')">✏️</button><button class="btn-del" onclick="delItem('testimonials','${t.id}',loadTestimonials)">🗑️</button></div></div>`).join('');
-  }catch(e){console.error('Tests:',e);}
+  const snap=await getDocs(collection(db,'testimonials')); window._tests=[];
+  snap.forEach(d=>window._tests.push({id:d.id,...d.data()}));
+  const el=document.getElementById('testList');
+  if(!window._tests.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد آراء</p>';return;}
+  el.innerHTML=window._tests.map(t=>`<div class="irow"><div class="iemoji">⭐</div><div class="iinfo"><div class="ititle">${t.name||''} — ${t.role||''}</div><div class="imeta">${(t.text||'').substring(0,70)}...</div></div><div class="iacts"><button class="btn-edit" onclick="editItem('testimonial','${t.id}')">✏️</button><button class="btn-del" onclick="delItem('testimonials','${t.id}',loadTestimonials)">🗑️</button></div></div>`).join('');
 }
 window.loadTestimonials=loadTestimonials;
 
 // USERS
 window._users=[];
 async function loadUsers(){
-  try{
-    const snap=await getDocs(collection(db,'users'));
-    window._users=[]; snap.forEach(d=>window._users.push({id:d.id,...d.data()}));
-    document.getElementById('uc').textContent=window._users.length;
-    document.getElementById('uCount').textContent=window._users.length+' مستخدم';
-    renderUsers(window._users);
-  }catch(e){console.error('Users:',e);}
+  const snap=await getDocs(collection(db,'users')); window._users=[];
+  snap.forEach(d=>window._users.push({id:d.id,...d.data()}));
+  document.getElementById('uc').textContent=window._users.length;
+  document.getElementById('uCount').textContent=window._users.length+' مستخدم';
+  renderUsers(window._users);
 }
 function renderUsers(list){
   const tbody=document.getElementById('uTable');
@@ -450,16 +538,7 @@ function renderUsers(list){
     const init=(u.displayName||u.email||'U')[0].toUpperCase();
     const dt=u.createdAt?.toDate?.()?.toLocaleDateString('ar')||'—';
     const method=u.provider==='google'?'<span style="color:var(--ok)">🔵 Google</span>':'📧 إيميل';
-    return `<tr>
-      <td><div style="display:flex;align-items:center;gap:8px">
-        ${u.photoURL?`<img src="${u.photoURL}" style="width:28px;height:28px;border-radius:50%;object-fit:cover" onerror="this.style.display='none'">`:`<div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--pd),var(--p));display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:var(--dk);flex-shrink:0">${init}</div>`}
-        <span>${u.displayName||'—'}</span></div></td>
-      <td dir="ltr" style="color:var(--mt);font-size:.76rem">${u.email||'—'}</td>
-      <td><span class="badge ${u.role==='admin'?'ba':'bu'}">${u.role==='admin'?'🛡️ أدمن':'👤 مستخدم'}</span></td>
-      <td style="font-size:.78rem">${method}</td>
-      <td style="color:var(--mt);font-size:.74rem">${dt}</td>
-      <td><button class="btn-edit" style="font-size:.72rem" onclick="toggleRole('${u.id}','${u.role}')">${u.role==='admin'?'↓ مستخدم':'↑ أدمن'}</button></td>
-    </tr>`;
+    return `<tr><td><div style="display:flex;align-items:center;gap:8px">${u.photoURL?`<img src="${u.photoURL}" style="width:28px;height:28px;border-radius:50%;object-fit:cover" onerror="this.style.display='none'">`:`<div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--pd),var(--p));display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:var(--dk)">${init}</div>`}<span>${u.displayName||'—'}</span></div></td><td dir="ltr" style="color:var(--mt);font-size:.76rem">${u.email||'—'}</td><td><span class="badge ${u.role==='admin'?'ba':'bu'}">${u.role==='admin'?'🛡️ أدمن':'👤 مستخدم'}</span></td><td style="font-size:.78rem">${method}</td><td style="color:var(--mt);font-size:.74rem">${dt}</td><td><button class="btn-edit" style="font-size:.72rem" onclick="toggleRole('${u.id}','${u.role}')">${u.role==='admin'?'↓ مستخدم':'↑ أدمن'}</button></td></tr>`;
   }).join('');
 }
 window.filterUsers=()=>{const q=document.getElementById('uSearch').value.toLowerCase();renderUsers(window._users.filter(u=>(u.displayName||'').toLowerCase().includes(q)||(u.email||'').toLowerCase().includes(q)));};
@@ -467,29 +546,23 @@ window.toggleRole=async(uid,role)=>{await updateDoc(doc(db,'users',uid),{role:ro
 
 // MESSAGES
 async function loadMessages(){
-  try{
-    const snap=await getDocs(collection(db,'contact_messages'));
-    let html='',arr=[];
-    snap.forEach(d=>arr.push({id:d.id,...d.data()}));
-    arr.sort((a,b)=>(b.timestamp?.seconds||0)-(a.timestamp?.seconds||0));
-    arr.forEach(m=>{
-      const dt=m.timestamp?.toDate?.()?.toLocaleDateString('ar')||'—';
-      html+=`<div class="irow" style="flex-direction:column;align-items:flex-start"><div style="display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:8px"><div style="display:flex;align-items:center;gap:10px"><div style="font-size:1.4rem">💬</div><div><div style="font-size:.86rem;font-weight:700">${m.name||'—'} <span style="color:var(--mt);font-size:.74rem" dir="ltr">&lt;${m.email||''}&gt;</span></div><div style="font-size:.72rem;color:var(--mt)">${dt} • ${m.subject||'بدون موضوع'}</div></div></div><button class="btn-del" onclick="delItem('contact_messages','${m.id}',loadMessages)">🗑️ حذف</button></div><div style="background:rgba(15,23,42,.6);padding:10px 13px;border-radius:8px;font-size:.82rem;color:var(--mt);width:100%;line-height:1.7">${m.message||''}</div></div>`;
-    });
-    document.getElementById('msgList').innerHTML=html||'<p style="color:var(--mt);text-align:center;padding:30px">لا توجد رسائل</p>';
-    document.getElementById('mc').textContent=arr.length; document.getElementById('ds-m').textContent=arr.length;
-  }catch(e){console.error('Msgs:',e);}
+  const snap=await getDocs(collection(db,'contact_messages'));
+  let html='',arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()}));
+  arr.sort((a,b)=>(b.timestamp?.seconds||0)-(a.timestamp?.seconds||0));
+  arr.forEach(m=>{const dt=m.timestamp?.toDate?.()?.toLocaleDateString('ar')||'—';
+    html+=`<div class="irow" style="flex-direction:column;align-items:flex-start"><div style="display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:8px"><div style="display:flex;align-items:center;gap:10px"><div style="font-size:1.4rem">💬</div><div><div style="font-size:.86rem;font-weight:700">${m.name||'—'} <span style="color:var(--mt);font-size:.74rem" dir="ltr">&lt;${m.email||''}&gt;</span></div><div style="font-size:.72rem;color:var(--mt)">${dt} • ${m.subject||'—'}</div></div></div><button class="btn-del" onclick="delItem('contact_messages','${m.id}',loadMessages)">🗑️</button></div><div style="background:rgba(15,23,42,.6);padding:10px 13px;border-radius:8px;font-size:.82rem;color:var(--mt);width:100%;line-height:1.7">${m.message||''}</div></div>`;
+  });
+  document.getElementById('msgList').innerHTML=html||'<p style="color:var(--mt);text-align:center;padding:30px">لا توجد رسائل</p>';
+  document.getElementById('mc').textContent=arr.length; document.getElementById('ds-m').textContent=arr.length;
 }
 window.loadMessages=loadMessages;
 
 // NEWSLETTER
 async function loadNewsletter(){
-  try{
-    const snap=await getDocs(collection(db,'newsletter_subscribers'));
-    let emails=[]; snap.forEach(d=>emails.push({id:d.id,...d.data()}));
-    document.getElementById('nlList').innerHTML=`<p style="margin-bottom:12px;font-size:.82rem;color:var(--mt)">إجمالي المشتركين: <strong style="color:var(--p)">${emails.length}</strong></p>`+(emails.map(e=>`<div class="irow"><div class="iemoji">📧</div><div class="iinfo"><div class="ititle" dir="ltr">${e.email||''}</div><div class="imeta">${e.timestamp?.toDate?.()?.toLocaleDateString('ar')||'—'}</div></div><button class="btn-del" onclick="delItem('newsletter_subscribers','${e.id}',loadNewsletter)">🗑️</button></div>`).join(''))||'<p style="color:var(--mt);text-align:center;padding:20px">لا يوجد مشتركون</p>';
-    document.getElementById('ds-s').textContent=emails.length;
-  }catch(e){console.error('NL:',e);}
+  const snap=await getDocs(collection(db,'newsletter_subscribers'));
+  let emails=[]; snap.forEach(d=>emails.push({id:d.id,...d.data()}));
+  document.getElementById('nlList').innerHTML=`<p style="margin-bottom:12px;font-size:.82rem;color:var(--mt)">إجمالي: <strong style="color:var(--p)">${emails.length}</strong></p>`+emails.map(e=>`<div class="irow"><div class="iemoji">📧</div><div class="iinfo"><div class="ititle" dir="ltr">${e.email||''}</div><div class="imeta">${e.timestamp?.toDate?.()?.toLocaleDateString('ar')||'—'}</div></div><button class="btn-del" onclick="delItem('newsletter_subscribers','${e.id}',loadNewsletter)">🗑️</button></div>`).join('');
+  document.getElementById('ds-s').textContent=emails.length;
 }
 window.loadNewsletter=loadNewsletter;
 
@@ -500,36 +573,42 @@ async function loadConfig(){
     if(!snap.exists())return;
     const cfg=snap.data();
     if(cfg.hero){const h=cfg.hero;['l1','l2','sub','b1','b2','badge'].forEach(k=>{const el=document.getElementById('h-'+k);if(el&&h[k])el.value=h[k];});['1','2','3','4'].forEach(i=>{const s=h['stat'+i];if(s){const n=document.getElementById('s'+i+'n'),l=document.getElementById('s'+i+'l');if(n)n.value=s.num||'';if(l)l.value=s.label||'';}});}
-    if(cfg.social){const s=cfg.social;['wa','email','domain','ig','tt','fb'].forEach(k=>{const el=document.getElementById('s-'+k);if(el&&s[k])el.value=s[k];});}
-    if(cfg.brand){const b=cfg.brand;['name','slogan'].forEach(k=>{const el=document.getElementById('br-'+k);if(el&&b[k])el.value=b[k];});if(b.logoUrl){document.getElementById('br-logo').value=b.logoUrl;previewLogo(b.logoUrl);}}
+    if(cfg.social){['wa','email','domain','ig','tt','fb'].forEach(k=>{const el=document.getElementById('s-'+k);if(el&&cfg.social[k])el.value=cfg.social[k];});}
+    if(cfg.brand){['name','slogan'].forEach(k=>{const el=document.getElementById('br-'+k);if(el&&cfg.brand[k])el.value=cfg.brand[k];});if(cfg.brand.logoUrl){document.getElementById('br-logo').value=cfg.brand.logoUrl;previewLogo(cfg.brand.logoUrl);}}
     if(cfg.design?.colors){const c=cfg.design.colors;['primary','dark','card','text','accent'].forEach(k=>{const el=document.getElementById('col-'+k);if(el&&c[k])el.value=c[k];});}
     if(cfg.siteTitle)document.getElementById('site-title').value=cfg.siteTitle;
     if(cfg.siteDesc)document.getElementById('site-desc').value=cfg.siteDesc;
-  }catch(e){console.error('Config:',e);}
+    // Payment
+    if(cfg.payment){const p=cfg.payment;
+      if(p.paypal){document.getElementById('pay-pp-active').checked=!!p.paypal.active;document.getElementById('pay-pp-link').value=p.paypal.link||'';document.getElementById('pay-pp-note').value=p.paypal.note||'';}
+      if(p.whatsapp){document.getElementById('pay-wa-active').checked=!!p.whatsapp.active;document.getElementById('pay-wa-num').value=p.whatsapp.num||'';document.getElementById('pay-wa-msg').value=p.whatsapp.msg||'';}
+      if(p.fawateer){document.getElementById('pay-fw-active').checked=!!p.fawateer.active;document.getElementById('pay-fw-mid').value=p.fawateer.mid||'';document.getElementById('pay-fw-key').value=p.fawateer.key||'';}
+    }
+  }catch(e){console.error(e);}
 }
 
 // Logo preview
+window.previewLogo=function(url){
+  const img=document.getElementById('logoPreviewImg');
+  if(img){img.src=url;img.style.display=url?'block':'none';}
+};
 document.getElementById('br-logo')?.addEventListener('input',e=>previewLogo(e.target.value));
-function previewLogo(url){
-  const img=document.getElementById('logoPreview'),ph=document.getElementById('logoPlaceholder');
-  if(url){img.src=url;img.style.display='block';if(ph)ph.style.display='none';}
-  else{img.style.display='none';if(ph)ph.style.display='block';}
-}
-window.previewLogo=previewLogo;
 
 // SAVE SECTIONS
 window.saveSec=async(sec)=>{
   let data={};
   const g=id=>document.getElementById(id)?.value||'';
+  const gb=id=>document.getElementById(id)?.checked||false;
   if(sec==='hero')data.hero={l1:g('h-l1'),l2:g('h-l2'),sub:g('h-sub'),b1:g('h-b1'),b2:g('h-b2'),badge:g('h-badge'),stat1:{num:g('s1n'),label:g('s1l')},stat2:{num:g('s2n'),label:g('s2l')},stat3:{num:g('s3n'),label:g('s3l')},stat4:{num:g('s4n'),label:g('s4l')}};
   else if(sec==='social')data.social={wa:g('s-wa'),email:g('s-email'),domain:g('s-domain'),ig:g('s-ig'),tt:g('s-tt'),fb:g('s-fb')};
   else if(sec==='brand')data.brand={name:g('br-name'),slogan:g('br-slogan'),logoUrl:g('br-logo')};
   else if(sec==='design')data.design={colors:{primary:g('col-primary'),dark:g('col-dark'),card:g('col-card'),text:g('col-text'),accent:g('col-accent')}};
   else if(sec==='siteConfig'){data.siteTitle=g('site-title');data.siteDesc=g('site-desc');}
+  else if(sec==='payment'){data.payment={paypal:{active:gb('pay-pp-active'),link:g('pay-pp-link'),note:g('pay-pp-note')},whatsapp:{active:gb('pay-wa-active'),num:g('pay-wa-num'),msg:g('pay-wa-msg')},fawateer:{active:gb('pay-fw-active'),mid:g('pay-fw-mid'),key:g('pay-fw-key')}};}
   await setDoc(doc(db,'site_config','main'),data,{merge:true});
-  toast('✅ تم حفظ '+({hero:'Hero',social:'الروابط',brand:'الهوية',design:'الألوان',siteConfig:'الإعدادات'}[sec]||sec));
+  toast('✅ تم حفظ '+({hero:'Hero',social:'الروابط',brand:'الهوية',design:'الألوان',siteConfig:'الإعدادات',payment:'إعدادات الدفع'}[sec]||sec));
 };
-window.saveAllSections=async()=>{await Promise.all(['hero','social','brand','design','siteConfig'].map(s=>window.saveSec(s)));toast('✅ تم حفظ جميع التغييرات!');};
+window.saveAllSections=async()=>{await Promise.all(['hero','social','brand','design','siteConfig','payment'].map(s=>window.saveSec(s)));toast('✅ تم حفظ الكل!');};
 
 // DELETE
 window.delItem=async(col,id,reloadFn)=>{
@@ -537,80 +616,198 @@ window.delItem=async(col,id,reloadFn)=>{
   await deleteDoc(doc(db,col,id));
   toast('🗑️ تم الحذف','warn');
   if(typeof reloadFn==='function')reloadFn();
-  else if(typeof window[reloadFn]==='function')window[reloadFn]();
 };
 
-// MODAL FORMS
+// ===== MODAL FORMS =====
+// Tag system
+let _tags=[];
+window.addTag=function(inputId,tagsId){
+  const inp=document.getElementById(inputId);
+  const val=inp.value.trim(); if(!val)return;
+  if(!_tags.includes(val))_tags.push(val);
+  inp.value=''; renderTags(tagsId);
+};
+window.removeTag=function(idx,tagsId){_tags.splice(idx,1);renderTags(tagsId);};
+function renderTags(tagsId){
+  const el=document.getElementById(tagsId);
+  if(!el)return;
+  el.innerHTML=_tags.map((t,i)=>`<span class="tag">${t}<span class="tx" onclick="removeTag(${i},'${tagsId}')">✕</span></span>`).join('');
+}
+
+// What you'll learn tags
+let _learns=[];
+window.addLearn=function(){
+  const inp=document.getElementById('m-learn-inp');
+  const val=inp.value.trim(); if(!val)return;
+  _learns.push(val); inp.value=''; renderLearns();
+};
+window.removeLearn=function(i){_learns.splice(i,1);renderLearns();};
+function renderLearns(){
+  const el=document.getElementById('m-learns');
+  if(!el)return;
+  el.innerHTML=_learns.map((t,i)=>`<span class="tag">${t}<span class="tx" onclick="removeLearn(${i})">✕</span></span>`).join('');
+}
+
+// Course topics
+let _topics=[];
+window.addTopic=function(){
+  const inp=document.getElementById('m-topic-inp');
+  const val=inp.value.trim(); if(!val)return;
+  _topics.push(val); inp.value=''; renderTopics();
+};
+window.removeTopic=function(i){_topics.splice(i,1);renderTopics();};
+function renderTopics(){
+  const el=document.getElementById('m-topics');
+  if(!el)return;
+  el.innerHTML=_topics.map((t,i)=>`<span class="tag">${t}<span class="tx" onclick="removeTopic(${i})">✕</span></span>`).join('');
+}
+
 const mForms={
   product:`
     <div class="cg"><label>اسم المنتج *</label><input class="ci" id="m-title" placeholder="اسم المنتج"></div>
-    <div class="cg"><label>الوصف</label><textarea class="cta" id="m-desc" rows="3" placeholder="وصف المنتج"></textarea></div>
-    <div class="g2"><div class="cg"><label>السعر ($)</label><input class="ci" id="m-price" type="number" min="0" placeholder="29"></div><div class="cg"><label>السعر القديم ($)</label><input class="ci" id="m-oldPrice" type="number" min="0" placeholder="49"></div></div>
-    <div class="g2"><div class="cg"><label>النوع</label><select class="cs" id="m-type"><option value="tool">أداة</option><option value="template">قالب</option><option value="ebook">كتاب رقمي</option><option value="course">دورة</option></select></div><div class="cg"><label>الإيموجي</label><input class="ci" id="m-emoji" placeholder="🛠️"></div></div>
-    <div class="g2"><div class="cg"><label>الشارة</label><select class="cs" id="m-badge"><option value="">بدون</option><option value="new">جديد</option><option value="best">الأكثر مبيعاً</option><option value="sale">خصم</option><option value="free">مجاني</option></select></div><div class="cg" style="display:flex;align-items:center;gap:8px;padding-top:22px"><input type="checkbox" id="m-isFree" style="width:18px;height:18px;accent-color:var(--p)"><label style="color:var(--tx);font-size:.86rem;cursor:pointer" for="m-isFree">منتج مجاني</label></div></div>
-    <div class="cg"><label>رابط صورة المنتج (URL من imgbb.com أو أي موقع)</label><div class="img-hint" style="margin-bottom:8px">ارفع الصورة على <strong>imgbb.com</strong> ثم انسخ Direct Link</div><input class="ci" id="m-imageUrl" placeholder="https://i.ibb.co/..." dir="ltr"></div>`,
+    <div class="cg"><label>الوصف (يدعم الأسطر الجديدة)</label><textarea class="cta" id="m-desc" rows="4" placeholder="وصف المنتج..."></textarea></div>
+    <div class="g2">
+      <div class="cg"><label>السعر ($)</label><input class="ci" id="m-price" type="number" min="0" placeholder="29"></div>
+      <div class="cg"><label>السعر القديم ($)</label><input class="ci" id="m-oldPrice" type="number" min="0" placeholder="49"></div>
+    </div>
+    <div class="g2">
+      <div class="cg"><label>النوع</label><select class="cs" id="m-type"><option value="tool">أداة</option><option value="template">قالب</option><option value="ebook">كتاب رقمي</option><option value="course">دورة</option></select></div>
+      <div class="cg"><label>الإيموجي</label><input class="ci" id="m-emoji" placeholder="🛠️"></div>
+    </div>
+    <div class="g2">
+      <div class="cg"><label>الشارة</label><select class="cs" id="m-badge"><option value="">بدون</option><option value="new">جديد</option><option value="best">الأكثر مبيعاً</option><option value="sale">خصم</option><option value="free">مجاني</option></select></div>
+      <div class="cg" style="display:flex;align-items:center;gap:8px;padding-top:22px"><input type="checkbox" id="m-isFree" style="accent-color:var(--p);width:16px;height:16px"><label for="m-isFree" style="cursor:pointer;font-size:.86rem">منتج مجاني</label></div>
+    </div>
+    <div class="cg"><label>صورة المنتج</label>
+      <div class="upzone"><input type="file" accept="image/*" onchange="handleUpload(this,'products',null,null,'prodImgProg','prodImgBar')"><div class="uz-icon">🖼️</div><p>اضغط لرفع الصورة</p><div class="uz-hint">PNG / JPG — حتى 5MB</div></div>
+      <div class="up-prog" id="prodImgProg"><div class="up-bar-wrap"><div class="up-bar" id="prodImgBar"></div></div><div class="up-info"><div class="mini-spin"></div><span>جاري الرفع...</span></div></div>
+      <input class="ci" id="m-imageUrl" placeholder="أو أدخل رابط الصورة" dir="ltr" style="margin-top:8px">
+    </div>`,
 
   course:`
     <div class="cg"><label>اسم الدورة *</label><input class="ci" id="m-title" placeholder="اسم الدورة"></div>
-    <div class="cg"><label>الوصف *</label><textarea class="cta" id="m-desc" rows="3" placeholder="وصف الدورة"></textarea></div>
-    <div class="g2"><div class="cg"><label>التخصص *</label><input class="ci" id="m-category" placeholder="الهندسة الكهربائية"></div><div class="cg"><label>الإيموجي</label><input class="ci" id="m-emoji" placeholder="⚡"></div></div>
-    <div class="g3"><div class="cg"><label>المدة</label><input class="ci" id="m-duration" placeholder="30 ساعة"></div><div class="cg"><label>عدد الدروس</label><input class="ci" id="m-lessons" placeholder="90 درس"></div><div class="cg"><label>السعر ($)</label><input class="ci" id="m-price" type="number" min="0" placeholder="75"></div></div>
+    <div class="cg"><label>الوصف التفصيلي (يدعم الأسطر)</label><textarea class="cta" id="m-desc" rows="5" placeholder="أدخل الوصف... كل سطر سيظهر كفقرة منفصلة"></textarea></div>
+    <div class="g2">
+      <div class="cg"><label>التخصص *</label><input class="ci" id="m-category" placeholder="الهندسة الكهربائية"></div>
+      <div class="cg"><label>الإيموجي</label><input class="ci" id="m-emoji" placeholder="⚡"></div>
+    </div>
+    <div class="g4">
+      <div class="cg"><label>المدة</label><input class="ci" id="m-duration" placeholder="30 ساعة"></div>
+      <div class="cg"><label>عدد الدروس</label><input class="ci" id="m-lessons" placeholder="90 درس"></div>
+      <div class="cg"><label>السعر ($) *</label><input class="ci" id="m-price" type="number" min="0" placeholder="75"></div>
+      <div class="cg"><label>السعر القديم ($)</label><input class="ci" id="m-oldPrice" type="number" min="0" placeholder="99"></div>
+    </div>
     <div class="cg"><label>المستوى</label><select class="cs" id="m-level"><option value="مبتدئ">مبتدئ</option><option value="وسط">وسط</option><option value="متقدم">متقدم</option></select></div>
-    <div class="cg"><label>رابط صورة الدورة (URL) — <strong style="color:var(--p)">مهم لإظهار صورة بدل الإيموجي</strong></label><div class="img-hint" style="margin-bottom:8px">📌 ارفع الصورة على <strong>imgbb.com</strong> (مجاني) ← Direct Link<br>أنسب أبعاد: <strong>800×450px</strong> (نسبة 16:9)</div><input class="ci" id="m-imageUrl" placeholder="https://i.ibb.co/..." dir="ltr"></div>`,
+
+    <div class="sec-sep"></div>
+    <div style="font-size:.84rem;font-weight:800;margin-bottom:10px">📚 ماذا ستتعلم؟</div>
+    <div class="tag-row" id="m-learns"></div>
+    <div class="tag-input-row"><input class="ci" id="m-learn-inp" placeholder="أضف نقطة تعلم..." onkeypress="if(event.key==='Enter'){addLearn();event.preventDefault();}"><button onclick="addLearn()">+ إضافة</button></div>
+
+    <div class="sec-sep"></div>
+    <div style="font-size:.84rem;font-weight:800;margin-bottom:10px">📋 محاور الدورة</div>
+    <div class="tag-row" id="m-topics"></div>
+    <div class="tag-input-row"><input class="ci" id="m-topic-inp" placeholder="أضف محور..." onkeypress="if(event.key==='Enter'){addTopic();event.preventDefault();}"><button onclick="addTopic()">+ إضافة</button></div>
+
+    <div class="sec-sep"></div>
+    <div class="cg"><label>صورة الدورة (تظهر في البطاقة وصفحة التفاصيل)</label>
+      <div class="upzone"><input type="file" accept="image/*" onchange="handleUpload(this,'courses',null,null,'courImgProg','courImgBar')"><div class="uz-icon">🖼️</div><p>اضغط لرفع صورة الدورة</p><div class="uz-hint">PNG / JPG — أنسب أبعاد: 800×450px</div></div>
+      <div class="up-prog" id="courImgProg"><div class="up-bar-wrap"><div class="up-bar" id="courImgBar"></div></div><div class="up-info"><div class="mini-spin"></div><span>جاري الرفع...</span></div></div>
+      <input class="ci" id="m-imageUrl" placeholder="أو أدخل رابط الصورة" dir="ltr" style="margin-top:8px">
+    </div>`,
 
   book:`
     <div class="cg"><label>عنوان الكتاب *</label><input class="ci" id="m-title" placeholder="عنوان الكتاب"></div>
     <div class="cg"><label>المؤلف</label><input class="ci" id="m-author" placeholder="فريق 3ENG.s"></div>
-    <div class="g2"><div class="cg"><label>السعر ($)</label><input class="ci" id="m-price" type="number" min="0" placeholder="19"></div><div class="cg"><label>الإيموجي</label><input class="ci" id="m-emoji" placeholder="📘"></div></div>
-    <div class="cg"><label>الوصف</label><textarea class="cta" id="m-desc" rows="3" placeholder="وصف الكتاب"></textarea></div>
-    <div class="cg"><label>رابط صورة الغلاف (URL)</label><input class="ci" id="m-imageUrl" placeholder="https://i.ibb.co/..." dir="ltr"></div>`,
+    <div class="g2">
+      <div class="cg"><label>السعر ($)</label><input class="ci" id="m-price" type="number" min="0" placeholder="19"></div>
+      <div class="cg"><label>الإيموجي</label><input class="ci" id="m-emoji" placeholder="📘"></div>
+    </div>
+    <div class="cg" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="m-isFree" style="accent-color:var(--p);width:16px;height:16px"><label for="m-isFree" style="cursor:pointer;font-size:.86rem">كتاب مجاني (يمكن تحميله مجاناً للمسجلين)</label></div>
+    <div class="cg"><label>الوصف</label><textarea class="cta" id="m-desc" rows="3" placeholder="وصف الكتاب..."></textarea></div>
+    <div class="cg"><label>📄 رفع ملف الكتاب (PDF)</label>
+      <div class="upzone"><input type="file" accept=".pdf,.epub" onchange="handleUpload(this,'books',null,'bookFileRow','bookFileProg','bookFileBar')"><div class="uz-icon">📄</div><p>اضغط لرفع ملف PDF</p><div class="uz-hint">PDF / EPUB — حتى 50MB</div></div>
+      <div class="up-prog" id="bookFileProg"><div class="up-bar-wrap"><div class="up-bar" id="bookFileBar"></div></div><div class="up-info"><div class="mini-spin"></div><span id="bookFileBarTxt">جاري الرفع...</span></div></div>
+      <div class="file-preview-row" id="bookFileRow">📄 <span class="fp-name"></span><span class="fp-remove" onclick="clearBookFile()">✕</span></div>
+      <input class="ci" id="m-fileUrl" placeholder="أو أدخل رابط الملف مباشرة" dir="ltr" style="margin-top:8px">
+    </div>
+    <div class="cg"><label>🖼️ صورة الغلاف</label>
+      <div class="upzone"><input type="file" accept="image/*" onchange="handleUpload(this,'book-covers',null,null,'bookImgProg','bookImgBar')"><div class="uz-icon">📖</div><p>اضغط لرفع صورة الغلاف</p><div class="uz-hint">PNG / JPG — حتى 5MB</div></div>
+      <div class="up-prog" id="bookImgProg"><div class="up-bar-wrap"><div class="up-bar" id="bookImgBar"></div></div><div class="up-info"><div class="mini-spin"></div><span>جاري الرفع...</span></div></div>
+      <input class="ci" id="m-imageUrl" placeholder="أو أدخل رابط صورة الغلاف" dir="ltr" style="margin-top:8px">
+    </div>`,
 
   testimonial:`
     <div class="cg"><label>اسم الطالب *</label><input class="ci" id="m-name" placeholder="محمد أحمد"></div>
-    <div class="cg"><label>المسمى / التخصص</label><input class="ci" id="m-role" placeholder="مهندس إلكترونيات"></div>
+    <div class="cg"><label>التخصص / المسمى</label><input class="ci" id="m-role" placeholder="مهندس إلكترونيات"></div>
     <div class="cg"><label>نص التقييم *</label><textarea class="cta" id="m-text" rows="4" placeholder="رأي الطالب..."></textarea></div>
     <div class="cg"><label>التقييم</label><select class="cs" id="m-rating"><option value="5">★★★★★</option><option value="4">★★★★☆</option><option value="3">★★★☆☆</option></select></div>`
 };
 
 window._mType=''; window._mId=null;
+window.clearBookFile=()=>{
+  window._upload_books=null;
+  const el=document.getElementById('m-fileUrl');if(el)el.value='';
+  const row=document.getElementById('bookFileRow');if(row)row.style.display='none';
+};
+
 window.openModal=(type,id=null)=>{
   window._mType=type; window._mId=id;
+  _tags=[]; _learns=[]; _topics=[];
+  window._upload_products=null; window._upload_courses=null;
+  window._upload_books=null; window['_upload_book-covers']=null;
   const labels={product:'منتج',course:'دورة',book:'كتاب',testimonial:'رأي'};
   document.getElementById('mTitle').textContent=(id?'تعديل ':'إضافة ')+(labels[type]||type);
   document.getElementById('mBody').innerHTML=mForms[type]||'';
   if(id){
     const colMap={product:window._prods,course:window._courses,book:window._books,testimonial:window._tests};
     const item=colMap[type]?.find(i=>i.id===id);
-    if(item){Object.keys(item).forEach(k=>{const el=document.getElementById('m-'+k);if(el&&k!=='id'){if(el.type==='checkbox')el.checked=!!item[k];else el.value=item[k]||'';}});}
+    if(item){
+      Object.keys(item).forEach(k=>{
+        const el=document.getElementById('m-'+k);
+        if(el&&k!=='id'){if(el.type==='checkbox')el.checked=!!item[k];else el.value=item[k]||'';}
+      });
+      // Restore tags
+      if(item.learns){_learns=[...item.learns];renderLearns();}
+      if(item.topics){_topics=[...item.topics];renderTopics();}
+      // Show file preview if fileUrl exists
+      if(item.fileUrl){
+        const row=document.getElementById('bookFileRow');
+        if(row){row.style.display='flex';const nm=row.querySelector('.fp-name');if(nm)nm.textContent='ملف موجود';}
+      }
+    }
   }
   document.getElementById('modal').classList.add('show');
 };
 window.editItem=(type,id)=>window.openModal(type,id);
-window.closeModal=()=>document.getElementById('modal').classList.remove('show');
+window.closeModal=()=>{document.getElementById('modal').classList.remove('show');};
+
 window.saveModal=async()=>{
   const type=window._mType; const id=window._mId;
   const g=eid=>document.getElementById(eid)?.value||'';
   const gc=eid=>document.getElementById(eid)?.checked||false;
+  // Get uploaded URLs
+  const imgUrl=window._upload_products||window._upload_courses||window['_upload_book-covers']||g('m-imageUrl');
+  const fileUrl=window._upload_books||g('m-fileUrl');
   let data={updatedAt:serverTimestamp()};
-  if(type==='product'){if(!g('m-title')){toast('⚠️ اسم المنتج مطلوب','err');return;}data={...data,title:g('m-title'),desc:g('m-desc'),price:parseFloat(g('m-price'))||0,oldPrice:parseFloat(g('m-oldPrice'))||0,type:g('m-type'),emoji:g('m-emoji'),badge:g('m-badge'),isFree:gc('m-isFree'),imageUrl:g('m-imageUrl')};}
-  else if(type==='course'){if(!g('m-title')){toast('⚠️ اسم الدورة مطلوب','err');return;}data={...data,title:g('m-title'),desc:g('m-desc'),category:g('m-category'),emoji:g('m-emoji'),duration:g('m-duration'),lessons:g('m-lessons'),price:parseFloat(g('m-price'))||0,level:g('m-level'),imageUrl:g('m-imageUrl')};}
-  else if(type==='book'){if(!g('m-title')){toast('⚠️ عنوان الكتاب مطلوب','err');return;}data={...data,title:g('m-title'),author:g('m-author'),price:parseFloat(g('m-price'))||0,emoji:g('m-emoji'),desc:g('m-desc'),imageUrl:g('m-imageUrl')};}
+  if(type==='product'){if(!g('m-title')){toast('⚠️ اسم المنتج مطلوب','err');return;}data={...data,title:g('m-title'),desc:g('m-desc'),price:parseFloat(g('m-price'))||0,oldPrice:parseFloat(g('m-oldPrice'))||0,type:g('m-type'),emoji:g('m-emoji'),badge:g('m-badge'),isFree:gc('m-isFree'),imageUrl:imgUrl};}
+  else if(type==='course'){if(!g('m-title')){toast('⚠️ اسم الدورة مطلوب','err');return;}data={...data,title:g('m-title'),desc:g('m-desc'),category:g('m-category'),emoji:g('m-emoji'),duration:g('m-duration'),lessons:g('m-lessons'),price:parseFloat(g('m-price'))||0,oldPrice:parseFloat(g('m-oldPrice'))||0,level:g('m-level'),learns:_learns,topics:_topics,imageUrl:imgUrl};}
+  else if(type==='book'){if(!g('m-title')){toast('⚠️ عنوان الكتاب مطلوب','err');return;}data={...data,title:g('m-title'),author:g('m-author'),price:parseFloat(g('m-price'))||0,emoji:g('m-emoji'),desc:g('m-desc'),isFree:gc('m-isFree'),imageUrl:imgUrl,fileUrl:fileUrl};}
   else if(type==='testimonial'){if(!g('m-name')||!g('m-text')){toast('⚠️ الاسم والنص مطلوبان','err');return;}data={...data,name:g('m-name'),role:g('m-role'),text:g('m-text'),rating:parseInt(g('m-rating'))||5};}
   const colMap={product:'products',course:'courses',book:'books',testimonial:'testimonials'};
   if(id)await setDoc(doc(db,colMap[type],id),data,{merge:true});
   else{data.createdAt=serverTimestamp();await addDoc(collection(db,colMap[type]),data);}
-  closeModal(); toast('✅ تم الحفظ بنجاح!');
+  closeModal(); toast('✅ تم الحفظ!');
   const reloads={product:loadProducts,course:loadCourses,book:loadBooks,testimonial:loadTestimonials};
   if(reloads[type])reloads[type]();
 };
 
-// TOAST
 function toast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+(type||'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);}
 window.toast=toast;
 </script>
 
 <script>
-const panelTitles={dashboard:'🏠 الرئيسية',hero:'🎯 القسم الرئيسي',products:'📦 المنتجات',courses:'🎓 الدورات',books:'📚 الكتب',testimonials:'⭐ آراء الطلاب',users:'👥 المستخدمون',messages:'💬 الرسائل',newsletter:'📧 النشرة',design:'🎨 التصميم',brand:'💡 الهوية',social:'🔗 التواصل'};
+const panelTitles={dashboard:'🏠 الرئيسية',hero:'🎯 القسم الرئيسي',products:'📦 المنتجات',courses:'🎓 الدورات',books:'📚 الكتب',testimonials:'⭐ آراء الطلاب',users:'👥 المستخدمون',messages:'💬 الرسائل',newsletter:'📧 النشرة',payment:'💳 إعدادات الدفع',design:'🎨 التصميم',brand:'💡 الهوية',social:'🔗 التواصل'};
 function showP(id,el){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
