@@ -715,9 +715,10 @@ async function loadProds(){
       const thumb=p.imageUrl?`<img src="${p.imageUrl}" alt="" loading="lazy" onerror="this.style.display='none'">`:`<span class="ef">${p.emoji||'📦'}</span>`;
       const oldP=p.oldPrice?`<span class="pold">$${p.oldPrice}</span>`:'';
       const priceDisp=p.isFree?`<span style="color:var(--ok);font-size:1.1rem;font-weight:900">مجاني</span>`:`${oldP}<span class="pcur">$${p.price||0}</span>`;
+      const pTitle=(p.title||'').replace(/"/g,'&quot;');
       const actionBtn=p.isFree
-        ?`<button class="btn-free" onclick="downloadFree('${p.fileUrl||''}','${(p.title||'').replace(/'/g,'\\\'')}')" data-name="${p.title||''}" data-emoji="${p.emoji||'📦'}">📥 تحميل مجاني</button>`
-        :`<button class="btn-c" onclick="addCart(this)" data-name="${p.title||''}" data-price="${p.price||0}" data-emoji="${p.emoji||'📦'}">أضف للسلة</button>`;
+        ?`<button class="btn-free" onclick="downloadFree(this)" data-fileurl="${p.fileUrl||''}" data-name="${pTitle}" data-emoji="${p.emoji||'📦'}">📥 تحميل مجاني</button>`
+        :`<button class="btn-c" onclick="addCart(this)" data-name="${pTitle}" data-price="${p.price||0}" data-emoji="${p.emoji||'📦'}">أضف للسلة</button>`;
       html+=`<div class="pcard reveal" data-cat="${p.type||'tool'}">
         ${bdgHTML}<div class="cthumb ${t.cls}">${thumb}</div>
         <div class="cbody"><div class="ctype">${t.lbl}</div><div class="ctitle">${p.title||''}</div>
@@ -820,14 +821,22 @@ async function loadBooks(){
     snap.forEach(d=>{
       const b=d.data();
       const cover=b.imageUrl?`<img src="${b.imageUrl}" alt="" loading="lazy" onerror="this.style.display='none'">`:'';
-      const actionAttr=b.isFree?`onclick="downloadFree('${b.fileUrl||''}','${(b.title||'').replace(/'/g,'\\\'')}')"`:
-        `onclick="addCartItem('${(b.title||'').replace(/'/g,'\\\'\')}',${b.price||0},'${b.emoji||'📚'}')"`;
+      const bTitle = (b.title||'').replace(/"/g,'&quot;');
+      const bEmoji = b.emoji||'📚';
+      const bPrice = b.price||0;
+      const bFileUrl = b.fileUrl||'';
+      let actionAttr;
+      if(b.isFree){
+        actionAttr = `onclick="downloadFree(this)"  data-fileurl="${bFileUrl}" data-name="${bTitle}"`;
+      } else {
+        actionAttr = `onclick="addCartFromEl(this)" data-name="${bTitle}" data-price="${bPrice}" data-emoji="${bEmoji}"`;
+      }
       html+=`<div class="bkcard reveal" ${actionAttr}>
-        <div class="bkcover ${cls[i%6]}"><div class="bkspine"></div>${cover}<span class="bke">${b.emoji||'📚'}</span></div>
-        ${b.isFree?`<div class="bk-free-tag">📥 مجاني للمسجلين</div>`:''}
+        <div class="bkcover ${cls[i%6]}"><div class="bkspine"></div>${cover}<span class="bke">${bEmoji}</span></div>
+        ${b.isFree?'<div class="bk-free-tag">📥 مجاني للمسجلين</div>':''}
         <div class="bktitle">${b.title||''}</div>
         <div class="bkauthor">${b.author||'فريق 3ENG.s'}</div>
-        <div class="bkprice">${b.isFree?'<span style="color:var(--ok)">مجاني</span>':`$${b.price||0}`}</div>
+        <div class="bkprice">${b.isFree?'<span style="color:var(--ok)">مجاني</span>':'$'+bPrice}</div>
       </div>`;
       i++;
     });
@@ -837,15 +846,36 @@ async function loadBooks(){
 }
 
 // DOWNLOAD FREE — requires login
-window.downloadFree=function(fileUrl, itemName){
+// downloadFree — accepts element (from books grid) or (fileUrl, itemName) from products
+window.downloadFree=function(elOrUrl, itemName){
+  let fileUrl, name;
+  if(typeof elOrUrl === 'string'){
+    // called as downloadFree('url','name')
+    fileUrl=elOrUrl; name=itemName||'ملف';
+  } else {
+    // called as downloadFree(this) from onclick
+    const el=elOrUrl;
+    const card=el.closest?.(('[data-name]'))||el;
+    fileUrl=el.dataset?.fileurl||card.dataset?.fileurl||'';
+    name=el.dataset?.name||card.dataset?.name||'ملف';
+  }
   if(!window._currentUser){
-    document.getElementById('lrMsg').textContent=`"${itemName}" متاح مجاناً للمسجلين. سجّل الآن وحمّله فوراً!`;
+    document.getElementById('lrMsg').textContent=`"${name}" متاح مجاناً للمسجلين. سجّل الآن وحمّله فوراً!`;
     document.getElementById('loginReqModal').classList.add('show');
     return;
   }
-  if(!fileUrl){toast('⚠️ الملف غير متاح حالياً','err');return;}
-  const a=document.createElement('a');a.href=fileUrl;a.download=itemName||'file';a.target='_blank';a.click();
-  toast('📥 جاري تحميل '+itemName+'...','ok');
+  if(!fileUrl){toast('⚠️ الملف غير متاح حالياً — تواصل معنا','err');return;}
+  const a=document.createElement('a');a.href=fileUrl;a.download=name;a.target='_blank';a.click();
+  toast('📥 جاري تحميل '+name+'...','ok');
+};
+
+// addCartFromEl — reads data from element attributes (safe, no escaping issues)
+window.addCartFromEl=function(el){
+  const card=el.closest('[data-name]')||el;
+  const name=card.dataset.name||'منتج';
+  const price=parseFloat(card.dataset.price)||0;
+  const emoji=card.dataset.emoji||'📦';
+  addCartItem(name,price,emoji);
 };
 
 // LOAD TESTIMONIALS
@@ -920,13 +950,28 @@ function defaultCourses(){
     <div class="price-wrap">${c.oldPrice?`<span class="price-old-s">$${c.oldPrice}</span> `:''}<span class="price-new-s">$${c.price}</span></div></div></div></div>`).join('');}
 
 function defaultBooks(){
-  const bks=[['🤖','مستقبل الذكاء الاصطناعي','فريق 3ENG.s','18',false,''],['💡','ريادة الأعمال الرقمية','فريق 3ENG.s','22',false,''],['📗','دليل البرمجة للمبتدئين','فريق 3ENG.s','0',true,''],['📈','التسويق الرقمي المتقدم','فريق 3ENG.s','19',false,''],['⚙️','هندسة الأنظمة المدمجة','فريق 3ENG.s','25',false,''],['💻','البرمجة للمهندسين','فريق 3ENG.s','20',false,'']];
+  const bks=[
+    ['🤖','مستقبل الذكاء الاصطناعي','فريق 3ENG.s','18',false,''],
+    ['💡','ريادة الأعمال الرقمية','فريق 3ENG.s','22',false,''],
+    ['📗','دليل البرمجة للمبتدئين','فريق 3ENG.s','0',true,''],
+    ['📈','التسويق الرقمي المتقدم','فريق 3ENG.s','19',false,''],
+    ['⚙️','هندسة الأنظمة المدمجة','فريق 3ENG.s','25',false,''],
+    ['💻','البرمجة للمهندسين','فريق 3ENG.s','20',false,'']
+  ];
   return bks.map((b,i)=>{
-    const isFree=b[4]; const fileUrl=b[5];
-    const action=isFree?`onclick="downloadFree('${fileUrl}','${b[1]}')"`:
-      `onclick="addCartItem('${b[1]}',${parseFloat(b[3])||0},'${b[0]}')"`;
-    return `<div class="bkcard reveal" ${action}><div class="bkcover bk${i+1}"><div class="bkspine"></div><span class="bke">${b[0]}</span></div>${isFree?`<div class="bk-free-tag">📥 مجاني للمسجلين</div>`:''}<div class="bktitle">${b[1]}</div><div class="bkauthor">${b[2]}</div><div class="bkprice">${isFree?'<span style="color:var(--ok)">مجاني</span>':'$'+b[3]}</div></div>`;
-  }).join('');}
+    const isFree=b[4];
+    const action=isFree
+      ?`onclick="downloadFree(this)" data-fileurl="${b[5]}" data-name="${b[1]}"`
+      :`onclick="addCartFromEl(this)" data-name="${b[1]}" data-price="${parseFloat(b[3])||0}" data-emoji="${b[0]}"`;
+    return `<div class="bkcard reveal" ${action}>
+      <div class="bkcover bk${i+1}"><div class="bkspine"></div><span class="bke">${b[0]}</span></div>
+      ${isFree?'<div class="bk-free-tag">📥 مجاني للمسجلين</div>':''}
+      <div class="bktitle">${b[1]}</div>
+      <div class="bkauthor">${b[2]}</div>
+      <div class="bkprice">${isFree?'<span style="color:var(--ok)">مجاني</span>':'$'+b[3]}</div>
+    </div>`;
+  }).join('');
+}
 
 function defaultTests(){return`
 <div class="tcard reveal"><div class="tstars">★★★★★</div><div class="ttext">دورة ESP32 مع Firebase غيّرت أسلوبي في العمل. المحتوى عملي ومباشر. أنصح بـ 3ENG.s لكل مهندس.</div><div class="tauthor"><div class="tav">ع</div><div><div class="taname">عمر محمد</div><div class="tarole">مهندس إلكترونيات</div></div></div></div>
