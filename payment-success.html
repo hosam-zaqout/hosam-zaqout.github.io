@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>تم الدفع بنجاح | 3ENG.s</title>
+<meta name="robots" content="noindex,nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--p:#F59E0B;--pd:#D97706;--dk:#0F172A;--d2:#1E293B;--tx:#F1F5F9;--mt:#94A3B8;--ok:#10B981;--er:#EF4444;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Cairo',sans-serif;background:var(--dk);color:var(--tx);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;position:relative;overflow:hidden;}
+.bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 80% 60% at 50% 30%,rgba(16,185,129,.15) 0%,transparent 60%),linear-gradient(135deg,#0F172A,#1E293B);}
+.bg-grid{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(245,158,11,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(245,158,11,.04) 1px,transparent 1px);background-size:60px 60px;}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:1;}
+.conf{position:absolute;width:8px;height:8px;background:var(--p);opacity:0;animation:fall 3s ease-out forwards;}
+@keyframes fall{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(100vh) rotate(720deg)}}
+.card{position:relative;z-index:10;background:rgba(30,41,59,.95);backdrop-filter:blur(24px);border:1px solid rgba(16,185,129,.3);border-radius:24px;width:100%;max-width:520px;padding:50px 36px;text-align:center;box-shadow:0 25px 80px rgba(0,0,0,.5);animation:cIn .6s cubic-bezier(.34,1.56,.64,1);}
+@keyframes cIn{from{opacity:0;transform:translateY(40px) scale(.9)}to{opacity:1;transform:translateY(0) scale(1)}}
+.success-icon{width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,var(--ok),#059669);display:flex;align-items:center;justify-content:center;margin:0 auto 26px;font-size:3rem;box-shadow:0 0 0 8px rgba(16,185,129,.15),0 12px 40px rgba(16,185,129,.4);animation:pop .5s ease .2s both;}
+@keyframes pop{from{opacity:0;transform:scale(0)}to{opacity:1;transform:scale(1)}}
+h1{font-size:1.6rem;font-weight:900;margin-bottom:10px;color:var(--ok);}
+.sub{font-size:.95rem;color:var(--mt);line-height:1.7;margin-bottom:28px;}
+.ref-box{background:rgba(15,23,42,.7);border:1px solid rgba(245,158,11,.2);border-radius:12px;padding:16px;margin-bottom:24px;}
+.ref-label{font-size:.7rem;font-weight:800;color:var(--mt);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+.ref-num{font-size:1rem;font-weight:900;color:var(--p);font-family:monospace;direction:ltr;}
+.steps{text-align:right;background:rgba(15,23,42,.5);border-radius:12px;padding:18px 20px;margin-bottom:26px;}
+.steps h4{font-size:.85rem;font-weight:800;margin-bottom:12px;color:var(--p);}
+.step{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;font-size:.82rem;color:var(--mt);line-height:1.6;}
+.step-num{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:var(--p);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;}
+.btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+.btn-pri{background:linear-gradient(135deg,var(--p),var(--pd));color:#0F172A;padding:13px 26px;border:none;border-radius:10px;font-family:'Cairo',sans-serif;font-size:.92rem;font-weight:900;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:7px;transition:all .25s;}
+.btn-pri:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(245,158,11,.4);}
+.btn-sec{background:rgba(255,255,255,.06);color:var(--tx);padding:13px 22px;border:1px solid rgba(255,255,255,.1);border-radius:10px;font-family:'Cairo',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:7px;transition:all .25s;}
+.btn-sec:hover{border-color:var(--p);color:var(--p);}
+.support{margin-top:24px;font-size:.78rem;color:var(--mt);}
+.support a{color:var(--p);text-decoration:none;font-weight:700;}
+@media(max-width:480px){.card{padding:36px 22px;}h1{font-size:1.35rem;}.success-icon{width:75px;height:75px;font-size:2.5rem;}.btns{flex-direction:column;}.btn-pri,.btn-sec{width:100%;justify-content:center;}}
+</style>
+</head>
+<body>
+<div class="bg"></div><div class="bg-grid"></div>
+<div class="confetti" id="confetti"></div>
+
+<div class="card">
+  <div class="success-icon">✓</div>
+  <h1>تم الدفع بنجاح! 🎉</h1>
+  <p class="sub">شكراً لثقتك بـ 3ENG.s. تم تأكيد عملية الدفع وستصلك تفاصيل طلبك على بريدك الإلكتروني خلال دقائق.</p>
+
+  <div class="ref-box" id="refBox" style="display:none">
+    <div class="ref-label">رقم المرجع</div>
+    <div class="ref-num" id="refNum">—</div>
+  </div>
+
+  <div class="steps">
+    <h4>📋 الخطوات التالية</h4>
+    <div class="step"><span class="step-num">1</span><span>سيتم التحقق من العملية تلقائياً خلال دقائق</span></div>
+    <div class="step"><span class="step-num">2</span><span>ستصلك رسالة بريد إلكتروني تحتوي روابط التحميل</span></div>
+    <div class="step"><span class="step-num">3</span><span>إذا كانت دورة، ستصلك بيانات الدخول للمنصة</span></div>
+    <div class="step"><span class="step-num">4</span><span>أي استفسار؟ تواصل معنا على واتساب</span></div>
+  </div>
+
+  <div class="btns">
+    <a href="index.html" class="btn-pri">🏠 العودة للرئيسية</a>
+    <a id="waLink" href="https://wa.me/972592753159" target="_blank" class="btn-sec">💬 تواصل معنا</a>
+  </div>
+
+  <div class="support">
+    تحتاج مساعدة؟ راسلنا على <a href="mailto:info@3engs.com">info@3engs.com</a>
+  </div>
+</div>
+
+<script>
+// Get reference from URL
+const params=new URLSearchParams(window.location.search);
+const ref=params.get('ref')||params.get('reference')||params.get('trxref');
+if(ref){
+  document.getElementById('refBox').style.display='block';
+  document.getElementById('refNum').textContent=ref;
+}
+
+// Confetti animation
+const colors=['#F59E0B','#10B981','#0EA5E9','#EC4899','#8B5CF6'];
+const conf=document.getElementById('confetti');
+for(let i=0;i<60;i++){
+  const c=document.createElement('div');
+  c.className='conf';
+  c.style.left=Math.random()*100+'%';
+  c.style.top='-20px';
+  c.style.background=colors[Math.floor(Math.random()*colors.length)];
+  c.style.animationDelay=(Math.random()*2)+'s';
+  c.style.animationDuration=(2+Math.random()*2)+'s';
+  c.style.width=(5+Math.random()*8)+'px';
+  c.style.height=c.style.width;
+  c.style.borderRadius=Math.random()>.5?'50%':'2px';
+  conf.appendChild(c);
+}
+
+// Auto redirect after 30 seconds
+setTimeout(()=>{
+  // Don't redirect, just show a notice
+},30000);
+</script>
+</body>
+</html>
