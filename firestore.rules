@@ -1,0 +1,121 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─────────────────────────────────────────
+    // دوال مساعدة
+    // ─────────────────────────────────────────
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isAdmin() {
+      return isSignedIn() &&
+        request.auth.token.email in [
+          'hosam2564491@gmail.com',
+          'info@3engs.com'
+        ];
+    }
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // ─────────────────────────────────────────
+    // المحتوى العام — قراءة للجميع
+    // ─────────────────────────────────────────
+    match /products/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /courses/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /books/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /projects/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /testimonials/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /custom_sections/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /section_items/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /site_config/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ─────────────────────────────────────────
+    // رسائل التواصل
+    // ─────────────────────────────────────────
+    match /contact_messages/{doc} {
+      allow create: if true;   // الجميع يرسل
+      allow read, update, delete: if isAdmin();
+    }
+
+    // ─────────────────────────────────────────
+    // النشرة البريدية
+    // ─────────────────────────────────────────
+    match /newsletter_subscribers/{doc} {
+      allow create: if true;
+      allow read, delete: if isAdmin();
+    }
+
+    // ─────────────────────────────────────────
+    // المستخدمون
+    // ─────────────────────────────────────────
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      // المستخدم يعدّل ملفه فقط — لكن لا يغير role أبداً
+      allow update: if isOwner(userId) &&
+        !request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny(['role', 'userId', 'createdAt']);
+      allow create: if isOwner(userId);
+      allow delete: if isAdmin();
+    }
+
+    // ─────────────────────────────────────────
+    // 🔒 الطلبات — ORDERS (أكثر شيء حساس)
+    //
+    // ❌ لا أحد يكتب من client أبداً
+    // ✅ الكتابة فقط من Cloud Functions (Admin SDK)
+    // ✅ المستخدم يقرأ طلباته فقط
+    // ✅ الأدمن يقرأ كل الطلبات
+    // ─────────────────────────────────────────
+    match /orders/{orderId} {
+      // قراءة: المستخدم يرى طلباته — الأدمن يرى الكل
+      allow read: if isAdmin() ||
+        (isSignedIn() && resource.data.userId == request.auth.uid);
+
+      // ❌ لا كتابة من client أبداً
+      // الكتابة تتم فقط من Cloud Functions عبر Admin SDK
+      allow write: if false;
+    }
+
+    // ─────────────────────────────────────────
+    // 🔒 المدفوعات — PAYMENTS (إضافي)
+    // ─────────────────────────────────────────
+    match /payments/{paymentId} {
+      allow read: if isAdmin() ||
+        (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow write: if false; // السيرفر فقط
+    }
+
+    // ─────────────────────────────────────────
+    // رفض أي شيء آخر
+    // ─────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

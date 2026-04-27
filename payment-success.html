@@ -3,103 +3,366 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>تم الدفع بنجاح | 3ENG.s</title>
+<title>تأكيد الدفع | 3ENG.s</title>
 <meta name="robots" content="noindex,nofollow">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
 :root{--p:#F59E0B;--pd:#D97706;--dk:#0F172A;--d2:#1E293B;--tx:#F1F5F9;--mt:#94A3B8;--ok:#10B981;--er:#EF4444;}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Cairo',sans-serif;background:var(--dk);color:var(--tx);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;position:relative;overflow:hidden;}
-.bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 80% 60% at 50% 30%,rgba(16,185,129,.15) 0%,transparent 60%),linear-gradient(135deg,#0F172A,#1E293B);}
-.bg-grid{position:fixed;inset:0;z-index:0;background-image:linear-gradient(rgba(245,158,11,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(245,158,11,.04) 1px,transparent 1px);background-size:60px 60px;}
-.confetti{position:fixed;inset:0;pointer-events:none;z-index:1;}
-.conf{position:absolute;width:8px;height:8px;background:var(--p);opacity:0;animation:fall 3s ease-out forwards;}
+body{font-family:'Cairo',sans-serif;background:var(--dk);color:var(--tx);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;overflow:hidden;}
+.bg{position:fixed;inset:0;z-index:0;background:linear-gradient(135deg,#0F172A,#1E293B);}
+.bg-dots{position:fixed;inset:0;z-index:0;background-image:radial-gradient(rgba(245,158,11,.15) 1px,transparent 1px);background-size:40px 40px;}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:1;display:none;}
+.confetti.show{display:block;}
+.conf{position:absolute;width:8px;height:8px;opacity:0;animation:fall 3s ease-out forwards;}
 @keyframes fall{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(100vh) rotate(720deg)}}
-.card{position:relative;z-index:10;background:rgba(30,41,59,.95);backdrop-filter:blur(24px);border:1px solid rgba(16,185,129,.3);border-radius:24px;width:100%;max-width:520px;padding:50px 36px;text-align:center;box-shadow:0 25px 80px rgba(0,0,0,.5);animation:cIn .6s cubic-bezier(.34,1.56,.64,1);}
-@keyframes cIn{from{opacity:0;transform:translateY(40px) scale(.9)}to{opacity:1;transform:translateY(0) scale(1)}}
-.success-icon{width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,var(--ok),#059669);display:flex;align-items:center;justify-content:center;margin:0 auto 26px;font-size:3rem;box-shadow:0 0 0 8px rgba(16,185,129,.15),0 12px 40px rgba(16,185,129,.4);animation:pop .5s ease .2s both;}
+.card{position:relative;z-index:10;background:rgba(30,41,59,.97);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.08);border-radius:24px;width:100%;max-width:520px;padding:44px 36px;text-align:center;box-shadow:0 25px 80px rgba(0,0,0,.5);animation:cIn .5s ease;}
+@keyframes cIn{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+
+/* States */
+.state{display:none;} .state.active{display:block;animation:fadeIn .4s ease;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* Pending state */
+.pulse-ring{width:90px;height:90px;border-radius:50%;background:rgba(245,158,11,.1);border:3px solid var(--p);margin:0 auto 22px;display:flex;align-items:center;justify-content:center;animation:pulse 1.5s ease-in-out infinite;font-size:2.2rem;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,.3)}50%{box-shadow:0 0 0 16px rgba(245,158,11,0)}}
+.progress-bar-wrap{width:100%;height:4px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;margin:16px 0 20px;}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--p),var(--pd));width:0;transition:width .5s ease;border-radius:4px;}
+.attempt-txt{font-size:.78rem;color:var(--mt);margin-top:8px;}
+
+/* Success state */
+.success-icon{width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,var(--ok),#059669);margin:0 auto 22px;display:flex;align-items:center;justify-content:center;font-size:2.6rem;box-shadow:0 0 0 8px rgba(16,185,129,.15),0 12px 40px rgba(16,185,129,.3);animation:pop .5s cubic-bezier(.34,1.56,.64,1);}
 @keyframes pop{from{opacity:0;transform:scale(0)}to{opacity:1;transform:scale(1)}}
-h1{font-size:1.6rem;font-weight:900;margin-bottom:10px;color:var(--ok);}
-.sub{font-size:.95rem;color:var(--mt);line-height:1.7;margin-bottom:28px;}
-.ref-box{background:rgba(15,23,42,.7);border:1px solid rgba(245,158,11,.2);border-radius:12px;padding:16px;margin-bottom:24px;}
-.ref-label{font-size:.7rem;font-weight:800;color:var(--mt);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
-.ref-num{font-size:1rem;font-weight:900;color:var(--p);font-family:monospace;direction:ltr;}
-.steps{text-align:right;background:rgba(15,23,42,.5);border-radius:12px;padding:18px 20px;margin-bottom:26px;}
-.steps h4{font-size:.85rem;font-weight:800;margin-bottom:12px;color:var(--p);}
-.step{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;font-size:.82rem;color:var(--mt);line-height:1.6;}
-.step-num{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:var(--p);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;}
-.btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
-.btn-pri{background:linear-gradient(135deg,var(--p),var(--pd));color:#0F172A;padding:13px 26px;border:none;border-radius:10px;font-family:'Cairo',sans-serif;font-size:.92rem;font-weight:900;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:7px;transition:all .25s;}
-.btn-pri:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(245,158,11,.4);}
-.btn-sec{background:rgba(255,255,255,.06);color:var(--tx);padding:13px 22px;border:1px solid rgba(255,255,255,.1);border-radius:10px;font-family:'Cairo',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:7px;transition:all .25s;}
+
+/* Failed state */
+.fail-icon{width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,var(--er),#DC2626);margin:0 auto 22px;display:flex;align-items:center;justify-content:center;font-size:2.6rem;box-shadow:0 0 0 8px rgba(239,68,68,.15),0 12px 40px rgba(239,68,68,.3);}
+
+/* Login state */
+.login-icon{width:90px;height:90px;border-radius:50%;background:rgba(245,158,11,.15);border:3px solid var(--p);margin:0 auto 22px;display:flex;align-items:center;justify-content:center;font-size:2.4rem;}
+
+h1{font-size:1.5rem;font-weight:900;margin-bottom:8px;}
+.sub{font-size:.88rem;color:var(--mt);line-height:1.7;margin-bottom:22px;}
+
+/* Invoice box */
+.inv-box{background:rgba(15,23,42,.7);border:1px solid rgba(245,158,11,.2);border-radius:12px;padding:14px 18px;margin-bottom:20px;}
+.inv-label{font-size:.68rem;font-weight:800;color:var(--mt);letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;}
+.inv-num{font-size:.92rem;font-weight:900;color:var(--p);font-family:monospace;direction:ltr;}
+
+/* Download links */
+.dl-section{background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.25);border-radius:12px;padding:18px;margin-bottom:20px;text-align:right;}
+.dl-title{font-size:.85rem;font-weight:800;color:var(--ok);margin-bottom:13px;}
+.dl-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:rgba(15,23,42,.5);border-radius:8px;margin-bottom:8px;gap:10px;}
+.dl-item:last-child{margin-bottom:0;}
+.dl-name{font-size:.84rem;font-weight:700;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dl-btn{background:linear-gradient(135deg,var(--ok),#059669);color:white;border:none;padding:7px 14px;border-radius:7px;font-family:'Cairo',sans-serif;font-size:.78rem;font-weight:800;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0;}
+.dl-btn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(16,185,129,.4);}
+.dl-na{font-size:.74rem;color:var(--mt);font-style:italic;}
+
+/* Actions */
+.btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px;}
+.btn-pri{background:linear-gradient(135deg,var(--p),var(--pd));color:#0F172A;padding:12px 24px;border:none;border-radius:10px;font-family:'Cairo',sans-serif;font-size:.9rem;font-weight:900;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:7px;transition:all .25s;}
+.btn-pri:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(245,158,11,.4);}
+.btn-sec{background:rgba(255,255,255,.07);color:var(--tx);padding:12px 20px;border:1px solid rgba(255,255,255,.1);border-radius:10px;font-family:'Cairo',sans-serif;font-size:.86rem;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:7px;transition:all .25s;}
 .btn-sec:hover{border-color:var(--p);color:var(--p);}
-.support{margin-top:24px;font-size:.78rem;color:var(--mt);}
+.support{margin-top:20px;font-size:.76rem;color:var(--mt);}
 .support a{color:var(--p);text-decoration:none;font-weight:700;}
-@media(max-width:480px){.card{padding:36px 22px;}h1{font-size:1.35rem;}.success-icon{width:75px;height:75px;font-size:2.5rem;}.btns{flex-direction:column;}.btn-pri,.btn-sec{width:100%;justify-content:center;}}
+
+@media(max-width:480px){.card{padding:30px 18px;}h1{font-size:1.25rem;}.btns{flex-direction:column;}.btn-pri,.btn-sec{width:100%;justify-content:center;}.dl-item{flex-wrap:wrap;}}
 </style>
 </head>
 <body>
-<div class="bg"></div><div class="bg-grid"></div>
+<div class="bg"></div>
+<div class="bg-dots"></div>
 <div class="confetti" id="confetti"></div>
 
 <div class="card">
-  <div class="success-icon">✓</div>
-  <h1>تم الدفع بنجاح! 🎉</h1>
-  <p class="sub">شكراً لثقتك بـ 3ENG.s. تم تأكيد عملية الدفع وستصلك تفاصيل طلبك على بريدك الإلكتروني خلال دقائق.</p>
 
-  <div class="ref-box" id="refBox" style="display:none">
-    <div class="ref-label">رقم المرجع</div>
-    <div class="ref-num" id="refNum">—</div>
+  <!-- STATE: تسجيل الدخول مطلوب -->
+  <div class="state" id="stLogin">
+    <div class="login-icon">🔐</div>
+    <h1>تسجيل الدخول مطلوب</h1>
+    <p class="sub">لعرض تفاصيل طلبك وروابط التحميل، يجب تسجيل الدخول أولاً.</p>
+    <div class="inv-box" id="invBoxLogin" style="display:none">
+      <div class="inv-label">رقم الطلب</div>
+      <div class="inv-num" id="invNumLogin">—</div>
+    </div>
+    <div class="btns">
+      <a id="loginBtn" href="auth.html" class="btn-pri">🔑 تسجيل الدخول</a>
+    </div>
   </div>
 
-  <div class="steps">
-    <h4>📋 الخطوات التالية</h4>
-    <div class="step"><span class="step-num">1</span><span>سيتم التحقق من العملية تلقائياً خلال دقائق</span></div>
-    <div class="step"><span class="step-num">2</span><span>ستصلك رسالة بريد إلكتروني تحتوي روابط التحميل</span></div>
-    <div class="step"><span class="step-num">3</span><span>إذا كانت دورة، ستصلك بيانات الدخول للمنصة</span></div>
-    <div class="step"><span class="step-num">4</span><span>أي استفسار؟ تواصل معنا على واتساب</span></div>
+  <!-- STATE: انتظار تأكيد الدفع -->
+  <div class="state active" id="stPending">
+    <div class="pulse-ring">⏳</div>
+    <h1>جاري التحقق من الدفع...</h1>
+    <p class="sub">نتحقق من تأكيد الدفع من Crosspay. قد يستغرق هذا بضع ثوانٍ.</p>
+    <div class="inv-box" id="invBoxPending" style="display:none">
+      <div class="inv-label">رقم الطلب</div>
+      <div class="inv-num" id="invNumPending">—</div>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div class="attempt-txt" id="attemptTxt">جاري الاتصال بالسيرفر...</div>
   </div>
 
-  <div class="btns">
-    <a href="index.html" class="btn-pri">🏠 العودة للرئيسية</a>
-    <a id="waLink" href="https://wa.me/972592753159" target="_blank" class="btn-sec">💬 تواصل معنا</a>
+  <!-- STATE: تم الدفع بنجاح ✅ -->
+  <div class="state" id="stSuccess">
+    <div class="success-icon">✓</div>
+    <h1 style="color:var(--ok)">تم الدفع بنجاح! 🎉</h1>
+    <p class="sub">شكراً لثقتك بـ 3ENG.s. تم تأكيد طلبك بنجاح.</p>
+    <div class="inv-box" id="invBoxSuccess">
+      <div class="inv-label">رقم الطلب</div>
+      <div class="inv-num" id="invNumSuccess">—</div>
+    </div>
+    <!-- روابط التحميل -->
+    <div class="dl-section" id="dlSection" style="display:none">
+      <div class="dl-title">📥 ملفاتك جاهزة للتحميل</div>
+      <div id="dlLinks"></div>
+    </div>
+    <div class="btns">
+      <a href="index.html" class="btn-pri">🏠 العودة للرئيسية</a>
+      <a id="waSuccess" href="https://wa.me/972592753159" target="_blank" class="btn-sec">💬 تواصل معنا</a>
+    </div>
+    <div class="support">
+      وصلك إيميل بتفاصيل الطلب — أي مشكلة؟
+      <a href="mailto:info@3engs.com">info@3engs.com</a>
+    </div>
   </div>
 
-  <div class="support">
-    تحتاج مساعدة؟ راسلنا على <a href="mailto:info@3engs.com">info@3engs.com</a>
+  <!-- STATE: فشل الدفع ❌ -->
+  <div class="state" id="stFailed">
+    <div class="fail-icon">✕</div>
+    <h1 style="color:var(--er)">لم يتم الدفع</h1>
+    <p class="sub">لم تكتمل عملية الدفع. إذا تم خصم مبلغ من حسابك، تواصل معنا فوراً.</p>
+    <div class="inv-box" id="invBoxFail">
+      <div class="inv-label">رقم الطلب للمراجعة</div>
+      <div class="inv-num" id="invNumFail">—</div>
+    </div>
+    <div class="btns">
+      <a href="index.html" class="btn-pri">↩️ حاول مرة أخرى</a>
+      <a id="waFail" href="https://wa.me/972592753159" target="_blank" class="btn-sec">💬 أبلغنا عن مشكلة</a>
+    </div>
   </div>
-</div>
 
-<script>
-// Get reference from URL
-const params=new URLSearchParams(window.location.search);
-const ref=params.get('ref')||params.get('reference')||params.get('trxref');
-if(ref){
-  document.getElementById('refBox').style.display='block';
-  document.getElementById('refNum').textContent=ref;
+  <!-- STATE: خطأ في الاتصال -->
+  <div class="state" id="stError">
+    <div style="font-size:3rem;margin-bottom:18px">⚠️</div>
+    <h1 style="color:var(--p)">تعذر التحقق</h1>
+    <p class="sub">تعذر الاتصال بالسيرفر للتحقق من الدفع. إذا أتممت الدفع، تواصل معنا مع رقم الطلب.</p>
+    <div class="inv-box" id="invBoxErr">
+      <div class="inv-label">رقم الطلب</div>
+      <div class="inv-num" id="invNumErr">—</div>
+    </div>
+    <div class="btns">
+      <button class="btn-pri" onclick="startPolling()">🔄 إعادة المحاولة</button>
+      <a id="waErr" href="https://wa.me/972592753159" target="_blank" class="btn-sec">💬 تواصل معنا</a>
+    </div>
+  </div>
+
+</div><!-- /card -->
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
+
+const CFG = {
+  apiKey: "AIzaSyALJiF8l_wnk_6FU6etQpz44Z43lSORXQk",
+  authDomain: "engs-website.firebaseapp.com",
+  projectId: "engs-website",
+  storageBucket: "engs-website.firebasestorage.app",
+  messagingSenderId: "1028163586505",
+  appId: "1:1028163586505:web:c09de00bb30a3369ca4018"
+};
+
+const app  = initializeApp(CFG);
+const auth = getAuth(app);
+const fns  = getFunctions(app, "us-central1");
+const getOrderStatus = httpsCallable(fns, "getOrderStatus");
+
+// استقبل invoice_id من URL
+const params    = new URLSearchParams(window.location.search);
+const invoiceId = params.get("invoice_id") || "";
+
+// إعداد WhatsApp links مع رقم الطلب
+const waMsg = encodeURIComponent("مرحبا، لدي استفسار عن طلبي رقم: " + invoiceId);
+document.querySelectorAll("[id^='wa']").forEach(el => {
+  el.href = "https://wa.me/972592753159?text=" + waMsg;
+});
+
+// إظهار invoice_id في كل الـ states
+if (invoiceId) {
+  document.querySelectorAll("[id^='invNum']").forEach(el => el.textContent = invoiceId);
+  document.querySelectorAll("[id^='invBox']").forEach(el => el.style.display = "block");
 }
 
-// Confetti animation
-const colors=['#F59E0B','#10B981','#0EA5E9','#EC4899','#8B5CF6'];
-const conf=document.getElementById('confetti');
-for(let i=0;i<60;i++){
-  const c=document.createElement('div');
-  c.className='conf';
-  c.style.left=Math.random()*100+'%';
-  c.style.top='-20px';
-  c.style.background=colors[Math.floor(Math.random()*colors.length)];
-  c.style.animationDelay=(Math.random()*2)+'s';
-  c.style.animationDuration=(2+Math.random()*2)+'s';
-  c.style.width=(5+Math.random()*8)+'px';
-  c.style.height=c.style.width;
-  c.style.borderRadius=Math.random()>.5?'50%':'2px';
-  conf.appendChild(c);
+// حفظ رابط لصفحة التسجيل مع الرجوع
+document.getElementById("loginBtn").href =
+  "auth.html?redirect=" + encodeURIComponent(window.location.href);
+
+// ─────────────────────────────────────
+// عرض state معين
+// ─────────────────────────────────────
+function showState(id) {
+  document.querySelectorAll(".state").forEach(s => s.classList.remove("active"));
+  document.getElementById(id)?.classList.add("active");
 }
 
-// Auto redirect after 30 seconds
-setTimeout(()=>{
-  // Don't redirect, just show a notice
-},30000);
+// ─────────────────────────────────────
+// Polling — يسأل كل 3 ثواني حتى يتأكد
+// ─────────────────────────────────────
+let pollCount  = 0;
+const MAX_POLL = 20;       // 20 × 3 ثانية = دقيقة كاملة انتظار
+const INTERVAL = 3000;     // كل 3 ثواني
+let   pollTimer = null;
+
+function updateProgress() {
+  const pct = Math.min((pollCount / MAX_POLL) * 100, 95);
+  document.getElementById("progressBar").style.width = pct + "%";
+  document.getElementById("attemptTxt").textContent  =
+    "محاولة " + pollCount + " من " + MAX_POLL + " — " +
+    (MAX_POLL - pollCount) * 3 + " ثانية متبقية...";
+}
+
+async function checkStatus() {
+  pollCount++;
+  updateProgress();
+
+  try {
+    const result = await getOrderStatus({ invoiceId });
+    const data   = result.data;
+
+    if (data.status === "paid") {
+      clearInterval(pollTimer);
+      showSuccess(data);
+    } else if (data.status === "failed") {
+      clearInterval(pollTimer);
+      showFailed();
+    } else if (pollCount >= MAX_POLL) {
+      // الـ Webhook قد يأتي متأخراً — أعطِ المستخدم رسالة بديلة
+      clearInterval(pollTimer);
+      showTimeoutMessage();
+    }
+    // status === "pending" → استمر بالـ polling
+  } catch (err) {
+    clearInterval(pollTimer);
+    console.error("getOrderStatus error:", err.code, err.message);
+    if (pollCount < 3) {
+      // أعد المحاولة تلقائياً للأخطاء المؤقتة
+      startPolling();
+    } else {
+      showState("stError");
+    }
+  }
+}
+
+function showSuccess(data) {
+  document.getElementById("progressBar").style.width = "100%";
+  showState("stSuccess");
+  launchConfetti();
+
+  // عرض روابط التحميل
+  const links = data.downloadLinks || [];
+  const validLinks = links.filter(l => l.fileUrl);
+
+  if (validLinks.length > 0) {
+    document.getElementById("dlSection").style.display = "block";
+    document.getElementById("dlLinks").innerHTML = validLinks.map(l => `
+      <div class="dl-item">
+        <span class="dl-name">${l.emoji || "📦"} ${l.name || ""}</span>
+        <a href="${l.fileUrl}" target="_blank" rel="noopener" class="dl-btn">
+          📥 تحميل
+        </a>
+      </div>`).join("") +
+
+    // المنتجات التي ليس لها fileUrl (دورات/خدمات)
+    links.filter(l => !l.fileUrl).map(l => `
+      <div class="dl-item">
+        <span class="dl-name">${l.emoji || "🎓"} ${l.name || ""}</span>
+        <span class="dl-na">سيتم التواصل معك</span>
+      </div>`).join("");
+  } else if (links.length > 0) {
+    // كل المنتجات بدون fileUrl (دورات)
+    document.getElementById("dlSection").style.display = "block";
+    document.getElementById("dlSection").style.background = "rgba(245,158,11,.07)";
+    document.getElementById("dlSection").style.borderColor = "rgba(245,158,11,.25)";
+    document.getElementById("dlLinks").innerHTML = `
+      <p style="font-size:.84rem;color:var(--mt)">
+        🎓 ستصلك رسالة بريد إلكتروني خلال 24 ساعة بتفاصيل الوصول للدورة.
+      </p>`;
+  }
+}
+
+function showFailed() {
+  showState("stFailed");
+}
+
+function showTimeoutMessage() {
+  // لم يصل الـ Webhook بعد — أعطِ رسالة مطمئنة
+  showState("stError");
+  const errCard = document.getElementById("stError");
+  errCard.querySelector("h1").textContent = "الدفع قيد المعالجة ⏳";
+  errCard.querySelector(".sub").textContent =
+    "إذا أتممت الدفع بنجاح، سيتم تفعيل طلبك تلقائياً خلال دقائق. " +
+    "يمكنك متابعة طلبك عبر تواصل معنا مع رقم الطلب أعلاه.";
+}
+
+window.startPolling = function() {
+  pollCount = 0;
+  showState("stPending");
+  clearInterval(pollTimer);
+  if (!invoiceId) { showState("stError"); return; }
+  // أول فحص فوري، ثم كل 3 ثواني
+  checkStatus();
+  pollTimer = setInterval(checkStatus, INTERVAL);
+};
+
+// ─────────────────────────────────────
+// Confetti
+// ─────────────────────────────────────
+function launchConfetti() {
+  const conf   = document.getElementById("confetti");
+  const colors = ["#F59E0B","#10B981","#0EA5E9","#EC4899","#8B5CF6","#FFFFFF"];
+  conf.classList.add("show");
+  for (let i = 0; i < 80; i++) {
+    const c = document.createElement("div");
+    c.className = "conf";
+    c.style.left   = Math.random() * 100 + "%";
+    c.style.top    = "-10px";
+    c.style.background = colors[Math.floor(Math.random() * colors.length)];
+    c.style.animationDelay    = Math.random() * 2 + "s";
+    c.style.animationDuration = (2 + Math.random() * 2) + "s";
+    c.style.width  = (5 + Math.random() * 8) + "px";
+    c.style.height = c.style.width;
+    c.style.borderRadius = Math.random() > 0.5 ? "50%" : "2px";
+    conf.appendChild(c);
+  }
+  setTimeout(() => conf.classList.remove("show"), 6000);
+}
+
+// ─────────────────────────────────────
+// Entry point — تحقق من تسجيل الدخول أولاً
+// ─────────────────────────────────────
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    // المستخدم غير مسجل — اطلب تسجيل الدخول
+    showState("stLogin");
+    return;
+  }
+
+  if (!invoiceId) {
+    // لا يوجد invoice_id في URL — ربما وصل مباشرة
+    showState("stError");
+    document.getElementById("stError").querySelector("h1").textContent = "رابط غير صحيح";
+    document.getElementById("stError").querySelector(".sub").textContent =
+      "هذه الصفحة تُفتح تلقائياً بعد عملية الدفع. إذا كنت تتوقع طلباً، تواصل معنا.";
+    return;
+  }
+
+  // ابدأ الـ polling
+  window.startPolling();
+});
 </script>
 </body>
 </html>

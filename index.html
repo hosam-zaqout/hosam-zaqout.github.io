@@ -521,7 +521,7 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
 <nav id="nav">
   <a href="#" class="logo-wrap">
     <img class="logo-img" src="logo.jpg" alt="3ENG.s Logo" onerror="this.style.display='none'">
-    <div><span class="lname" id="bname">3ENG.s</span><span class="lslogan" id="bslogan"> منصة الابتكار</span></div>
+    <div><span class="lname" id="bname">3ENG.s</span><span class="lslogan" id="bslogan">Smart Idea • الهندسة الكهربائية</span></div>
   </a>
   <ul class="nav-links">
     <li><a onclick="scrollToSec('products')">المنتجات</a></li>
@@ -717,11 +717,14 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, getDocs, addDoc, doc, getDoc, serverTimestamp, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 
 const CFG={apiKey:"AIzaSyALJiF8l_wnk_6FU6etQpz44Z43lSORXQk",authDomain:"engs-website.firebaseapp.com",projectId:"engs-website",storageBucket:"engs-website.firebasestorage.app",messagingSenderId:"1028163586505",appId:"1:1028163586505:web:c09de00bb30a3369ca4018",measurementId:"G-GZJCYL5YM8"};
 const ADMINS=['hosam2564491@gmail.com','info@3engs.com'];
 const app=initializeApp(CFG); const analytics=getAnalytics(app);
 const auth=getAuth(app); const db=getFirestore(app);
+const fns=getFunctions(app,"us-central1");
+const createPaymentFn=httpsCallable(fns,"createPayment");
 logEvent(analytics,'page_view');
 
 let _currentUser=null;
@@ -815,62 +818,76 @@ async function loadConfig(){
 function buildPaymentButtons(){
   const p=window._payConfig;
   let html='';
-  if(p.lahza?.active&&p.lahza.publicKey){html+=`<button class="btn-pay-lz" onclick="payWithLahza()">⚡ الدفع الإلكتروني (Lahza)</button>`;}
-  if(p.paypal?.active&&p.paypal.link){html+=`<button class="btn-pay-pp" onclick="payWithPayPal()">🅿️ الدفع عبر PayPal</button>`;}
-  if(p.whatsapp?.active){html+=`<button class="btn-pay-wa" onclick="payWithWhatsApp()">💬 الدفع عبر واتساب</button>`;}
-  if(!html)html=`<button class="btn-pay-wa" onclick="payWithWhatsApp()">💬 تواصل معنا للدفع</button>`;
+  // زر Crosspay/Lahza الرئيسي — دائماً يظهر
+  html+=`<button class="btn-pay-lz" onclick="payWithCrosspay()">⚡ الدفع الإلكتروني (Lahza)</button>`;
+  if(p?.paypal?.active&&p.paypal.link){html+=`<button class="btn-pay-pp" onclick="payWithPayPal()">🅿️ الدفع عبر PayPal</button>`;}
+  if(p?.whatsapp?.active){html+=`<button class="btn-pay-wa" onclick="payWithWhatsApp()">💬 الدفع عبر واتساب</button>`;}
   document.getElementById('payMethods').innerHTML=html;
 }
 
-// LAHZA PAYMENT - uses Inline JS
-window.payWithLahza=function(){
-  const p=window._payConfig.lahza; if(!p?.publicKey){toast('⚠️ Lahza غير مفعل','err');return;}
-  if(!_currentUser){toast('⚠️ سجّل الدخول للمتابعة','err');setTimeout(()=>{window.location.href='auth.html';},1200);return;}
-  const total=cart.reduce((s,i)=>s+parseFloat(i.price||0),0);
-  if(total<=0){toast('⚠️ السلة فارغة أو مجانية','err');return;}
-  // Convert to smallest unit (agora for ILS, qirsh for JOD, cents for USD)
-  const multiplier=p.currency==='USD'?100:100;
-  const amount=Math.round(total*multiplier);
-  // Lahza handler
-  if(typeof LahzaPop==='undefined'){toast('⚠️ Lahza لم يحمل، جاري إعادة المحاولة','err');setTimeout(()=>window.payWithLahza(),1500);return;}
-  const handler=LahzaPop.setup({
-    key:p.publicKey,
-    email:_currentUser.email,
-    amount:amount,
-    currency:p.currency||'ILS',
-    ref:'3engs_'+Date.now(),
-    metadata:{userId:_currentUser.uid,items:cart.map(i=>i.name).join(', ')},
-    callback:function(resp){
-      // Save order to Firestore
-      addDoc(collection(db,'orders'),{
-        userId:_currentUser.uid,email:_currentUser.email,
-        items:cart,total:total,currency:p.currency,
-        method:'lahza',reference:resp.reference,
-        status:'pending',timestamp:serverTimestamp()
-      }).then(()=>{
-        toast('✅ تم الدفع بنجاح! ستصلك تفاصيل الطلب','ok');
-        cart=[]; saveCart(); closeCart();
-        if(p.callback)setTimeout(()=>{window.location.href=p.callback+'?ref='+resp.reference;},2000);
-      });
-    },
-    onClose:function(){toast('تم إلغاء الدفع','warn');}
-  });
-  handler.openIframe();
+// ==============================
+// PAYMENT — عبر Cloud Function (آمن)
+// ==============================
+window.payWithCrosspay = async function() {
+  if (!_currentUser) {
+    toast('⚠️ سجّل الدخول أولاً للدفع','err');
+    setTimeout(()=>{ window.location.href='auth.html'; }, 1500);
+    return;
+  }
+  if (!cart.length) { toast('⚠️ السلة فارغة','err'); return; }
+
+  const total = cart.reduce((s,i)=>s+parseFloat(i.price||0),0);
+  if (total <= 0) { toast('⚠️ لا توجد منتجات مدفوعة في السلة','err'); return; }
+
+  // عرض حالة التحميل
+  const btnEl = document.getElementById('payMethods');
+  const origHTML = btnEl.innerHTML;
+  btnEl.innerHTML = `<div style="text-align:center;padding:16px;color:var(--p)">
+    <div style="width:28px;height:28px;border:3px solid var(--br);border-top-color:var(--p);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 8px"></div>
+    <span style="font-size:.84rem;font-weight:700">جاري تجهيز الدفع...</span>
+  </div>`;
+
+  try {
+    const result = await createPaymentFn({
+      items: cart,
+      total: total,
+      currency: 'USD',
+      customerEmail: _currentUser.email,
+      customerName: _currentUser.displayName || _currentUser.email.split('@')[0],
+      customerPhone: '',
+    });
+
+    if (result.data.success && result.data.paymentUrl) {
+      toast('✅ جاري تحويلك لصفحة الدفع...','ok');
+      // حفظ invoice ID في localStorage لصفحة النجاح
+      try { localStorage.setItem('3engs_invoice', result.data.invoiceId); } catch(e){}
+      // تحويل المستخدم لـ Crosspay
+      setTimeout(()=>{ window.location.href = result.data.paymentUrl; }, 800);
+    } else {
+      throw new Error('فشل إنشاء الفاتورة');
+    }
+  } catch (err) {
+    console.error('Payment error:', err);
+    btnEl.innerHTML = origHTML;
+    toast('⚠️ حدث خطأ: ' + (err.message||'تعذر الاتصال بالسيرفر'), 'err');
+  }
 };
 
+// PayPal fallback
 window.payWithPayPal=()=>{
-  const p=window._payConfig.paypal;
+  const p=window._payConfig?.paypal;
   const total=cart.reduce((s,i)=>s+parseFloat(i.price||0),0);
-  if(p.link)window.open(p.link+'/'+total,'_blank');
-  if(p.note)toast(p.note,'warn');
+  if(p?.link) window.open(p.link+'/'+total.toFixed(2),'_blank');
+  if(p?.note) toast(p.note,'warn');
 };
 
+// WhatsApp fallback
 window.payWithWhatsApp=()=>{
-  const p=window._payConfig.whatsapp;
+  const p=window._payConfig?.whatsapp;
   const num=p?.num||'972592753159';
   const items=cart.map(i=>`${i.emoji||'•'} ${i.name}`).join('\n');
   const total=cart.reduce((s,i)=>s+parseFloat(i.price||0),0);
-  const msg=encodeURIComponent(`السلام عليكم، أريد شراء:\n${items}\n\nالمجموع: $${total}\n\n${p?.msg||''}`);
+  const msg=encodeURIComponent(`السلام عليكم، أريد شراء:\n${items}\n\nالمجموع: $${total.toFixed(2)}\n${p?.msg||''}`);
   window.open(`https://wa.me/${num}?text=${msg}`,'_blank');
 };
 
