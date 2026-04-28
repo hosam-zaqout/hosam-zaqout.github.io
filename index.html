@@ -717,15 +717,31 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getAnalytics, logEvent } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, getDocs, addDoc, doc, getDoc, serverTimestamp, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 
 const CFG={apiKey:"AIzaSyALJiF8l_wnk_6FU6etQpz44Z43lSORXQk",authDomain:"engs-website.firebaseapp.com",projectId:"engs-website",storageBucket:"engs-website.firebasestorage.app",messagingSenderId:"1028163586505",appId:"1:1028163586505:web:c09de00bb30a3369ca4018",measurementId:"G-GZJCYL5YM8"};
 const ADMINS=['hosam2564491@gmail.com','info@3engs.com'];
 const app=initializeApp(CFG); const analytics=getAnalytics(app);
 const auth=getAuth(app); const db=getFirestore(app);
-const fns=getFunctions(app,"us-central1");
-const createPaymentFn=httpsCallable(fns,"createPayment");
 logEvent(analytics,'page_view');
+
+// ─── helper: استدعاء Cloud Function مع ID Token ───
+const FN_BASE = "https://us-central1-engs-website.cloudfunctions.net";
+async function callFn(name, body) {
+  const token = await auth.currentUser?.getIdToken();
+  const res = await fetch(`${FN_BASE}/${name}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(()=>({}));
+    throw new Error(err.error || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
 
 let _currentUser=null;
 window._payConfig={};
@@ -847,7 +863,7 @@ window.payWithCrosspay = async function() {
   </div>`;
 
   try {
-    const result = await createPaymentFn({
+    const data = await callFn('createPayment', {
       items: cart,
       total: total,
       currency: 'USD',
@@ -855,10 +871,10 @@ window.payWithCrosspay = async function() {
       customerPhone: '',
     });
 
-    if (result.data.success && result.data.paymentUrl) {
+    if (data.success && data.paymentUrl) {
       toast('✅ جاري تحويلك لصفحة الدفع...','ok');
-      try { localStorage.setItem('3engs_invoice', result.data.invoiceId); } catch(e){}
-      setTimeout(()=>{ window.location.href = result.data.paymentUrl; }, 800);
+      try { localStorage.setItem('3engs_invoice', data.invoiceId); } catch(e){}
+      setTimeout(()=>{ window.location.href = data.paymentUrl; }, 800);
     } else {
       throw new Error('فشل إنشاء الفاتورة');
     }
