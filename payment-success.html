@@ -11,63 +11,59 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Cairo',sans-serif;background:var(--dk);color:var(--tx);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;overflow:hidden;}
 .bg{position:fixed;inset:0;z-index:0;background:linear-gradient(135deg,#0F172A,#1E293B);}
-.bg-dots{position:fixed;inset:0;z-index:0;background-image:radial-gradient(rgba(245,158,11,.15) 1px,transparent 1px);background-size:40px 40px;}
+.bg-dots{position:fixed;inset:0;z-index:0;background-image:radial-gradient(rgba(245,158,11,.12) 1px,transparent 1px);background-size:40px 40px;}
 .confetti{position:fixed;inset:0;pointer-events:none;z-index:1;display:none;}
 .confetti.show{display:block;}
-.conf{position:absolute;width:8px;height:8px;opacity:0;animation:fall 3s ease-out forwards;}
+.conf{position:absolute;opacity:0;animation:fall 3s ease-out forwards;}
 @keyframes fall{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(100vh) rotate(720deg)}}
 .card{position:relative;z-index:10;background:rgba(30,41,59,.97);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.08);border-radius:24px;width:100%;max-width:520px;padding:44px 36px;text-align:center;box-shadow:0 25px 80px rgba(0,0,0,.5);animation:cIn .5s ease;}
 @keyframes cIn{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
-
-/* States */
-.state{display:none;} .state.active{display:block;animation:fadeIn .4s ease;}
+.state{display:none;}.state.active{display:block;animation:fadeIn .4s ease;}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
-/* Pending state */
-.pulse-ring{width:90px;height:90px;border-radius:50%;background:rgba(245,158,11,.1);border:3px solid var(--p);margin:0 auto 22px;display:flex;align-items:center;justify-content:center;animation:pulse 1.5s ease-in-out infinite;font-size:2.2rem;}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,.3)}50%{box-shadow:0 0 0 16px rgba(245,158,11,0)}}
-.progress-bar-wrap{width:100%;height:4px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;margin:16px 0 20px;}
-.progress-bar{height:100%;background:linear-gradient(90deg,var(--p),var(--pd));width:0;transition:width .5s ease;border-radius:4px;}
-.attempt-txt{font-size:.78rem;color:var(--mt);margin-top:8px;}
+/* Loading */
+.spin-wrap{width:90px;height:90px;border-radius:50%;background:rgba(245,158,11,.08);border:3px solid var(--p);margin:0 auto 22px;display:flex;align-items:center;justify-content:center;font-size:2rem;}
+.spin-ring{width:50px;height:50px;border:4px solid rgba(245,158,11,.2);border-top-color:var(--p);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto;}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-/* Success state */
-.success-icon{width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,var(--ok),#059669);margin:0 auto 22px;display:flex;align-items:center;justify-content:center;font-size:2.6rem;box-shadow:0 0 0 8px rgba(16,185,129,.15),0 12px 40px rgba(16,185,129,.3);animation:pop .5s cubic-bezier(.34,1.56,.64,1);}
+/* Success */
+.ok-icon{width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,var(--ok),#059669);margin:0 auto 22px;display:flex;align-items:center;justify-content:center;font-size:2.6rem;box-shadow:0 0 0 8px rgba(16,185,129,.15),0 12px 40px rgba(16,185,129,.3);animation:pop .5s cubic-bezier(.34,1.56,.64,1);}
 @keyframes pop{from{opacity:0;transform:scale(0)}to{opacity:1;transform:scale(1)}}
 
-/* Failed state */
+/* Failed */
 .fail-icon{width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,var(--er),#DC2626);margin:0 auto 22px;display:flex;align-items:center;justify-content:center;font-size:2.6rem;box-shadow:0 0 0 8px rgba(239,68,68,.15),0 12px 40px rgba(239,68,68,.3);}
 
-/* Login state */
-.login-icon{width:90px;height:90px;border-radius:50%;background:rgba(245,158,11,.15);border:3px solid var(--p);margin:0 auto 22px;display:flex;align-items:center;justify-content:center;font-size:2.4rem;}
+/* Login */
+.lock-icon{width:90px;height:90px;border-radius:50%;background:rgba(245,158,11,.12);border:3px solid var(--p);margin:0 auto 22px;display:flex;align-items:center;justify-content:center;font-size:2.4rem;}
 
 h1{font-size:1.5rem;font-weight:900;margin-bottom:8px;}
-.sub{font-size:.88rem;color:var(--mt);line-height:1.7;margin-bottom:22px;}
+.sub{font-size:.88rem;color:var(--mt);line-height:1.75;margin-bottom:22px;}
 
 /* Invoice box */
-.inv-box{background:rgba(15,23,42,.7);border:1px solid rgba(245,158,11,.2);border-radius:12px;padding:14px 18px;margin-bottom:20px;}
+.inv-box{background:rgba(15,23,42,.7);border:1px solid rgba(245,158,11,.2);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:none;}
+.inv-box.show{display:block;}
 .inv-label{font-size:.68rem;font-weight:800;color:var(--mt);letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;}
-.inv-num{font-size:.92rem;font-weight:900;color:var(--p);font-family:monospace;direction:ltr;}
+.inv-num{font-size:.9rem;font-weight:900;color:var(--p);font-family:monospace;direction:ltr;word-break:break-all;}
 
 /* Download links */
 .dl-section{background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.25);border-radius:12px;padding:18px;margin-bottom:20px;text-align:right;}
 .dl-title{font-size:.85rem;font-weight:800;color:var(--ok);margin-bottom:13px;}
 .dl-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:rgba(15,23,42,.5);border-radius:8px;margin-bottom:8px;gap:10px;}
 .dl-item:last-child{margin-bottom:0;}
-.dl-name{font-size:.84rem;font-weight:700;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.dl-btn{background:linear-gradient(135deg,var(--ok),#059669);color:white;border:none;padding:7px 14px;border-radius:7px;font-family:'Cairo',sans-serif;font-size:.78rem;font-weight:800;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0;}
+.dl-name{font-size:.84rem;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dl-btn{background:linear-gradient(135deg,var(--ok),#059669);color:white;border:none;padding:8px 14px;border-radius:7px;font-family:'Cairo',sans-serif;font-size:.78rem;font-weight:800;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0;transition:all .25s;}
 .dl-btn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(16,185,129,.4);}
-.dl-na{font-size:.74rem;color:var(--mt);font-style:italic;}
+.dl-soon{font-size:.74rem;color:var(--mt);font-style:italic;}
 
-/* Actions */
+/* Buttons */
 .btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px;}
-.btn-pri{background:linear-gradient(135deg,var(--p),var(--pd));color:#0F172A;padding:12px 24px;border:none;border-radius:10px;font-family:'Cairo',sans-serif;font-size:.9rem;font-weight:900;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:7px;transition:all .25s;}
-.btn-pri:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(245,158,11,.4);}
-.btn-sec{background:rgba(255,255,255,.07);color:var(--tx);padding:12px 20px;border:1px solid rgba(255,255,255,.1);border-radius:10px;font-family:'Cairo',sans-serif;font-size:.86rem;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:7px;transition:all .25s;}
-.btn-sec:hover{border-color:var(--p);color:var(--p);}
+.btn-p{background:linear-gradient(135deg,var(--p),var(--pd));color:#0F172A;padding:12px 24px;border:none;border-radius:10px;font-family:'Cairo',sans-serif;font-size:.9rem;font-weight:900;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:7px;transition:all .25s;}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(245,158,11,.4);}
+.btn-s{background:rgba(255,255,255,.07);color:var(--tx);padding:12px 20px;border:1px solid rgba(255,255,255,.1);border-radius:10px;font-family:'Cairo',sans-serif;font-size:.86rem;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:7px;transition:all .25s;}
+.btn-s:hover{border-color:var(--p);color:var(--p);}
 .support{margin-top:20px;font-size:.76rem;color:var(--mt);}
 .support a{color:var(--p);text-decoration:none;font-weight:700;}
-
-@media(max-width:480px){.card{padding:30px 18px;}h1{font-size:1.25rem;}.btns{flex-direction:column;}.btn-pri,.btn-sec{width:100%;justify-content:center;}.dl-item{flex-wrap:wrap;}}
+@media(max-width:480px){.card{padding:30px 18px;}h1{font-size:1.25rem;}.btns{flex-direction:column;}.btn-p,.btn-s{width:100%;justify-content:center;}.dl-item{flex-wrap:wrap;}}
 </style>
 </head>
 <body>
@@ -77,93 +73,68 @@ h1{font-size:1.5rem;font-weight:900;margin-bottom:8px;}
 
 <div class="card">
 
-  <!-- STATE: تسجيل الدخول مطلوب -->
-  <div class="state" id="stLogin">
-    <div class="login-icon">🔐</div>
-    <h1>تسجيل الدخول مطلوب</h1>
-    <p class="sub">لعرض تفاصيل طلبك وروابط التحميل، يجب تسجيل الدخول أولاً.</p>
-    <div class="inv-box" id="invBoxLogin" style="display:none">
-      <div class="inv-label">رقم الطلب</div>
-      <div class="inv-num" id="invNumLogin">—</div>
-    </div>
-    <div class="btns">
-      <a id="loginBtn" href="auth.html" class="btn-pri">🔑 تسجيل الدخول</a>
-    </div>
-  </div>
-
-  <!-- STATE: انتظار تأكيد الدفع -->
-  <div class="state active" id="stPending">
-    <div class="pulse-ring">⏳</div>
+  <!-- جاري التحقق -->
+  <div class="state active" id="stLoading">
+    <div class="spin-wrap"><div class="spin-ring"></div></div>
     <h1>جاري التحقق من الدفع...</h1>
-    <p class="sub">نتحقق من تأكيد الدفع من Crosspay. قد يستغرق هذا بضع ثوانٍ.</p>
-    <div class="inv-box" id="invBoxPending" style="display:none">
-      <div class="inv-label">رقم الطلب</div>
-      <div class="inv-num" id="invNumPending">—</div>
-    </div>
-    <div class="progress-bar-wrap">
-      <div class="progress-bar" id="progressBar"></div>
-    </div>
-    <div class="attempt-txt" id="attemptTxt">جاري الاتصال بالسيرفر...</div>
+    <p class="sub">لحظة واحدة — نتحقق من تأكيد دفعتك.</p>
+    <div class="inv-box" id="invLoading"><div class="inv-label">رقم الطلب</div><div class="inv-num" id="invNumL">—</div></div>
   </div>
 
-  <!-- STATE: تم الدفع بنجاح ✅ -->
+  <!-- تسجيل دخول مطلوب -->
+  <div class="state" id="stLogin">
+    <div class="lock-icon">🔐</div>
+    <h1>سجّل دخولك أولاً</h1>
+    <p class="sub">لعرض تفاصيل طلبك وروابط التحميل، يجب تسجيل الدخول بنفس الحساب الذي أجريت منه الشراء.</p>
+    <div class="inv-box" id="invLogin"><div class="inv-label">رقم الطلب</div><div class="inv-num" id="invNumLogin">—</div></div>
+    <div class="btns"><a id="loginBtn" href="auth.html" class="btn-p">🔑 تسجيل الدخول</a></div>
+  </div>
+
+  <!-- تم الدفع ✅ -->
   <div class="state" id="stSuccess">
-    <div class="success-icon">✓</div>
+    <div class="ok-icon">✓</div>
     <h1 style="color:var(--ok)">تم الدفع بنجاح! 🎉</h1>
-    <p class="sub">شكراً لثقتك بـ 3ENG.s. تم تأكيد طلبك بنجاح.</p>
-    <div class="inv-box" id="invBoxSuccess">
-      <div class="inv-label">رقم الطلب</div>
-      <div class="inv-num" id="invNumSuccess">—</div>
-    </div>
-    <!-- روابط التحميل -->
+    <p class="sub">شكراً لثقتك بـ 3ENG.s — طلبك مؤكد.</p>
+    <div class="inv-box show" id="invSuccess"><div class="inv-label">رقم الطلب</div><div class="inv-num" id="invNumS">—</div></div>
     <div class="dl-section" id="dlSection" style="display:none">
-      <div class="dl-title">📥 ملفاتك جاهزة للتحميل</div>
+      <div class="dl-title">📥 ملفاتك جاهزة</div>
       <div id="dlLinks"></div>
     </div>
     <div class="btns">
-      <a href="index.html" class="btn-pri">🏠 العودة للرئيسية</a>
-      <a id="waSuccess" href="https://wa.me/972592753159" target="_blank" class="btn-sec">💬 تواصل معنا</a>
+      <a href="index.html" class="btn-p">🏠 العودة للرئيسية</a>
+      <a id="waSuc" href="https://wa.me/972592753159" target="_blank" class="btn-s">💬 تواصل معنا</a>
     </div>
-    <div class="support">
-      وصلك إيميل بتفاصيل الطلب — أي مشكلة؟
-      <a href="mailto:info@3engs.com">info@3engs.com</a>
-    </div>
+    <div class="support">مشكلة في التحميل؟ <a href="mailto:info@3engs.com">info@3engs.com</a></div>
   </div>
 
-  <!-- STATE: فشل الدفع ❌ -->
+  <!-- فشل الدفع ❌ -->
   <div class="state" id="stFailed">
     <div class="fail-icon">✕</div>
     <h1 style="color:var(--er)">لم يتم الدفع</h1>
-    <p class="sub">لم تكتمل عملية الدفع. إذا تم خصم مبلغ من حسابك، تواصل معنا فوراً.</p>
-    <div class="inv-box" id="invBoxFail">
-      <div class="inv-label">رقم الطلب للمراجعة</div>
-      <div class="inv-num" id="invNumFail">—</div>
-    </div>
+    <p class="sub">لم تكتمل عملية الدفع. إذا تم خصم مبلغ من حسابك، تواصل معنا فوراً مع رقم الطلب.</p>
+    <div class="inv-box show" id="invFail"><div class="inv-label">رقم الطلب للمراجعة</div><div class="inv-num" id="invNumF">—</div></div>
     <div class="btns">
-      <a href="index.html" class="btn-pri">↩️ حاول مرة أخرى</a>
-      <a id="waFail" href="https://wa.me/972592753159" target="_blank" class="btn-sec">💬 أبلغنا عن مشكلة</a>
+      <a href="index.html" class="btn-p">↩️ حاول مرة أخرى</a>
+      <a id="waFail" href="https://wa.me/972592753159" target="_blank" class="btn-s">💬 أبلغنا</a>
     </div>
   </div>
 
-  <!-- STATE: خطأ في الاتصال -->
+  <!-- خطأ -->
   <div class="state" id="stError">
     <div style="font-size:3rem;margin-bottom:18px">⚠️</div>
-    <h1 style="color:var(--p)">تعذر التحقق</h1>
-    <p class="sub">تعذر الاتصال بالسيرفر للتحقق من الدفع. إذا أتممت الدفع، تواصل معنا مع رقم الطلب.</p>
-    <div class="inv-box" id="invBoxErr">
-      <div class="inv-label">رقم الطلب</div>
-      <div class="inv-num" id="invNumErr">—</div>
-    </div>
+    <h1 id="errTitle" style="color:var(--p)">رابط غير صحيح</h1>
+    <p class="sub" id="errMsg">هذه الصفحة تُفتح تلقائياً بعد إتمام عملية الدفع.</p>
+    <div class="inv-box" id="invErr"><div class="inv-label">رقم الطلب</div><div class="inv-num" id="invNumE">—</div></div>
     <div class="btns">
-      <button class="btn-pri" onclick="startPolling()">🔄 إعادة المحاولة</button>
-      <a id="waErr" href="https://wa.me/972592753159" target="_blank" class="btn-sec">💬 تواصل معنا</a>
+      <a href="index.html" class="btn-p">🏠 الرئيسية</a>
+      <a id="waErr" href="https://wa.me/972592753159" target="_blank" class="btn-s">💬 تواصل معنا</a>
     </div>
   </div>
 
 </div><!-- /card -->
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { initializeApp }     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 
@@ -179,189 +150,156 @@ const CFG = {
 const app  = initializeApp(CFG);
 const auth = getAuth(app);
 const fns  = getFunctions(app, "us-central1");
-const getOrderStatus = httpsCallable(fns, "getOrderStatus");
+const verifyPaymentFn = httpsCallable(fns, "verifyPayment");
 
-// استقبل invoice_id من URL
-const params    = new URLSearchParams(window.location.search);
-const invoiceId = params.get("invoice_id") || "";
+// ── استقبل parameters من Crosspay ──────────────────────
+// Crosspay يرسل: ?invoice_id=X&is_paid=1&transaction_id=Y
+const urlParams     = new URLSearchParams(window.location.search);
+const invoiceId     = urlParams.get("invoice_id")     || "";
+const isPaid        = urlParams.get("is_paid")         || "";
+const transactionId = urlParams.get("transaction_id")  || "";
 
-// إعداد WhatsApp links مع رقم الطلب
-const waMsg = encodeURIComponent("مرحبا، لدي استفسار عن طلبي رقم: " + invoiceId);
+// ── عرض رقم الطلب في كل الـ states ──────────────────────
+if (invoiceId) {
+  document.querySelectorAll("[id^='invNum']").forEach(el => el.textContent = invoiceId);
+  document.querySelectorAll("[id^='inv']").forEach(el => {
+    if (el.classList.contains("inv-box")) el.classList.add("show");
+  });
+}
+
+// ── إعداد روابط واتساب مع رقم الطلب ─────────────────────
+const waMsg = encodeURIComponent(
+  "مرحبا، لدي استفسار عن طلبي\nرقم الطلب: " + invoiceId
+);
 document.querySelectorAll("[id^='wa']").forEach(el => {
   el.href = "https://wa.me/972592753159?text=" + waMsg;
 });
 
-// إظهار invoice_id في كل الـ states
-if (invoiceId) {
-  document.querySelectorAll("[id^='invNum']").forEach(el => el.textContent = invoiceId);
-  document.querySelectorAll("[id^='invBox']").forEach(el => el.style.display = "block");
-}
-
-// حفظ رابط لصفحة التسجيل مع الرجوع
+// ── حفظ رابط الرجوع بعد تسجيل الدخول ────────────────────
 document.getElementById("loginBtn").href =
   "auth.html?redirect=" + encodeURIComponent(window.location.href);
 
-// ─────────────────────────────────────
-// عرض state معين
-// ─────────────────────────────────────
+// ── عرض state معين ───────────────────────────────────────
 function showState(id) {
   document.querySelectorAll(".state").forEach(s => s.classList.remove("active"));
-  document.getElementById(id)?.classList.add("active");
+  const el = document.getElementById(id);
+  if (el) el.classList.add("active");
 }
 
-// ─────────────────────────────────────
-// Polling — يسأل كل 3 ثواني حتى يتأكد
-// ─────────────────────────────────────
-let pollCount  = 0;
-const MAX_POLL = 20;       // 20 × 3 ثانية = دقيقة كاملة انتظار
-const INTERVAL = 3000;     // كل 3 ثواني
-let   pollTimer = null;
+// ── بناء روابط التحميل ───────────────────────────────────
+function showDownloads(links) {
+  if (!links || links.length === 0) return;
 
-function updateProgress() {
-  const pct = Math.min((pollCount / MAX_POLL) * 100, 95);
-  document.getElementById("progressBar").style.width = pct + "%";
-  document.getElementById("attemptTxt").textContent  =
-    "محاولة " + pollCount + " من " + MAX_POLL + " — " +
-    (MAX_POLL - pollCount) * 3 + " ثانية متبقية...";
-}
+  const section = document.getElementById("dlSection");
+  const container = document.getElementById("dlLinks");
+  section.style.display = "block";
 
-async function checkStatus() {
-  pollCount++;
-  updateProgress();
+  const withFile    = links.filter(l => l.fileUrl);
+  const withoutFile = links.filter(l => !l.fileUrl);
 
-  try {
-    const result = await getOrderStatus({ invoiceId });
-    const data   = result.data;
+  let html = withFile.map(l => `
+    <div class="dl-item">
+      <span class="dl-name">${l.emoji || "📦"} ${l.name || ""}</span>
+      <a href="${l.fileUrl}" target="_blank" rel="noopener" class="dl-btn">📥 تحميل</a>
+    </div>
+  `).join("");
 
-    if (data.status === "paid") {
-      clearInterval(pollTimer);
-      showSuccess(data);
-    } else if (data.status === "failed") {
-      clearInterval(pollTimer);
-      showFailed();
-    } else if (pollCount >= MAX_POLL) {
-      // الـ Webhook قد يأتي متأخراً — أعطِ المستخدم رسالة بديلة
-      clearInterval(pollTimer);
-      showTimeoutMessage();
-    }
-    // status === "pending" → استمر بالـ polling
-  } catch (err) {
-    clearInterval(pollTimer);
-    console.error("getOrderStatus error:", err.code, err.message);
-    if (pollCount < 3) {
-      // أعد المحاولة تلقائياً للأخطاء المؤقتة
-      startPolling();
-    } else {
-      showState("stError");
-    }
-  }
-}
-
-function showSuccess(data) {
-  document.getElementById("progressBar").style.width = "100%";
-  showState("stSuccess");
-  launchConfetti();
-
-  // عرض روابط التحميل
-  const links = data.downloadLinks || [];
-  const validLinks = links.filter(l => l.fileUrl);
-
-  if (validLinks.length > 0) {
-    document.getElementById("dlSection").style.display = "block";
-    document.getElementById("dlLinks").innerHTML = validLinks.map(l => `
-      <div class="dl-item">
-        <span class="dl-name">${l.emoji || "📦"} ${l.name || ""}</span>
-        <a href="${l.fileUrl}" target="_blank" rel="noopener" class="dl-btn">
-          📥 تحميل
-        </a>
-      </div>`).join("") +
-
-    // المنتجات التي ليس لها fileUrl (دورات/خدمات)
-    links.filter(l => !l.fileUrl).map(l => `
+  if (withoutFile.length > 0) {
+    html += withoutFile.map(l => `
       <div class="dl-item">
         <span class="dl-name">${l.emoji || "🎓"} ${l.name || ""}</span>
-        <span class="dl-na">سيتم التواصل معك</span>
-      </div>`).join("");
-  } else if (links.length > 0) {
-    // كل المنتجات بدون fileUrl (دورات)
-    document.getElementById("dlSection").style.display = "block";
-    document.getElementById("dlSection").style.background = "rgba(245,158,11,.07)";
-    document.getElementById("dlSection").style.borderColor = "rgba(245,158,11,.25)";
-    document.getElementById("dlLinks").innerHTML = `
-      <p style="font-size:.84rem;color:var(--mt)">
-        🎓 ستصلك رسالة بريد إلكتروني خلال 24 ساعة بتفاصيل الوصول للدورة.
-      </p>`;
+        <span class="dl-soon">سيتم التواصل معك قريباً</span>
+      </div>
+    `).join("");
   }
+
+  container.innerHTML = html;
 }
 
-function showFailed() {
-  showState("stFailed");
-}
-
-function showTimeoutMessage() {
-  // لم يصل الـ Webhook بعد — أعطِ رسالة مطمئنة
-  showState("stError");
-  const errCard = document.getElementById("stError");
-  errCard.querySelector("h1").textContent = "الدفع قيد المعالجة ⏳";
-  errCard.querySelector(".sub").textContent =
-    "إذا أتممت الدفع بنجاح، سيتم تفعيل طلبك تلقائياً خلال دقائق. " +
-    "يمكنك متابعة طلبك عبر تواصل معنا مع رقم الطلب أعلاه.";
-}
-
-window.startPolling = function() {
-  pollCount = 0;
-  showState("stPending");
-  clearInterval(pollTimer);
-  if (!invoiceId) { showState("stError"); return; }
-  // أول فحص فوري، ثم كل 3 ثواني
-  checkStatus();
-  pollTimer = setInterval(checkStatus, INTERVAL);
-};
-
-// ─────────────────────────────────────
-// Confetti
-// ─────────────────────────────────────
+// ── Confetti ──────────────────────────────────────────────
 function launchConfetti() {
-  const conf   = document.getElementById("confetti");
-  const colors = ["#F59E0B","#10B981","#0EA5E9","#EC4899","#8B5CF6","#FFFFFF"];
-  conf.classList.add("show");
-  for (let i = 0; i < 80; i++) {
+  const host   = document.getElementById("confetti");
+  const colors = ["#F59E0B","#10B981","#0EA5E9","#EC4899","#8B5CF6","#FFF"];
+  host.classList.add("show");
+  for (let i = 0; i < 90; i++) {
     const c = document.createElement("div");
     c.className = "conf";
-    c.style.left   = Math.random() * 100 + "%";
-    c.style.top    = "-10px";
-    c.style.background = colors[Math.floor(Math.random() * colors.length)];
-    c.style.animationDelay    = Math.random() * 2 + "s";
-    c.style.animationDuration = (2 + Math.random() * 2) + "s";
-    c.style.width  = (5 + Math.random() * 8) + "px";
-    c.style.height = c.style.width;
-    c.style.borderRadius = Math.random() > 0.5 ? "50%" : "2px";
-    conf.appendChild(c);
+    Object.assign(c.style, {
+      left:              Math.random() * 100 + "%",
+      top:               "-12px",
+      background:        colors[Math.floor(Math.random() * colors.length)],
+      animationDelay:    Math.random() * 2 + "s",
+      animationDuration: (2 + Math.random() * 2) + "s",
+      width:             (5 + Math.random() * 9) + "px",
+      height:            (5 + Math.random() * 9) + "px",
+      borderRadius:      Math.random() > 0.5 ? "50%" : "2px",
+    });
+    host.appendChild(c);
   }
-  setTimeout(() => conf.classList.remove("show"), 6000);
+  setTimeout(() => host.classList.remove("show"), 7000);
 }
 
-// ─────────────────────────────────────
-// Entry point — تحقق من تسجيل الدخول أولاً
-// ─────────────────────────────────────
-onAuthStateChanged(auth, (user) => {
+// ── المنطق الرئيسي ────────────────────────────────────────
+onAuthStateChanged(auth, async (user) => {
+
+  // 1. تحقق من تسجيل الدخول
   if (!user) {
-    // المستخدم غير مسجل — اطلب تسجيل الدخول
     showState("stLogin");
     return;
   }
 
+  // 2. تحقق من وجود invoice_id
   if (!invoiceId) {
-    // لا يوجد invoice_id في URL — ربما وصل مباشرة
     showState("stError");
-    document.getElementById("stError").querySelector("h1").textContent = "رابط غير صحيح";
-    document.getElementById("stError").querySelector(".sub").textContent =
-      "هذه الصفحة تُفتح تلقائياً بعد عملية الدفع. إذا كنت تتوقع طلباً، تواصل معنا.";
     return;
   }
 
-  // ابدأ الـ polling
-  window.startPolling();
+  // 3. استدعي verifyPayment في السيرفر
+  try {
+    const result = await verifyPaymentFn({ invoiceId, isPaid, transactionId });
+    const data   = result.data;
+
+    if (data.status === "paid") {
+      // ✅ تم الدفع
+      showState("stSuccess");
+      launchConfetti();
+      showDownloads(data.downloadLinks);
+
+      // امسح السلة بعد نجاح الدفع
+      try { localStorage.removeItem("3engs_cart"); } catch(e) {}
+
+    } else {
+      // ❌ فشل الدفع
+      showState("stFailed");
+    }
+
+  } catch (err) {
+    console.error("verifyPayment error:", err.code, err.message);
+
+    if (err.code === "functions/not-found") {
+      // Invoice ID غير موجود في النظام
+      showState("stError");
+      document.getElementById("errTitle").textContent = "رقم طلب غير صحيح";
+      document.getElementById("errMsg").textContent =
+        "رقم الطلب غير موجود في نظامنا. تواصل معنا مع رقم الطلب للمساعدة.";
+      document.getElementById("invErr").classList.add("show");
+
+    } else if (err.code === "functions/permission-denied") {
+      // شخص آخر يحاول الوصول
+      showState("stError");
+      document.getElementById("errTitle").textContent = "غير مصرح";
+      document.getElementById("errMsg").textContent =
+        "هذا الطلب لا يخص حسابك. تأكد من تسجيل الدخول بالحساب الصحيح.";
+
+    } else {
+      // خطأ في الاتصال
+      showState("stError");
+      document.getElementById("errTitle").textContent = "خطأ في الاتصال";
+      document.getElementById("errMsg").textContent =
+        "تعذر الاتصال بالسيرفر. تواصل معنا مع رقم الطلب وسنساعدك.";
+      document.getElementById("invErr").classList.add("show");
+    }
+  }
 });
 </script>
 </body>
