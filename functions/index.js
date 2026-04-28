@@ -1,20 +1,3 @@
-/**
- * 3ENG.s — Firebase Cloud Functions
- * Crosspay لا يدعم Webhook — يعمل عبر return_url
- *
- * الـ Flow الصحيح:
- * 1. createPayment  → يبني URL ويحفظ order pending
- * 2. المستخدم يدفع على Crosspay
- * 3. Crosspay يرجع المستخدم لـ payment-success.html?invoice_id=X&is_paid=1&transaction_id=Y
- * 4. verifyPayment  → يتحقق من البيانات ويحدّث الـ order
- *
- * الأمان:
- * - apiKey على السيرفر فقط (Secret Manager)
- * - verifyPayment يتحقق إن invoice_id موجود في Firestore
- * - يتحقق إن userId يطابق المستخدم الحالي
- * - لا يمكن لأحد تزوير invoice غير موجود في النظام
- */
- const { defineString } = require("firebase-functions/params");
 "use strict";
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
@@ -27,27 +10,30 @@ const logger                 = require("firebase-functions/logger");
 initializeApp();
 const db = getFirestore();
 
-// ─────────────────────────────────────────────
-// Secrets — في Google Secret Manager
-// أضفهم بـ: firebase functions:secrets:set CROSSPAY_API_KEY
-// ─────────────────────────────────────────────
 const CROSSPAY_API_KEY = defineSecret("CROSSPAY_API_KEY");
 
-// ثوابت
 const API_DATA    = "82e4b4fd3a16ad99229af9911ce8e6d2";
 const CURRENCY    = "USD";
 const RETURN_BASE = "https://www.3engs.com/payment-success.html";
 const ADMINS      = ["hosam2564491@gmail.com", "info@3engs.com"];
 
+// ✅ CORS — السماح لموقعك فقط
+const CORS_ORIGINS = [
+  "https://www.3engs.com",
+  "https://3engs.com",
+  "http://localhost",
+  "http://127.0.0.1",
+];
+
 // ─────────────────────────────────────────────
 // 1. createPayment
-//    يبني رابط Crosspay ويحفظ order بحالة pending
 // ─────────────────────────────────────────────
 exports.createPayment = onCall(
-  
-  { 
-   cors: ["https://www.3engs.com", "https://3engs.com"]
-   secrets: [CROSSPAY_API_KEY], region: "us-central1" },
+  {
+    secrets: [CROSSPAY_API_KEY],
+    region: "us-central1",
+    cors: CORS_ORIGINS,           // ✅ CORS fix
+  },
   async (request) => {
 
     if (!request.auth) {
@@ -65,12 +51,10 @@ exports.createPayment = onCall(
       throw new HttpsError("invalid-argument", "المبلغ غير صحيح");
     }
 
-    // Invoice ID فريد وغير قابل للتخمين
     const invoiceId =
       "3ENGS-" + Date.now() + "-" +
       Math.random().toString(36).substring(2, 11).toUpperCase();
 
-    // بناء inv_details حسب توثيق Crosspay
     const invDetails = {
       inv_items: items.map((item) => ({
         name:       String(item.name || "منتج").substring(0, 100),
@@ -89,15 +73,13 @@ exports.createPayment = onCall(
       },
     };
 
-    // return_url — Crosspay سيضيف: ?invoice_id=X&is_paid=1&transaction_id=Y
     const returnUrl =
       RETURN_BASE + "?invoice_id=" + encodeURIComponent(invoiceId);
 
-    // بناء الرابط الكامل (حسب توثيق Crosspay — GET request)
     const params = new URLSearchParams({
       api_data:    API_DATA,
       invoice_id:  invoiceId,
-      apiKey:      CROSSPAY_API_KEY.value(),  // ← السيرفر فقط
+      apiKey:      CROSSPAY_API_KEY.value(),
       total:       totalNum.toFixed(2),
       currency:    CURRENCY,
       inv_details: JSON.stringify(invDetails),
@@ -111,11 +93,10 @@ exports.createPayment = onCall(
       "https://crosspayonline.com/api/createInvoiceByAccountLahza?" +
       params.toString();
 
-    // حفظ الطلب في Firestore — status: "pending"
     await db.collection("orders").doc(invoiceId).set({
       invoiceId,
-      userId:    request.auth.uid,
-      userEmail: request.auth.token.email || "",
+      userId:        request.auth.uid,
+      userEmail:     request.auth.token.email || "",
       items: items.map((i) => ({
         name:    String(i.name    || ""),
         price:   parseFloat(i.price || 0),
@@ -130,26 +111,19 @@ exports.createPayment = onCall(
       createdAt:     FieldValue.serverTimestamp(),
     });
 
-    logger.info("Order created:", invoiceId, "for:", request.auth.token.email);
+    logger.info("Order created:", invoiceId);
     return { success: true, invoiceId, paymentUrl };
   }
 );
 
 // ─────────────────────────────────────────────
 // 2. verifyPayment
-//    يُستدعى من payment-success.html
-//    بعد رجوع المستخدم من Crosspay
-//
-//    الأمان:
-//    - يتحقق إن invoiceId موجود في Firestore (أنت أنشأته)
-//    - يتحقق إن userId يطابق المستخدم الحالي
-//    - لو is_paid=1 → يحدّث order إلى paid
-//    - لا يمكن لأحد يزوّر invoice_id لم يُنشأ من createPayment
 // ─────────────────────────────────────────────
 exports.verifyPayment = onCall(
   {
-   cors: ["https://www.3engs.com", "https://3engs.com"]
-   region: "us-central1" },
+    region: "us-central1",
+    cors: CORS_ORIGINS,           // ✅ CORS fix
+  },
   async (request) => {
 
     if (!request.auth) {
@@ -162,11 +136,9 @@ exports.verifyPayment = onCall(
       throw new HttpsError("invalid-argument", "invoice_id مطلوب");
     }
 
-    // اقرأ الطلب من Firestore
     const orderRef  = db.collection("orders").doc(invoiceId);
     const orderSnap = await orderRef.get();
 
-    // إذا ما كان موجود → رفض (لا يمكن تزوير)
     if (!orderSnap.exists) {
       logger.warn("verifyPayment: invoice not found:", invoiceId);
       throw new HttpsError("not-found", "الطلب غير موجود");
@@ -174,13 +146,12 @@ exports.verifyPayment = onCall(
 
     const order = orderSnap.data();
 
-    // تأكد إن الطلب يخص هذا المستخدم
     if (order.userId !== request.auth.uid) {
       logger.warn("verifyPayment: user mismatch:", invoiceId);
       throw new HttpsError("permission-denied", "غير مصرح");
     }
 
-    // إذا كان مدفوعاً مسبقاً → أرجع البيانات مباشرة
+    // إذا كان مدفوعاً مسبقاً
     if (order.status === "paid") {
       return {
         success:       true,
@@ -193,7 +164,6 @@ exports.verifyPayment = onCall(
       };
     }
 
-    // Crosspay يرسل is_paid=1 عند النجاح
     if (String(isPaid) === "1") {
 
       const downloadLinks = (order.items || []).map((item) => ({
@@ -215,16 +185,15 @@ exports.verifyPayment = onCall(
       return {
         success:       true,
         status:        "paid",
-        invoiceId:     invoiceId,
+        invoiceId,
         total:         order.total,
         currency:      order.currency,
         items:         (order.items || []).map((i) => ({ name: i.name, emoji: i.emoji })),
-        downloadLinks: downloadLinks,
+        downloadLinks,
       };
 
     } else {
 
-      // is_paid=0 → فشل الدفع
       await orderRef.update({
         status:    "failed",
         updatedAt: FieldValue.serverTimestamp(),
@@ -233,8 +202,8 @@ exports.verifyPayment = onCall(
       logger.info("❌ Payment failed:", invoiceId, "is_paid:", isPaid);
 
       return {
-        success: false,
-        status:  "failed",
+        success:  false,
+        status:   "failed",
         invoiceId,
       };
     }
@@ -243,12 +212,12 @@ exports.verifyPayment = onCall(
 
 // ─────────────────────────────────────────────
 // 3. getOrderStatus
-//    للتحقق من حالة طلب موجود
 // ─────────────────────────────────────────────
 exports.getOrderStatus = onCall(
   {
-      cors: ["https://www.3engs.com", "https://3engs.com"]
-      region: "us-central1" },
+    region: "us-central1",
+    cors: CORS_ORIGINS,           // ✅ CORS fix
+  },
   async (request) => {
 
     if (!request.auth) {
@@ -287,9 +256,10 @@ exports.getOrderStatus = onCall(
 // 4. getUserOrders
 // ─────────────────────────────────────────────
 exports.getUserOrders = onCall(
-  { 
-   cors: ["https://www.3engs.com", "https://3engs.com"]
-   region: "us-central1" },
+  {
+    region: "us-central1",
+    cors: CORS_ORIGINS,           // ✅ CORS fix
+  },
   async (request) => {
 
     if (!request.auth) {
