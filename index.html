@@ -875,9 +875,9 @@ window.payWithCrosspay = async function() {
       toast('✅ جاري تحويلك لصفحة الدفع...','ok');
       try { localStorage.setItem('3engs_invoice', data.invoiceId); } catch(e){}
       setTimeout(()=>{ window.location.href = data.paymentUrl; }, 800);
-    } else if (data.debug) {
+    } else if (data.htmlResponse || data.debug) {
       // للتشخيص — أرنا الـ response من Crosspay
-      console.log('=== Crosspay HTML ==='); console.log(data.debug);
+      console.log('=== Crosspay Full Response ==='); console.log(data.htmlResponse || data.debug); console.log('Status:', data.crosspayStatus); console.log('URL:', data.crosspayUrl);
       btnEl.innerHTML = origHTML;
       toast('⚠️ تحقق من الـ Console', 'err');
     } else {
