@@ -136,7 +136,6 @@ h1{font-size:1.5rem;font-weight:900;margin-bottom:8px;}
 <script type="module">
 import { initializeApp }     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 
 const CFG = {
   apiKey: "AIzaSyALJiF8l_wnk_6FU6etQpz44Z43lSORXQk",
@@ -149,8 +148,25 @@ const CFG = {
 
 const app  = initializeApp(CFG);
 const auth = getAuth(app);
-const fns  = getFunctions(app, "us-central1");
-const verifyPaymentFn = httpsCallable(fns, "verifyPayment");
+
+// ── helper: استدعاء Cloud Function ──────────────────────
+const FN_BASE = "https://us-central1-engs-website.cloudfunctions.net";
+async function callFn(name, body) {
+  const token = await auth.currentUser?.getIdToken();
+  const res = await fetch(`${FN_BASE}/${name}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(()=>({}));
+    throw new Error(err.error || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
 
 // ── استقبل parameters من Crosspay ──────────────────────
 // Crosspay يرسل: ?invoice_id=X&is_paid=1&transaction_id=Y
@@ -256,8 +272,7 @@ onAuthStateChanged(auth, async (user) => {
 
   // 3. استدعي verifyPayment في السيرفر
   try {
-    const result = await verifyPaymentFn({ invoiceId, isPaid, transactionId });
-    const data   = result.data;
+    const data = await callFn("verifyPayment", { invoiceId, isPaid, transactionId });
 
     if (data.status === "paid") {
       // ✅ تم الدفع
