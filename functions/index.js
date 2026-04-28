@@ -14,7 +14,7 @@
  * - يتحقق إن userId يطابق المستخدم الحالي
  * - لا يمكن لأحد تزوير invoice غير موجود في النظام
  */
-
+ const { defineString } = require("firebase-functions/params");
 "use strict";
 
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
@@ -44,6 +44,8 @@ const ADMINS      = ["hosam2564491@gmail.com", "info@3engs.com"];
 //    يبني رابط Crosspay ويحفظ order بحالة pending
 // ─────────────────────────────────────────────
 exports.createPayment = onCall(
+  cors: ["https://www.3engs.com", "https://3engs.com"]
+  
   { secrets: [CROSSPAY_API_KEY], region: "us-central1" },
   async (request) => {
 
@@ -144,6 +146,7 @@ exports.createPayment = onCall(
 //    - لا يمكن لأحد يزوّر invoice_id لم يُنشأ من createPayment
 // ─────────────────────────────────────────────
 exports.verifyPayment = onCall(
+  cors: ["https://www.3engs.com", "https://3engs.com"]
   { region: "us-central1" },
   async (request) => {
 
@@ -241,6 +244,7 @@ exports.verifyPayment = onCall(
 //    للتحقق من حالة طلب موجود
 // ─────────────────────────────────────────────
 exports.getOrderStatus = onCall(
+  cors: ["https://www.3engs.com", "https://3engs.com"]
   { region: "us-central1" },
   async (request) => {
 
@@ -280,6 +284,7 @@ exports.getOrderStatus = onCall(
 // 4. getUserOrders
 // ─────────────────────────────────────────────
 exports.getUserOrders = onCall(
+  cors: ["https://www.3engs.com", "https://3engs.com"]
   { region: "us-central1" },
   async (request) => {
 
