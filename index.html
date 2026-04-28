@@ -868,7 +868,7 @@ window.payWithCrosspay = async function() {
       total: total,
       currency: 'USD',
       customerName: _currentUser.displayName || _currentUser.email.split('@')[0],
-      customerPhone: '',
+      customerPhone: '0592753159', // رقم افتراضي — Crosspay يطلبه إلزامياً
     });
 
     if (data.success && data.paymentUrl) {
