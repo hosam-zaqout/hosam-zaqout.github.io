@@ -305,24 +305,23 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
       <div class="pc"><h3>💳 إعدادات الدفع</h3>
         <p style="font-size:.8rem;color:var(--mt);margin-bottom:16px">طرق الدفع المتاحة للمستخدمين عند الشراء</p>
 
-        <!-- LAHZA -->
+        <!-- LAHZA / CROSSPAY -->
         <div class="pay-card" style="background:rgba(99,102,241,.08);border-color:rgba(99,102,241,.3)">
           <div class="pc-head">
             <span style="font-size:1.3rem">⚡</span>
-            <strong>Lahza — بوابة دفع إلكترونية (مُوصى به)</strong>
-            <label class="pay-toggle"><input type="checkbox" id="pay-lz-active"> تفعيل</label>
+            <strong>Crosspay / Lahza — بوابة الدفع الإلكتروني</strong>
+            <label class="pay-toggle"><input type="checkbox" id="pay-lz-active" checked> تفعيل</label>
           </div>
-          <div class="cg"><label>Public Key (يبدأ بـ pk_test_ أو pk_live_)</label><input class="ci" id="pay-lz-pk" placeholder="pk_live_..." dir="ltr"></div>
+          <div class="cg"><label>API Key من Crosspay Dashboard</label><input class="ci" id="pay-lz-pk" placeholder="34d9f7-955a73-..." dir="ltr" value="34d9f7-955a73-c93a4d-2c3f93-01138d"></div>
           <div class="g2">
-            <div class="cg"><label>العملة الافتراضية</label>
-              <select class="cs" id="pay-lz-currency"><option value="ILS">شيكل (ILS)</option><option value="USD">دولار (USD)</option><option value="JOD">دينار (JOD)</option></select>
+            <div class="cg"><label>العملة</label>
+              <select class="cs" id="pay-lz-currency"><option value="USD" selected>دولار (USD)</option><option value="ILS">شيكل (ILS)</option><option value="JOD">دينار (JOD)</option></select>
             </div>
-            <div class="cg"><label>وضع الاختبار</label>
-              <select class="cs" id="pay-lz-mode"><option value="live">Live (مباشر)</option><option value="test">Test (تجريبي)</option></select>
+            <div class="cg"><label>الـ Endpoint</label>
+              <select class="cs" id="pay-lz-mode"><option value="Lahza" selected>Lahza</option><option value="PaySky">PaySky</option></select>
             </div>
           </div>
-          <div class="cg"><label>رابط الإرجاع بعد الدفع (Callback URL)</label><input class="ci" id="pay-lz-callback" placeholder="https://3engs.com/payment-success.html" dir="ltr"></div>
-          <div class="note-info">ℹ️ احصل على Public Key من dashboard.lahza.io ← Settings ← API Keys. الـ Public Key آمن للظهور في الموقع، أما Secret Key فلا تشاركه أبداً.</div>
+          <div class="note-info">ℹ️ الـ API Key يُحفظ في Firebase ويُستخدم لبناء رابط الدفع. تأكد من صحة المفتاح من Crosspay Dashboard.</div>
         </div>
 
         <!-- PAYPAL -->
