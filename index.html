@@ -936,13 +936,10 @@ window.confirmPhoneAndPay = async function() {
     return;
   }
 
-  // حذف أي صفر في البداية + مقدمة دولية بدون + وبدون 00
   const cleanNumber = number.replace(/^0+/,'');
-  const fullMobile  = code + cleanNumber;  // مثال: 970592753159
+  const fullMobile  = code + cleanNumber;
 
-  // أغلق المودال
   document.getElementById('phonePayModal').style.display = 'none';
-
   await processPayment(fullMobile);
 };
 
@@ -963,29 +960,42 @@ async function processPayment(mobile) {
     const customerName = (_currentUser.displayName ||
       _currentUser.email.split('@')[0]).substring(0, 80);
 
-    // بناء URL للـ Function — بدون apiKey
-    // الـ Function تتحقق من التوكن وتعمل redirect لـ PaySky
-    const fnParams = new URLSearchParams({
+    const itemsJson = JSON.stringify(cart.map(i=>({
+      name:    String(i.name    || ''),
+      price:   parseFloat(i.price  || 0),
+      emoji:   String(i.emoji   || ''),
+      fileUrl: String(i.fileUrl || ''),
+    })));
+
+    // إنشاء form مخفي وإرساله بـ POST
+    // POST لا يظهر البيانات في الـ URL ✅
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'https://us-central1-engs-website.cloudfunctions.net/createPayment';
+    form.style.display = 'none';
+
+    const fields = {
       token:  token,
-      items:  JSON.stringify(cart.map(i=>({
-        name:    String(i.name    || ''),
-        price:   parseFloat(i.price  || 0),
-        emoji:   String(i.emoji   || ''),
-        fileUrl: String(i.fileUrl || ''),
-      }))),
+      items:  itemsJson,
       total:  total.toFixed(2),
       mobile: mobile,
       name:   customerName,
+    };
+
+    Object.entries(fields).forEach(([k, v]) => {
+      const input = document.createElement('input');
+      input.type  = 'hidden';
+      input.name  = k;
+      input.value = v;
+      form.appendChild(input);
     });
 
-    const FN_URL = 'https://us-central1-engs-website.cloudfunctions.net/createPayment?' +
-      fnParams.toString();
+    document.body.appendChild(form);
 
     toast('✅ جاري تحويلك لصفحة الدفع...','ok');
-    try { localStorage.setItem('3engs_pending_payment', '1'); } catch(e){}
-
-    // حول المستخدم للـ Function — الـ Function ترجعه لـ PaySky
-    setTimeout(()=>{ window.location.href = FN_URL; }, 800);
+    setTimeout(() => {
+      form.submit(); // POST مباشرة للـ Function
+    }, 600);
 
   } catch (err) {
     console.error('Payment error:', err);
