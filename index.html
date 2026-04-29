@@ -862,31 +862,106 @@ window.payWithCrosspay = async function() {
     <span style="font-size:.84rem;font-weight:700">جاري تجهيز الدفع...</span>
   </div>`;
 
+// ==============================
+// PAYMENT — مباشرة للـ Crosspay
+// الـ apiKey يُقرأ من Firebase config (admin panel)
+// الطلب يُحفظ في Firestore قبل التحويل
+// ==============================
+window.payWithCrosspay = async function() {
+  if (!_currentUser) {
+    toast('⚠️ سجّل الدخول أولاً للدفع','err');
+    setTimeout(()=>{ window.location.href='auth.html'; }, 1500);
+    return;
+  }
+  if (!cart.length) { toast('⚠️ السلة فارغة','err'); return; }
+
+  const total = cart.reduce((s,i)=>s+parseFloat(i.price||0),0);
+  if (total <= 0) { toast('⚠️ لا توجد منتجات مدفوعة','err'); return; }
+
+  const btnEl = document.getElementById('payMethods');
+  const origHTML = btnEl.innerHTML;
+  btnEl.innerHTML = `<div style="text-align:center;padding:16px;color:var(--p)">
+    <div style="width:28px;height:28px;border:3px solid var(--br);border-top-color:var(--p);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 8px"></div>
+    <span style="font-size:.84rem;font-weight:700">جاري تجهيز الدفع...</span>
+  </div>`;
+
   try {
-    const data = await callFn('createPayment', {
-      items: cart,
-      total: total,
-      currency: 'USD',
-      customerName: _currentUser.displayName || _currentUser.email.split('@')[0],
-      customerPhone: '0592753159', // رقم افتراضي — Crosspay يطلبه إلزامياً
+    // الـ apiKey من إعدادات الأدمن
+    const apiKey = window._payConfig?.lahza?.publicKey || '';
+    if (!apiKey) {
+      throw new Error('لم يتم إعداد بوابة الدفع بعد — تواصل مع الإدارة');
+    }
+
+    // Invoice ID فريد
+    const invoiceId = '3ENGS-' + Date.now() + '-' +
+      Math.random().toString(36).substring(2,9).toUpperCase();
+
+    // بناء inv_details
+    const invDetails = {
+      inv_items: cart.map(i=>({
+        name:       String(i.name||'منتج').substring(0,100),
+        quntity:    '1.00',
+        unitPrice:  parseFloat(i.price||0).toFixed(2),
+        totalPrice: parseFloat(i.price||0).toFixed(2),
+        currency:   'USD',
+      })),
+      inv_info: [
+        {row_title:'Vat',       row_value:'0'},
+        {row_title:'Delevery',  row_value:'0'},
+        {row_title:'Discounts', row_value:'0'},
+      ],
+      user: {
+        userName: (_currentUser.displayName||_currentUser.email.split('@')[0]).substring(0,80),
+      },
+    };
+
+    const returnUrl = 'https://www.3engs.com/payment-success.html?invoice_id=' +
+      encodeURIComponent(invoiceId);
+
+    // احفظ الطلب في Firestore أولاً
+    await addDoc(collection(db,'orders'), {
+      invoiceId,
+      userId:        _currentUser.uid,
+      userEmail:     _currentUser.email || '',
+      items: cart.map(i=>({
+        name:    String(i.name    || ''),
+        price:   parseFloat(i.price  || 0),
+        emoji:   String(i.emoji   || ''),
+        fileUrl: String(i.fileUrl || ''),
+      })),
+      total,
+      currency:      'USD',
+      status:        'pending',
+      method:        'lahza',
+      downloadReady: false,
+      createdAt:     serverTimestamp(),
     });
 
-    if (data.success && data.paymentUrl) {
-      toast('✅ جاري تحويلك لصفحة الدفع...','ok');
-      try { localStorage.setItem('3engs_invoice', data.invoiceId); } catch(e){}
-      setTimeout(()=>{ window.location.href = data.paymentUrl; }, 800);
-    } else if (data.htmlResponse || data.debug) {
-      // للتشخيص — أرنا الـ response من Crosspay
-      console.log('=== Crosspay Full Response ==='); console.log(data.htmlResponse || data.debug); console.log('Status:', data.crosspayStatus); console.log('URL:', data.crosspayUrl);
-      btnEl.innerHTML = origHTML;
-      toast('⚠️ تحقق من الـ Console', 'err');
-    } else {
-      throw new Error('فشل إنشاء الفاتورة');
-    }
+    // بناء رابط Crosspay
+    const params = new URLSearchParams({
+      api_data:    '82e4b4fd3a16ad99229af9911ce8e6d2',
+      invoice_id:  invoiceId,
+      apiKey:      apiKey,
+      total:       total.toFixed(2),
+      currency:    'USD',
+      inv_details: JSON.stringify(invDetails),
+      return_url:  returnUrl,
+      email:       _currentUser.email || '',
+      mobail:      '0592753159',
+      name:        _currentUser.displayName || _currentUser.email.split('@')[0],
+    });
+
+    const paymentUrl = 'https://crosspayonline.com/api/createInvoiceByAccountPaySky?' +
+      params.toString();
+
+    toast('✅ جاري تحويلك لصفحة الدفع...','ok');
+    try { localStorage.setItem('3engs_invoice', invoiceId); } catch(e){}
+    setTimeout(()=>{ window.location.href = paymentUrl; }, 800);
+
   } catch (err) {
     console.error('Payment error:', err);
     btnEl.innerHTML = origHTML;
-    toast('⚠️ حدث خطأ: ' + (err.message||'حاول مرة أخرى'), 'err');
+    toast('⚠️ ' + (err.message||'حدث خطأ، حاول مرة أخرى'), 'err');
   }
 };
 
