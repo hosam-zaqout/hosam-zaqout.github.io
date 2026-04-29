@@ -929,7 +929,6 @@ window.confirmPhoneAndPay = async function() {
   const code   = document.getElementById('phoneCountryCode')?.value || '970';
   const number = document.getElementById('phoneNumber')?.value.trim() || '';
 
-  // تحقق من الرقم
   if (!number || number.length < 7) {
     const inp = document.getElementById('phoneNumber');
     if (inp) { inp.style.borderColor='var(--er)'; setTimeout(()=>inp.style.borderColor='',1500); }
@@ -937,11 +936,9 @@ window.confirmPhoneAndPay = async function() {
     return;
   }
 
-  // حذف أي صفر في البداية
+  // حذف أي صفر في البداية + مقدمة دولية بدون + وبدون 00
   const cleanNumber = number.replace(/^0+/,'');
-
-  // المقدمة الدولية بدون + وبدون 00
-  const fullMobile = code + cleanNumber;  // مثال: 970592753159
+  const fullMobile  = code + cleanNumber;  // مثال: 970592753159
 
   // أغلق المودال
   document.getElementById('phonePayModal').style.display = 'none';
@@ -960,81 +957,35 @@ async function processPayment(mobile) {
   </div>`;
 
   try {
-    const apiKey = window._payConfig?.lahza?.publicKey || '';
-    if (!apiKey) {
-      throw new Error('لم يتم إعداد بوابة الدفع — تواصل مع الإدارة');
-    }
-
-    // Invoice ID فريد
-    const invoiceId = '3ENGS-' + Date.now() + '-' +
-      Math.random().toString(36).substring(2,9).toUpperCase();
+    // احصل على Firebase ID Token
+    const token = await auth.currentUser.getIdToken();
 
     const customerName = (_currentUser.displayName ||
-      _currentUser.email.split('@')[0]).substring(0,80);
+      _currentUser.email.split('@')[0]).substring(0, 80);
 
-    // بناء inv_details
-    const invDetails = {
-      inv_items: cart.map(i=>({
-        name:       String(i.name||'منتج').substring(0,100),
-        quntity:    '1.00',
-        unitPrice:  parseFloat(i.price||0).toFixed(2),
-        totalPrice: parseFloat(i.price||0).toFixed(2),
-        currency:   'USD',
-      })),
-      inv_info: [
-        {row_title:'Vat',       row_value:'0'},
-        {row_title:'Delevery',  row_value:'0'},
-        {row_title:'Discounts', row_value:'0'},
-      ],
-      user: { userName: customerName },
-    };
-
-    const returnUrl = 'https://www.3engs.com/payment-success.html?invoice_id=' +
-      encodeURIComponent(invoiceId);
-
-    // احفظ الطلب في Firestore
-    await addDoc(collection(db,'orders'), {
-      invoiceId,
-      userId:        _currentUser.uid,
-      userEmail:     _currentUser.email || '',
-      userMobile:    mobile,
-      items: cart.map(i=>({
+    // بناء URL للـ Function — بدون apiKey
+    // الـ Function تتحقق من التوكن وتعمل redirect لـ PaySky
+    const fnParams = new URLSearchParams({
+      token:  token,
+      items:  JSON.stringify(cart.map(i=>({
         name:    String(i.name    || ''),
         price:   parseFloat(i.price  || 0),
         emoji:   String(i.emoji   || ''),
         fileUrl: String(i.fileUrl || ''),
-      })),
-      total,
-      currency:      'USD',
-      status:        'pending',
-      method:        'paysky',
-      downloadReady: false,
-      createdAt:     serverTimestamp(),
+      }))),
+      total:  total.toFixed(2),
+      mobile: mobile,
+      name:   customerName,
     });
 
-    // بناء رابط Crosspay — PaySky endpoint
-    // URLSearchParams تعمل URL-encode تلقائياً
-    const params = new URLSearchParams({
-      api_data:    '82e4b4fd3a16ad99229af9911ce8e6d2',
-      invoice_id:  invoiceId,
-      apiKey:      apiKey,
-      total:       total.toFixed(2),
-      currency:    'USD',
-      inv_details: JSON.stringify(invDetails),
-      return_url:  returnUrl,
-      email:       _currentUser.email || '',
-      mobail:      mobile,              // مقدمة دولية بدون + وبدون 00
-      name:        customerName,
-    });
-
-    // PaySky endpoint
-    const paymentUrl =
-      'https://crosspayonline.com/api/createInvoiceByAccountPaySky?' +
-      params.toString();
+    const FN_URL = 'https://us-central1-engs-website.cloudfunctions.net/createPayment?' +
+      fnParams.toString();
 
     toast('✅ جاري تحويلك لصفحة الدفع...','ok');
-    try { localStorage.setItem('3engs_invoice', invoiceId); } catch(e){}
-    setTimeout(()=>{ window.location.href = paymentUrl; }, 800);
+    try { localStorage.setItem('3engs_pending_payment', '1'); } catch(e){}
+
+    // حول المستخدم للـ Function — الـ Function ترجعه لـ PaySky
+    setTimeout(()=>{ window.location.href = FN_URL; }, 800);
 
   } catch (err) {
     console.error('Payment error:', err);
