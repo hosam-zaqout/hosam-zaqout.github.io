@@ -846,6 +846,9 @@ function buildPaymentButtons(){
 // الـ apiKey يُقرأ من Firebase config (admin panel)
 // الطلب يُحفظ في Firestore قبل التحويل
 // ==============================
+// ==============================
+// PHONE MODAL — قبل الدفع
+// ==============================
 window.payWithCrosspay = async function() {
   if (!_currentUser) {
     toast('⚠️ سجّل الدخول أولاً للدفع','err');
@@ -857,6 +860,98 @@ window.payWithCrosspay = async function() {
   const total = cart.reduce((s,i)=>s+parseFloat(i.price||0),0);
   if (total <= 0) { toast('⚠️ لا توجد منتجات مدفوعة','err'); return; }
 
+  // اطلب رقم الجوال قبل الدفع
+  showPhoneModal(total);
+};
+
+function showPhoneModal(total) {
+  // أنشئ المودال إذا ما كان موجوداً
+  let modal = document.getElementById('phonePayModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'phonePayModal';
+    modal.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(5,10,25,.92);backdrop-filter:blur(16px);z-index:700;align-items:center;justify-content:center;padding:16px;';
+    modal.innerHTML = `
+      <div style="background:var(--cd);border:1px solid var(--br);border-radius:18px;width:100%;max-width:400px;padding:28px;animation:cmIn .3s ease;">
+        <div style="text-align:center;margin-bottom:20px;">
+          <div style="font-size:2.5rem;margin-bottom:10px;">📱</div>
+          <h3 style="font-size:1.05rem;font-weight:800;margin-bottom:6px;">أدخل رقم جوالك</h3>
+          <p style="font-size:.84rem;color:var(--mt);line-height:1.6;">يُستخدم رقم الجوال لتأكيد عملية الدفع عبر PaySky</p>
+        </div>
+
+        <div style="margin-bottom:8px;">
+          <label style="display:block;font-size:.76rem;font-weight:700;color:var(--mt);margin-bottom:6px;">رقم الجوال (بالمقدمة الدولية)</label>
+          <div style="display:flex;gap:8px;">
+            <select id="phoneCountryCode" style="width:110px;padding:11px 8px;background:rgba(15,23,42,.7);border:1px solid var(--b2);border-radius:8px;color:var(--tx);font-family:'Cairo',sans-serif;font-size:.84rem;outline:none;flex-shrink:0;">
+              <option value="970">🇵🇸 970</option>
+              <option value="972">🇮🇱 972</option>
+              <option value="962">🇯🇴 962</option>
+              <option value="966">🇸🇦 966</option>
+              <option value="20">🇪🇬 20</option>
+              <option value="971">🇦🇪 971</option>
+              <option value="1">🇺🇸 1</option>
+              <option value="44">🇬🇧 44</option>
+            </select>
+            <input id="phoneNumber" type="tel" placeholder="592753159" dir="ltr"
+              style="flex:1;padding:11px 13px;background:rgba(15,23,42,.7);border:1px solid var(--b2);border-radius:8px;color:var(--tx);font-family:'Cairo',sans-serif;font-size:.86rem;outline:none;"
+              onkeypress="if(event.key==='Enter')window.confirmPhoneAndPay()">
+          </div>
+          <p style="font-size:.72rem;color:var(--mt);margin-top:6px;">مثال: 592753159 (بدون 0 في البداية، وبدون + أو 00)</p>
+        </div>
+
+        <div id="phoneTotalRow" style="display:flex;justify-content:space-between;padding:12px 0;border-top:1px solid var(--br);margin-bottom:16px;font-weight:800;">
+          <span style="color:var(--mt);font-size:.9rem;">المجموع:</span>
+          <span style="color:var(--p);font-size:1.1rem;">$${total.toFixed(2)}</span>
+        </div>
+
+        <div style="display:flex;gap:10px;">
+          <button onclick="document.getElementById('phonePayModal').style.display='none'"
+            style="flex:1;padding:12px;background:rgba(255,255,255,.07);border:1px solid var(--b2);border-radius:9px;color:var(--mt);font-family:'Cairo',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;">
+            إلغاء
+          </button>
+          <button onclick="window.confirmPhoneAndPay()"
+            style="flex:2;padding:12px;background:linear-gradient(135deg,var(--p),var(--pd));color:#0F172A;border:none;border-radius:9px;font-family:'Cairo',sans-serif;font-size:.95rem;font-weight:900;cursor:pointer;">
+            انتقل للدفع ⚡
+          </button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+  } else {
+    // حدّث المجموع
+    const row = document.getElementById('phoneTotalRow');
+    if (row) row.querySelector('span:last-child').textContent = '$' + total.toFixed(2);
+  }
+  modal.style.display = 'flex';
+  setTimeout(()=>{ document.getElementById('phoneNumber')?.focus(); }, 300);
+}
+
+window.confirmPhoneAndPay = async function() {
+  const code   = document.getElementById('phoneCountryCode')?.value || '970';
+  const number = document.getElementById('phoneNumber')?.value.trim() || '';
+
+  // تحقق من الرقم
+  if (!number || number.length < 7) {
+    const inp = document.getElementById('phoneNumber');
+    if (inp) { inp.style.borderColor='var(--er)'; setTimeout(()=>inp.style.borderColor='',1500); }
+    toast('⚠️ أدخل رقم جوال صحيح','err');
+    return;
+  }
+
+  // حذف أي صفر في البداية
+  const cleanNumber = number.replace(/^0+/,'');
+
+  // المقدمة الدولية بدون + وبدون 00
+  const fullMobile = code + cleanNumber;  // مثال: 970592753159
+
+  // أغلق المودال
+  document.getElementById('phonePayModal').style.display = 'none';
+
+  await processPayment(fullMobile);
+};
+
+async function processPayment(mobile) {
+  const total = cart.reduce((s,i)=>s+parseFloat(i.price||0),0);
+
   const btnEl = document.getElementById('payMethods');
   const origHTML = btnEl.innerHTML;
   btnEl.innerHTML = `<div style="text-align:center;padding:16px;color:var(--p)">
@@ -865,15 +960,17 @@ window.payWithCrosspay = async function() {
   </div>`;
 
   try {
-    // الـ apiKey من إعدادات الأدمن
     const apiKey = window._payConfig?.lahza?.publicKey || '';
     if (!apiKey) {
-      throw new Error('لم يتم إعداد بوابة الدفع بعد — تواصل مع الإدارة');
+      throw new Error('لم يتم إعداد بوابة الدفع — تواصل مع الإدارة');
     }
 
     // Invoice ID فريد
     const invoiceId = '3ENGS-' + Date.now() + '-' +
       Math.random().toString(36).substring(2,9).toUpperCase();
+
+    const customerName = (_currentUser.displayName ||
+      _currentUser.email.split('@')[0]).substring(0,80);
 
     // بناء inv_details
     const invDetails = {
@@ -889,19 +986,18 @@ window.payWithCrosspay = async function() {
         {row_title:'Delevery',  row_value:'0'},
         {row_title:'Discounts', row_value:'0'},
       ],
-      user: {
-        userName: (_currentUser.displayName||_currentUser.email.split('@')[0]).substring(0,80),
-      },
+      user: { userName: customerName },
     };
 
     const returnUrl = 'https://www.3engs.com/payment-success.html?invoice_id=' +
       encodeURIComponent(invoiceId);
 
-    // احفظ الطلب في Firestore أولاً
+    // احفظ الطلب في Firestore
     await addDoc(collection(db,'orders'), {
       invoiceId,
       userId:        _currentUser.uid,
       userEmail:     _currentUser.email || '',
+      userMobile:    mobile,
       items: cart.map(i=>({
         name:    String(i.name    || ''),
         price:   parseFloat(i.price  || 0),
@@ -911,12 +1007,13 @@ window.payWithCrosspay = async function() {
       total,
       currency:      'USD',
       status:        'pending',
-      method:        'lahza',
+      method:        'paysky',
       downloadReady: false,
       createdAt:     serverTimestamp(),
     });
 
-    // بناء رابط Crosspay
+    // بناء رابط Crosspay — PaySky endpoint
+    // URLSearchParams تعمل URL-encode تلقائياً
     const params = new URLSearchParams({
       api_data:    '82e4b4fd3a16ad99229af9911ce8e6d2',
       invoice_id:  invoiceId,
@@ -926,11 +1023,13 @@ window.payWithCrosspay = async function() {
       inv_details: JSON.stringify(invDetails),
       return_url:  returnUrl,
       email:       _currentUser.email || '',
-      mobail:      '0592753159',
-      name:        _currentUser.displayName || _currentUser.email.split('@')[0],
+      mobail:      mobile,              // مقدمة دولية بدون + وبدون 00
+      name:        customerName,
     });
 
-    const paymentUrl = 'https://crosspayonline.com/api/createInvoiceByAccountPaySky?' +
+    // PaySky endpoint
+    const paymentUrl =
+      'https://crosspayonline.com/api/createInvoiceByAccountPaySky?' +
       params.toString();
 
     toast('✅ جاري تحويلك لصفحة الدفع...','ok');
@@ -942,7 +1041,7 @@ window.payWithCrosspay = async function() {
     btnEl.innerHTML = origHTML;
     toast('⚠️ ' + (err.message||'حدث خطأ، حاول مرة أخرى'), 'err');
   }
-};
+}
 
 // PayPal fallback
 window.payWithPayPal=()=>{
@@ -967,7 +1066,7 @@ async function loadProds(){
   const grid=document.getElementById('pGrid');
   try{
     const snap=await getDocs(collection(db,'products'));
-    if(snap.empty){grid.innerHTML='<div class="loading-ph">لا توجد منتجات حالياً</div>';return;}
+    if(snap.empty){grid.innerHTML=defaultProds();reObs();return;}
     const typeMap={tool:{cls:'tt',lbl:'أداة'},template:{cls:'tm',lbl:'قالب'},ebook:{cls:'te',lbl:'كتاب رقمي'}};
     const badgeMap={new:{cls:'bn',txt:'جديد'},best:{cls:'bb',txt:'الأكثر مبيعاً'},sale:{cls:'bs',txt:'خصم'},free:{cls:'bf',txt:'مجاني'}};
     let html='';
@@ -984,7 +1083,7 @@ async function loadProds(){
       html+=`<div class="pcard reveal" data-cat="${p.type||'tool'}">${bdgHTML}<div class="cthumb ${t.cls}">${thumb}</div><div class="cbody"><div class="ctype">${t.lbl}</div><div class="ctitle">${p.title||''}</div><div class="cdesc">${p.desc||''}</div><div class="cfooter"><div>${priceDisp}</div><span class="pstars">★★★★★</span></div>${actionBtn}</div></div>`;
     });
     grid.innerHTML=html;
-  }catch(e){console.error(e);grid.innerHTML='<div class="loading-ph">⚠️ حدث خطأ في التحميل</div>';}
+  }catch(e){console.error(e);grid.innerHTML=defaultProds();reObs();}
   reObs();
 }
 
@@ -994,7 +1093,7 @@ async function loadCourses(){
   const grid=document.getElementById('cGrid');
   try{
     const snap=await getDocs(collection(db,'courses'));
-    if(snap.empty){grid.innerHTML='<div class="loading-ph">لا توجد دورات حالياً</div>';return;}
+    if(snap.empty){grid.innerHTML=defaultCourses();reObs();return;}
     const cls=['cv1','cv2','cv3'];let i=0;
     const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()}));
     window._coursesData=arr;
@@ -1021,7 +1120,7 @@ async function loadCourses(){
       i++;
     });
     grid.innerHTML=html;
-  }catch(e){console.error(e);grid.innerHTML='<div class="loading-ph">⚠️ حدث خطأ</div>';}
+  }catch(e){console.error(e);grid.innerHTML=defaultCourses();reObs();}
   reObs();
 }
 
@@ -1057,7 +1156,7 @@ async function loadProjects(){
       </div>`;
     });
     grid.innerHTML=html;
-  }catch(e){console.error(e);grid.innerHTML='<div class="loading-ph">⚠️ حدث خطأ</div>';}
+  }catch(e){console.error(e);grid.innerHTML='<div class="loading-ph">لا توجد مشاريع حالياً</div>';reObs();}
   reObs();
 }
 
@@ -1151,7 +1250,7 @@ async function loadBooks(){
   const grid=document.getElementById('bGrid');
   try{
     const snap=await getDocs(collection(db,'books'));
-    if(snap.empty){grid.innerHTML='<div class="loading-ph">لا توجد كتب حالياً</div>';return;}
+    if(snap.empty){grid.innerHTML=defaultBooks();reObs();return;}
     const cls=['bk1','bk2','bk3','bk4','bk5','bk6'];let i=0;
     let html='';
     snap.forEach(d=>{
@@ -1171,7 +1270,7 @@ async function loadBooks(){
       i++;
     });
     grid.innerHTML=html;
-  }catch(e){console.error(e);grid.innerHTML='<div class="loading-ph">⚠️ حدث خطأ</div>';}
+  }catch(e){console.error(e);grid.innerHTML=defaultBooks();reObs();}
   reObs();
 }
 
@@ -1222,13 +1321,13 @@ async function loadTests(){
   const grid=document.getElementById('tGrid');
   try{
     const snap=await getDocs(collection(db,'testimonials'));
-    if(snap.empty){grid.innerHTML='<div class="loading-ph">لا توجد آراء حالياً</div>';return;}
+    if(snap.empty){grid.innerHTML=defaultTests();reObs();return;}
     let html='';
     snap.forEach(d=>{const t=d.data();const stars='★'.repeat(t.rating||5)+'☆'.repeat(5-(t.rating||5));
       html+=`<div class="tcard reveal"><div class="tstars">${stars}</div><div class="ttext">${t.text||''}</div><div class="tauthor"><div class="tav">${(t.name||'م')[0]}</div><div><div class="taname">${t.name||''}</div><div class="tarole">${t.role||''}</div></div></div></div>`;
     });
     grid.innerHTML=html;
-  }catch(e){grid.innerHTML='<div class="loading-ph">⚠️ حدث خطأ</div>';}
+  }catch(e){grid.innerHTML=defaultTests();reObs();}
   reObs();
 }
 
@@ -1373,6 +1472,40 @@ window.fCat=fCat;
 // Dots
 const dc=document.getElementById('hdots');
 for(let i=0;i<18;i++){const d=document.createElement('div');d.className='dot';d.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;animation-duration:${6+Math.random()*10}s;animation-delay:${Math.random()*8}s;width:${1+Math.random()*3}px;height:${1+Math.random()*3}px;`;dc.appendChild(d);}
+
+// DEFAULT CONTENT — يظهر لما Firestore فارغة
+function defaultProds(){return`
+<div class="pcard reveal" data-cat="tool"><div class="cbwrap"><span class="cbadge bn">جديد</span></div><div class="cthumb tt"><span class="ef">🛠️</span></div><div class="cbody"><div class="ctype">أداة</div><div class="ctitle">حزمة أدوات المطور</div><div class="cdesc">مجموعة شاملة من الأدوات للمطورين</div><div class="cfooter"><div><span class="pold">$49</span><span class="pcur">$29</span></div><span class="pstars">★★★★★</span></div><button class="btn-c" onclick="addCartFromEl(this)" data-name="حزمة أدوات المطور" data-price="29" data-emoji="🛠️">أضف للسلة</button></div></div>
+<div class="pcard reveal" data-cat="ebook"><div class="cbwrap"><span class="cbadge bf">مجاني</span></div><div class="cthumb te"><span class="ef">📗</span></div><div class="cbody"><div class="ctype">كتاب رقمي</div><div class="ctitle">دليل البرمجة للمبتدئين</div><div class="cdesc">كتاب شامل من الصفر</div><div class="cfooter"><div><span style="color:var(--ok);font-size:1.1rem;font-weight:900">مجاني</span></div><span class="pstars">★★★★★</span></div><button class="btn-free" onclick="downloadFree(this)" data-fileurl="" data-name="دليل البرمجة">📥 تحميل مجاني</button></div></div>
+<div class="pcard reveal" data-cat="template"><div class="cbwrap"><span class="cbadge bs">خصم</span></div><div class="cthumb tm"><span class="ef">🎨</span></div><div class="cbody"><div class="ctype">قالب</div><div class="ctitle">قوالب تصميم UI/UX</div><div class="cdesc">50+ قالب جاهز للاستخدام</div><div class="cfooter"><div><span class="pold">$79</span><span class="pcur">$47</span></div><span class="pstars">★★★★☆</span></div><button class="btn-c" onclick="addCartFromEl(this)" data-name="قوالب UI/UX" data-price="47" data-emoji="🎨">أضف للسلة</button></div></div>`;}
+
+function defaultCourses(){
+  const data=[
+    {emoji:'🤖',cls:'cv1',cat:'الذكاء الاصطناعي',title:'الذكاء الاصطناعي — من الصفر للتطبيق',desc:'دورة شاملة AI وML مع تطبيقات عملية',dur:'40 ساعة',les:'120 درس',lvl:'متقدم',price:89,oldPrice:120,learns:['أسس الذكاء الاصطناعي'],topics:['مقدمة في AI','Python للذكاء الاصطناعي']},
+    {emoji:'⚡',cls:'cv2',cat:'الأنظمة المدمجة',title:'ESP32 والأنظمة المدمجة',desc:'ابنِ مشاريع ESP32 مع Firebase',dur:'35 ساعة',les:'90 درس',lvl:'وسط',price:75,learns:['برمجة ESP32'],topics:['أساسيات ESP32','Firebase']},
+    {emoji:'🔧',cls:'cv3',cat:'التحكم الرقمي',title:'التحكم الرقمي — P Controller حتى PID',desc:'أنظمة التحكم بالأردوينو وPython',dur:'28 ساعة',les:'75 درس',lvl:'مبتدئ',price:65,learns:['PID Controller'],topics:['مقدمة في التحكم','PID']}
+  ];
+  window._coursesData=data;
+  return data.map((c,i)=>`<div class="ccard reveal" onclick="openDetail('course',${i})">
+    <div class="cov-thumb ${c.cls}"><span class="cov-emoji">${c.emoji}</span><div class="cov-overlay">${c.cat}</div></div>
+    <div class="cov-body"><div class="cov-title">${c.title}</div><div class="cov-desc">${c.desc}</div>
+    <div class="cov-meta"><span class="meta">⏱ ${c.dur}</span><span class="meta">📹 ${c.les}</span><span class="meta">🎯 ${c.lvl}</span></div>
+    <div class="cov-foot"><div class="instr"><div class="iav">3E</div><div><div class="inm">فريق 3ENG.s</div><div class="irl">مهندسون</div></div></div>
+    <div class="price-wrap">${c.oldPrice?`<span class="price-old-s">$${c.oldPrice}</span> `:''}<span class="price-new-s">$${c.price}</span></div></div></div></div>`).join('');}
+
+function defaultBooks(){
+  const bks=[['🤖','مستقبل الذكاء الاصطناعي','فريق 3ENG.s','18',false,''],['💡','ريادة الأعمال الرقمية','فريق 3ENG.s','22',false,''],['📗','دليل البرمجة للمبتدئين','فريق 3ENG.s','0',true,''],['⚙️','هندسة الأنظمة المدمجة','فريق 3ENG.s','25',false,'']];
+  return bks.map((b,i)=>{
+    const isFree=b[4];
+    const action=isFree?`onclick="downloadFree(this)" data-fileurl="${b[5]}" data-name="${b[1]}"`:
+      `onclick="addCartFromEl(this)" data-name="${b[1]}" data-price="${parseFloat(b[3])||0}" data-emoji="${b[0]}"`;
+    return `<div class="bkcard reveal" ${action}><div class="bkcover bk${i+1}"><div class="bkspine"></div><span class="bke">${b[0]}</span></div>${isFree?'<div class="bk-free-tag">📥 مجاني للمسجلين</div>':''}<div class="bktitle">${b[1]}</div><div class="bkauthor">${b[2]}</div><div class="bkprice">${isFree?'<span style="color:var(--ok)">مجاني</span>':'$'+b[3]}</div></div>`;
+  }).join('');}
+
+function defaultTests(){return`
+<div class="tcard reveal"><div class="tstars">★★★★★</div><div class="ttext">دورة ESP32 مع Firebase غيّرت أسلوبي في العمل. المحتوى عملي ومباشر. أنصح بـ 3ENG.s لكل مهندس.</div><div class="tauthor"><div class="tav">ع</div><div><div class="taname">عمر محمد</div><div class="tarole">مهندس إلكترونيات</div></div></div></div>
+<div class="tcard reveal"><div class="tstars">★★★★★</div><div class="ttext">محتوى متكامل وشرح واضح. استفدت كثيراً من دورة التحكم الرقمي.</div><div class="tauthor"><div class="tav">ر</div><div><div class="taname">رنا الأحمد</div><div class="tarole">طالبة هندسة كهرباء</div></div></div></div>
+<div class="tcard reveal"><div class="tstars">★★★★★</div><div class="ttext">مشاريع عملية مع كود جاهز — وفّر علي وقتاً كثيراً في مشروع التخرج.</div><div class="tauthor"><div class="tav">خ</div><div><div class="taname">خالد السعد</div><div class="tarole">مهندس ميكاترونيكس</div></div></div></div>`;}
 
 // Toast
 function toast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+(type||'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);}
