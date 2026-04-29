@@ -842,27 +842,6 @@ function buildPaymentButtons(){
 }
 
 // ==============================
-// PAYMENT — عبر Cloud Function
-// ==============================
-window.payWithCrosspay = async function() {
-  if (!_currentUser) {
-    toast('⚠️ سجّل الدخول أولاً للدفع','err');
-    setTimeout(()=>{ window.location.href='auth.html'; }, 1500);
-    return;
-  }
-  if (!cart.length) { toast('⚠️ السلة فارغة','err'); return; }
-
-  const total = cart.reduce((s,i)=>s+parseFloat(i.price||0),0);
-  if (total <= 0) { toast('⚠️ لا توجد منتجات مدفوعة','err'); return; }
-
-  const btnEl = document.getElementById('payMethods');
-  const origHTML = btnEl.innerHTML;
-  btnEl.innerHTML = `<div style="text-align:center;padding:16px;color:var(--p)">
-    <div style="width:28px;height:28px;border:3px solid var(--br);border-top-color:var(--p);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 8px"></div>
-    <span style="font-size:.84rem;font-weight:700">جاري تجهيز الدفع...</span>
-  </div>`;
-
-// ==============================
 // PAYMENT — مباشرة للـ Crosspay
 // الـ apiKey يُقرأ من Firebase config (admin panel)
 // الطلب يُحفظ في Firestore قبل التحويل
