@@ -951,7 +951,7 @@ window.payWithCrosspay = async function() {
       name:        _currentUser.displayName || _currentUser.email.split('@')[0],
     });
 
-    const paymentUrl = 'https://crosspayonline.com/api/createInvoiceByAccountLahza?' +
+    const paymentUrl = 'https://crosspayonline.com/api/createInvoiceByAccountPaySky?' +
       params.toString();
 
     toast('✅ جاري تحويلك لصفحة الدفع...','ok');
