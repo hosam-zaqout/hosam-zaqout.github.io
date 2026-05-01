@@ -835,7 +835,7 @@ function buildPaymentButtons(){
   const p=window._payConfig;
   let html='';
   // زر Crosspay/Lahza الرئيسي — دائماً يظهر
-  html+=`<button class="btn-pay-lz" onclick="payWithCrosspay()">⚡ الدفع الإلكتروني (Lahza)</button>`;
+  html+=`<button class="btn-pay-lz" onclick="payWithCrosspay()"> الدفع الإلكتروني (visa/master card)</button>`;
   if(p?.paypal?.active&&p.paypal.link){html+=`<button class="btn-pay-pp" onclick="payWithPayPal()">🅿️ الدفع عبر PayPal</button>`;}
   if(p?.whatsapp?.active){html+=`<button class="btn-pay-wa" onclick="payWithWhatsApp()">💬 الدفع عبر واتساب</button>`;}
   document.getElementById('payMethods').innerHTML=html;
