@@ -213,7 +213,7 @@ h1.hh .g{color:var(--p);}
 
 /* SECTIONS */
 section{padding:88px 50px;position:relative;}
-.stag{display:inline-block;color:var(--p);font-size:.7rem;font-weight:800;letter-spacing:3px;text-transform:uppercase;border-right:3px solid var(--p);padding-right:12px;margin-bottom:12px;}
+.stag{display:inline-block;color:var(--p);font-size:.85rem;font-weight:900;letter-spacing:2px;border-right:4px solid var(--p);padding-right:14px;margin-bottom:14px;}
 .stitle{font-size:clamp(1.65rem,4vw,2.6rem);font-weight:900;margin-bottom:10px;line-height:1.2;}.stitle .g{color:var(--p);}
 .sdesc{color:var(--mt);font-size:.9rem;line-height:1.85;max-width:500px;}
 .shdr{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:46px;flex-wrap:wrap;gap:20px;}
@@ -521,7 +521,7 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
 <nav id="nav">
   <a href="#" class="logo-wrap">
     <img class="logo-img" src="logo.jpg" alt="3ENG.s Logo" onerror="this.style.display='none'">
-    <div><span class="lname" id="bname">3ENG.s</span><span class="lslogan" id="bslogan">ابتكر معنا</span></div>
+    <div><span class="lname" id="bname">3ENG.s</span><span class="lslogan" id="bslogan">Smart Idea • الهندسة الكهربائية</span></div>
   </a>
   <ul class="nav-links">
     <li><a onclick="scrollToSec('products')">المنتجات</a></li>
@@ -835,7 +835,7 @@ function buildPaymentButtons(){
   const p=window._payConfig;
   let html='';
   // زر Crosspay/Lahza الرئيسي — دائماً يظهر
-  html+=`<button class="btn-pay-lz" onclick="payWithCrosspay()"> الدفع الإلكتروني (visa/master card)</button>`;
+  html+=`<button class="btn-pay-lz" onclick="payWithCrosspay()">⚡ الدفع الإلكتروني (Lahza)</button>`;
   if(p?.paypal?.active&&p.paypal.link){html+=`<button class="btn-pay-pp" onclick="payWithPayPal()">🅿️ الدفع عبر PayPal</button>`;}
   if(p?.whatsapp?.active){html+=`<button class="btn-pay-wa" onclick="payWithWhatsApp()">💬 الدفع عبر واتساب</button>`;}
   document.getElementById('payMethods').innerHTML=html;
