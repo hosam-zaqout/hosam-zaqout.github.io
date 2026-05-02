@@ -659,11 +659,33 @@ function renderUsers(list){
     const init=(u.displayName||u.email||'U')[0].toUpperCase();
     const dt=u.createdAt?.toDate?.()?.toLocaleDateString('ar')||'—';
     const method=u.provider==='google'?'<span style="color:var(--ok)">🔵 Google</span>':'📧 إيميل';
-    return `<tr><td><div style="display:flex;align-items:center;gap:8px">${u.photoURL?`<img src="${u.photoURL}" style="width:28px;height:28px;border-radius:50%;object-fit:cover" onerror="this.style.display='none'">`:`<div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--pd),var(--p));display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:var(--dk)">${init}</div>`}<span>${u.displayName||'—'}</span></div></td><td dir="ltr" style="color:var(--mt);font-size:.76rem">${u.email||'—'}</td><td><span class="badge ${u.role==='admin'?'ba':'bu'}">${u.role==='admin'?'🛡️ أدمن':'👤 مستخدم'}</span></td><td style="font-size:.78rem">${method}</td><td style="color:var(--mt);font-size:.74rem">${dt}</td><td><button class="btn-edit" style="font-size:.72rem" onclick="toggleRole('${u.id}','${u.role}')">${u.role==='admin'?'↓ مستخدم':'↑ أدمن'}</button></td></tr>`;
+    const isSuperAdmin = SUPER_ADMINS.includes(u.email||'');
+    const roleBtn = isSuperAdmin
+      ? `<span style="font-size:.72rem;color:var(--p);font-weight:700">🛡️ Super Admin</span>`
+      : `<button class="btn-edit" style="font-size:.72rem" onclick="toggleRole('${u.id}','${u.role}','${u.email||''}')">${u.role==='admin'?'↓ مستخدم':'↑ أدمن'}</button>`;
+    return `<tr><td><div style="display:flex;align-items:center;gap:8px">${u.photoURL?`<img src="${u.photoURL}" style="width:28px;height:28px;border-radius:50%;object-fit:cover" onerror="this.style.display='none'">`:`<div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--pd),var(--p));display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:var(--dk)">${init}</div>`}<span>${u.displayName||'—'}</span></div></td><td dir="ltr" style="color:var(--mt);font-size:.76rem">${u.email||'—'}</td><td><span class="badge ${u.role==='admin'?'ba':'bu'}">${u.role==='admin'?'🛡️ أدمن':'👤 مستخدم'}</span></td><td style="font-size:.78rem">${method}</td><td style="color:var(--mt);font-size:.74rem">${dt}</td><td>${roleBtn}</td></tr>`;
   }).join('');
 }
 window.filterUsers=()=>{const q=document.getElementById('uSearch').value.toLowerCase();renderUsers(window._users.filter(u=>(u.displayName||'').toLowerCase().includes(q)||(u.email||'').toLowerCase().includes(q)));};
-window.toggleRole=async(uid,role)=>{await updateDoc(doc(db,'users',uid),{role:role==='admin'?'user':'admin'});toast('✅ تم تغيير الدور');loadUsers();};
+// Super Admins — لا يمكن تغيير دورهم أبداً
+const SUPER_ADMINS=['hosam2564491@gmail.com','info@3engs.com'];
+
+window.toggleRole=async(uid, role, email)=>{
+  // منع تغيير دور الـ Super Admins
+  if(SUPER_ADMINS.includes(email)){
+    toast('⚠️ لا يمكن تغيير صلاحيات هذا الحساب','err');
+    return;
+  }
+  const newRole = role==='admin'?'user':'admin';
+  try{
+    await updateDoc(doc(db,'users',uid),{role:newRole});
+    toast(`✅ تم تغيير الدور إلى ${newRole==='admin'?'أدمن':'مستخدم'}`);
+    loadUsers();
+  }catch(e){
+    toast('⚠️ فشل تغيير الدور: '+e.message,'err');
+    console.error(e);
+  }
+};
 
 // MESSAGES
 async function loadMessages(){
@@ -702,9 +724,35 @@ async function loadConfig(){
       ['title','desc','keywords','author','og-image','og-title','gsc','ga'].forEach(k=>{const el=document.getElementById('seo-'+k);if(el&&s[k.replace('-','_')])el.value=s[k.replace('-','_')];});
     }
     if(cfg.payment){const p=cfg.payment;
-      if(p.lahza){document.getElementById('pay-lz-active').checked=!!p.lahza.active;document.getElementById('pay-lz-pk').value=p.lahza.publicKey||'';document.getElementById('pay-lz-currency').value=p.lahza.currency||'ILS';document.getElementById('pay-lz-mode').value=p.lahza.mode||'live';document.getElementById('pay-lz-callback').value=p.lahza.callback||'';}
-      if(p.paypal){document.getElementById('pay-pp-active').checked=!!p.paypal.active;document.getElementById('pay-pp-link').value=p.paypal.link||'';document.getElementById('pay-pp-note').value=p.paypal.note||'';}
-      if(p.whatsapp){document.getElementById('pay-wa-active').checked=!!p.whatsapp.active;document.getElementById('pay-wa-num').value=p.whatsapp.num||'';document.getElementById('pay-wa-msg').value=p.whatsapp.msg||'';}
+      // PaySky / Lahza
+      if(p.lahza){
+        const lzActive=document.getElementById('pay-lz-active');
+        const lzPk=document.getElementById('pay-lz-pk');
+        const lzCur=document.getElementById('pay-lz-currency');
+        const lzMode=document.getElementById('pay-lz-mode');
+        if(lzActive)lzActive.checked=!!p.lahza.active;
+        if(lzPk&&p.lahza.publicKey)lzPk.value=p.lahza.publicKey;
+        if(lzCur&&p.lahza.currency)lzCur.value=p.lahza.currency;
+        if(lzMode&&p.lahza.mode)lzMode.value=p.lahza.mode;
+      }
+      // PayPal
+      if(p.paypal){
+        const ppActive=document.getElementById('pay-pp-active');
+        const ppLink=document.getElementById('pay-pp-link');
+        const ppNote=document.getElementById('pay-pp-note');
+        if(ppActive)ppActive.checked=!!p.paypal.active;
+        if(ppLink&&p.paypal.link)ppLink.value=p.paypal.link;
+        if(ppNote&&p.paypal.note)ppNote.value=p.paypal.note;
+      }
+      // واتساب
+      if(p.whatsapp){
+        const waActive=document.getElementById('pay-wa-active');
+        const waNum=document.getElementById('pay-wa-num');
+        const waMsg=document.getElementById('pay-wa-msg');
+        if(waActive)waActive.checked=!!p.whatsapp.active;
+        if(waNum&&p.whatsapp.num)waNum.value=p.whatsapp.num;
+        if(waMsg&&p.whatsapp.msg)waMsg.value=p.whatsapp.msg;
+      }
     }
   }catch(e){console.error(e);}
 }
@@ -720,11 +768,32 @@ window.saveSec=async(sec)=>{
   else if(sec==='design')data.design={colors:{primary:g('col-primary'),dark:g('col-dark'),card:g('col-card'),text:g('col-text'),accent:g('col-accent')}};
   else if(sec==='siteConfig'){data.siteTitle=g('site-title');data.siteDesc=g('site-desc');}
   else if(sec==='seo')data.seo={title:g('seo-title'),desc:g('seo-desc'),keywords:g('seo-keywords'),author:g('seo-author'),og_image:g('seo-og-image'),og_title:g('seo-og-title'),gsc:g('seo-gsc'),ga:g('seo-ga')};
-  else if(sec==='payment'){data.payment={
-    lahza:{active:gb('pay-lz-active'),publicKey:g('pay-lz-pk'),currency:g('pay-lz-currency'),mode:g('pay-lz-mode'),callback:g('pay-lz-callback')},
-    paypal:{active:gb('pay-pp-active'),link:g('pay-pp-link'),note:g('pay-pp-note')},
-    whatsapp:{active:gb('pay-wa-active'),num:g('pay-wa-num'),msg:g('pay-wa-msg')}
-  };}
+  else if(sec==='payment'){
+    // نجيب البيانات الموجودة أولاً ثم ندمج — لمنع مسح حقول غير ظاهرة
+    const existingSnap = await getDoc(doc(db,'site_config','main'));
+    const existing = existingSnap.exists() ? (existingSnap.data().payment || {}) : {};
+    data.payment={
+      lahza:{
+        ...( existing.lahza || {} ),
+        active:    gb('pay-lz-active'),
+        publicKey: g('pay-lz-pk') || existing.lahza?.publicKey || '',
+        currency:  g('pay-lz-currency') || existing.lahza?.currency || 'USD',
+        mode:      g('pay-lz-mode')     || existing.lahza?.mode     || 'live',
+      },
+      paypal:{
+        ...( existing.paypal || {} ),
+        active: gb('pay-pp-active'),
+        link:   g('pay-pp-link') || existing.paypal?.link || '',
+        note:   g('pay-pp-note') || existing.paypal?.note || '',
+      },
+      whatsapp:{
+        ...( existing.whatsapp || {} ),
+        active: gb('pay-wa-active'),
+        num:    g('pay-wa-num') || existing.whatsapp?.num || '',
+        msg:    g('pay-wa-msg') || existing.whatsapp?.msg || '',
+      },
+    };
+  }
   await setDoc(doc(db,'site_config','main'),data,{merge:true});
   toast('✅ تم حفظ '+({hero:'Hero',social:'الروابط',brand:'الهوية',design:'الألوان',siteConfig:'الإعدادات',payment:'إعدادات الدفع',seo:'إعدادات SEO'}[sec]||sec));
 };
