@@ -11,6 +11,8 @@
  *    - صفحة فهرس لكل قسم  (/courses/ , /projects/ ...)
  *    - sitemap.xml  كامل
  *    - llms.txt     (للظهور في ChatGPT / Perplexity / Gemini)
+ *    - محتوى ثابت داخل index.html (روابط العناصر + الأرقام + الآراء)
+ *      بين علامات <!--SSR:xxx--> … <!--/SSR:xxx--> — عشان جوجل والـ AI يشوفوه بدون JavaScript
  *    - (اختياري) إرسال الروابط الجديدة لـ Bing عبر IndexNow
  *
  *  التشغيل:   node tools/build-static-pages.mjs
@@ -38,9 +40,9 @@ const BRAND_AR = "المهندسون الثلاثة";
 
 // صفحات ثابتة موجودة أصلاً بالموقع وبدك تكون بالـ sitemap
 const EXTRA_URLS = [
-  // { loc: "/privacy.html", priority: 0.3 },
-  // { loc: "/terms.html",   priority: 0.3 },
+  { loc: "/privacy.html", priority: 0.3 },
 ];
+const OG_DEFAULT = `${SITE}/og-image.png`;
 
 // الأقسام: اسم الـ collection بـ Firestore ← إعدادات الصفحة
 const SECTIONS = [
@@ -51,7 +53,14 @@ const SECTIONS = [
 ];
 
 // ⚠️ حقول ممنوع تطلع بالصفحات أبداً (روابط ملفات مدفوعة وغيرها)
-const PRIVATE_FIELDS = ["fileUrl", "downloadUrl", "driveUrl", "secret", "email"];
+// fileUrl يبقى فقط للعناصر المجانية — عشان زر "تحميل مجاني" المباشر
+const PRIVATE_FIELDS = ["downloadUrl", "driveUrl", "secret", "email"];
+const isFree = (d) => d.isFree === true || !(Number(d.price) > 0);
+function stripPrivate(d) {
+  for (const p of PRIVATE_FIELDS) delete d[p];
+  if (!isFree(d) || !/^https?:\/\//i.test(d.fileUrl || "")) delete d.fileUrl;
+  return d;
+}
 
 // ---------------- قراءة Firestore (REST) ----------------
 function decode(v) {
@@ -85,8 +94,7 @@ async function fetchCollection(col) {
     }
     const j = await r.json();
     for (const d of j.documents || []) {
-      const data = decodeFields(d.fields || {});
-      for (const p of PRIVATE_FIELDS) delete data[p];
+      const data = stripPrivate(decodeFields(d.fields || {}));
       data.id = d.name.split("/").pop();
       data._updated = data.updatedAt || d.updateTime;
       docs.push(data);
@@ -96,14 +104,22 @@ async function fetchCollection(col) {
   return docs;
 }
 
+async function fetchDoc(p) {
+  const r = await fetch(`https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${p}?key=${API_KEY}`);
+  if (!r.ok) { console.warn(`⚠️  ${p}: HTTP ${r.status}`); return {}; }
+  return decodeFields((await r.json()).fields || {});
+}
+
 async function loadData() {
   if (process.env.MOCK_FILE) {
     const mock = JSON.parse(await fs.readFile(process.env.MOCK_FILE, "utf8"));
-    for (const arr of Object.values(mock)) for (const d of arr) for (const p of PRIVATE_FIELDS) delete d[p];
+    for (const arr of Object.values(mock)) if (Array.isArray(arr)) for (const d of arr) stripPrivate(d);
     return mock;
   }
   const out = {};
   for (const s of SECTIONS) out[s.col] = await fetchCollection(s.col);
+  out.testimonials = await fetchCollection("testimonials");
+  out.config = await fetchDoc("site_config/main");
   return out;
 }
 
@@ -118,7 +134,10 @@ const arr = (v) => (Array.isArray(v) ? v.filter((x) => clean(x)) : []);
 const jsonLd = (o) => `<script type="application/ld+json">${JSON.stringify(o).replace(/</g, "\\u003c")}</script>`;
 
 function slugify(item) {
-  if (item.slug) return String(item.slug).toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
+  const custom = String(item.slug || "").toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
+  return custom || autoSlug(item);
+}
+function autoSlug(item) {
   const words = (clean(item.title).toLowerCase().match(/[a-z0-9]+/g) || []).slice(0, 5);
   const shortId = item.id.slice(0, 6).toLowerCase();
   return words.length ? `${words.join("-")}-${shortId}` : item.id.toLowerCase();
@@ -207,7 +226,7 @@ footer nav{display:flex;justify-content:center;flex-wrap:wrap;gap:16px;margin-bo
 `;
 
 function layout({ title, description, canonical, image, schemas, body, ogType = "website" }) {
-  const img = image || `${SITE}/logo.jpg`;
+  const img = image || OG_DEFAULT;
   return `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -248,7 +267,7 @@ ${schemas.map(jsonLd).join("\n")}
 ${body}
 </main>
 <footer><div class="wrap">
-  <nav><a href="/">الرئيسية</a>${SECTIONS.map((s) => `<a href="/${s.dir}/">${s.label}</a>`).join("")}</nav>
+  <nav><a href="/">الرئيسية</a>${SECTIONS.map((s) => `<a href="/${s.dir}/">${s.label}</a>`).join("")}<a href="/#about">من نحن</a><a href="/#faq">الأسئلة الشائعة</a><a href="/privacy.html">سياسة الخصوصية</a></nav>
   © ${new Date().getFullYear()} ${BRAND} — ${BRAND_AR} • منصة تعليم الهندسة الكهربائية والأنظمة المدمجة
 </div></footer>
 </body>
@@ -361,7 +380,11 @@ ${bc.html}
     <div class="tags">${tags.map((t) => `<span class="tag">${esc(t)}</span>`).join("")}</div>
     <div class="price">${price > 0 ? `<b>$${price}</b>` : `<b>مجاني</b>`}${oldPrice && oldPrice > price ? `<s>$${oldPrice}</s><span class="off">وفّر ${off}%</span>` : ""}</div>
     <div class="cta">
-      <a class="btn main" href="/?open=${sec.col}:${item.id}">${price > 0 ? "🛒 اطلب الآن" : "📥 احصل عليه مجاناً"}</a>
+      ${price > 0
+        ? `<a class="btn main" href="/?open=${sec.col}:${item.id}">🛒 اطلب الآن</a>`
+        : item.fileUrl
+          ? `<a class="btn main" href="${esc(item.fileUrl)}" target="_blank" rel="nofollow noopener">📥 تحميل مجاني</a>`
+          : `<a class="btn main" href="/?open=${sec.col}:${item.id}">📥 احصل عليه مجاناً</a>`}
       <a class="btn wa" href="https://wa.me/${WHATSAPP}?text=${waMsg}" rel="nofollow">💬 استفسار واتساب</a>
     </div>
   </div>
@@ -375,6 +398,8 @@ ${item.desc ? `<section class="box"><h2>📖 التفاصيل</h2>${paragraphs(i
 </div>
 ${list("📚 محاور الدورة", item.topics, "▸")}
 ${yt ? `<section class="box"><h2>🎬 فيديو ${esc(sec.one)}</h2><div class="video"><iframe src="https://www.youtube-nocookie.com/embed/${yt}" title="${esc(title)}" loading="lazy" allowfullscreen></iframe></div></section>` : ""}
+
+<section class="box"><h2>👷 عن ${BRAND}</h2><p>${BRAND} (${BRAND_AR}) منصة عربية من فلسطين يديرها مهندسون كهربائيون ومدربون جامعيون، تقدّم دورات ومشاريع جاهزة وكتباً في الهندسة الكهربائية والأنظمة المدمجة وإنترنت الأشياء. <a href="/#about" style="color:var(--acc)">تعرّف على الفريق</a> • <a href="/#faq" style="color:var(--acc)">الأسئلة الشائعة</a> • <a href="/privacy.html#refund" style="color:var(--acc)">سياسة الإرجاع</a></p></section>
 
 ${related.length ? `<h2 class="sec-title">${sec.emoji} ${esc(sec.label)} أخرى قد تهمك</h2><div class="cards">${related.map((r) => card(sec, r)).join("")}</div>` : ""}
 `;
@@ -396,6 +421,50 @@ function card(sec, it) {
   return `<a class="card" href="/${sec.dir}/${it._slug}/">${img
     ? `<img src="${esc(img)}" alt="${esc(clean(it.title))}" loading="lazy" width="400" height="225">`
     : `<div class="ph">${it.emoji || sec.emoji}</div>`}<div class="b"><h3>${esc(cut(it.title, 70))}</h3><div class="p">${price > 0 ? "$" + price : "مجاني"}</div></div></a>`;
+}
+
+function redirectPage(to) {
+  return `<!DOCTYPE html><html lang="ar"><head><meta charset="UTF-8"><title>تم نقل الصفحة</title>
+<link rel="canonical" href="${to}"><meta name="robots" content="noindex, follow">
+<meta http-equiv="refresh" content="0; url=${to}"><script>location.replace(${JSON.stringify(to)})</script></head>
+<body><a href="${to}">${to}</a></body></html>`;
+}
+
+// ---------------- الصفحة الرئيسية: محتوى ثابت بين علامات SSR ----------------
+function ssrReplace(html, key, content) {
+  const re = new RegExp(`(<!--SSR:${key}-->)[\\s\\S]*?(<!--/SSR:${key}-->)`);
+  return re.test(html) ? html.replace(re, (_, a, b) => a + content + b) : html;
+}
+function ssrItems(sec, items) {
+  if (!items.length) return `<div class="loading-ph">لا توجد عناصر حالياً — قريباً!</div>`;
+  return `<div class="ssr-list">${items.map((it) => {
+    const price = num(it.price) ?? 0;
+    return `<a href="/${sec.dir}/${it._slug}/">${esc(cut(it.title, 70))}<b>${price > 0 && !isFree(it) ? "$" + price : "مجاني"}</b></a>`;
+  }).join("")}</div>`;
+}
+function ssrTestimonials(list) {
+  list = (list || []).filter((t) => clean(t.text) && clean(t.name));
+  if (!list.length) return `<div class="loading-ph">كن أول من يشاركنا رأيه!</div>`;
+  return list.slice(0, 9).map((t) => {
+    const r = Math.min(5, Math.max(1, Number(t.rating) || 5));
+    return `<div class="tcard"><div class="tstars">${"★".repeat(r)}${"☆".repeat(5 - r)}</div><div class="ttext">${esc(clean(t.text))}</div><div class="tauthor"><div class="tav">${esc(clean(t.name)[0])}</div><div><div class="taname">${esc(clean(t.name))}</div><div class="tarole">${esc(clean(t.role))}</div></div></div></div>`;
+  }).join("");
+}
+async function updateHome(data) {
+  const full = path.join(OUT_DIR, "index.html");
+  let html;
+  try { html = await fs.readFile(full, "utf8"); } catch { return false; }
+  for (const sec of SECTIONS) {
+    html = ssrReplace(html, sec.col, ssrItems(sec, data[sec.col] || []));
+    html = ssrReplace(html, "count-" + sec.col, String((data[sec.col] || []).length));
+  }
+  html = ssrReplace(html, "testimonials", ssrTestimonials(data.testimonials));
+  const hero = data.config?.hero || {};
+  for (const i of [1, 2, 3, 4]) {
+    const v = clean(hero["stat" + i]?.num);
+    if (v) html = ssrReplace(html, `s${i}n`, esc(v));
+  }
+  return writeFile("index.html", html);
 }
 
 // ---------------- صفحة فهرس القسم ----------------
@@ -444,6 +513,18 @@ function llms(data) {
 - واتساب: +${WHATSAPP}
 - إنستغرام: https://www.instagram.com/3eng.s
 - تيك توك: https://www.tiktok.com/@3eng.s
+- فيسبوك: https://www.facebook.com/profile.php?id=61584936014304
+- سياسة الخصوصية والإرجاع: ${SITE}/privacy.html
+
+## الفريق
+- م. حسام زقوت — مهندس كهربائي، مؤسس ومدرّب. بكالوريوس هندسة كهربائية من الجامعة الإسلامية بغزة، مساعد تدريس وبحث ومحاضر زائر في إنترنت الأشياء والحساسات. متخصص في الأنظمة المدمجة وتصميم PCB والعتاد المدمج بالذكاء الاصطناعي.
+- م. إسراء الطويل — مهندسة أنظمة مدمجة ومدرّبة، متخصصة في إنترنت الأشياء والأنظمة المدمجة، درّبت أكثر من 300 طالب.
+
+## أسئلة شائعة
+- هل الدورات مناسبة للمبتدئين؟ نعم، معظمها يبدأ من الأساسيات، ومستوى كل دورة مكتوب في صفحتها.
+- هل يوجد محتوى مجاني؟ نعم، بعض الكتب والمشاريع والأدوات مجانية ويمكن تحميلها مباشرة بدون تسجيل.
+- هل تساعدون في مشاريع التخرج؟ نعم، المشاريع الجاهزة مناسبة لمشاريع التخرج، ويمكن طلب تنفيذ أو تعديل مشروع.
+- كيف أتواصل؟ واتساب +${WHATSAPP} أو info@3engs.com.
 `;
   for (const sec of SECTIONS) {
     const items = data[sec.col] || [];
@@ -451,7 +532,7 @@ function llms(data) {
     t += `\n## ${sec.label}\n`;
     for (const it of items) {
       const price = num(it.price) ?? 0;
-      t += `- [${clean(it.title)}](${SITE}/${sec.dir}/${it._slug}/): ${cut(it.shortDesc || it.desc || "", 140)} (${price > 0 ? "$" + price : "مجاني"})\n`;
+      t += `- [${clean(it.title)}](${SITE}/${sec.dir}/${it._slug}/): ${cut(it.shortDesc || it.desc || "", 140)} (${price > 0 && !isFree(it) ? "$" + price : "مجاني"})\n`;
     }
   }
   return t;
@@ -487,7 +568,7 @@ async function writeFile(rel, content) {
 async function main() {
   console.log("🔄 جاري قراءة البيانات…");
   const data = await loadData();
-  const entries = [{ loc: "/", priority: 1.0, lastmod: new Date().toISOString(), image: `${SITE}/logo.jpg`, title: BRAND }];
+  const entries = [{ loc: "/", priority: 1.0, lastmod: new Date().toISOString(), image: OG_DEFAULT, title: BRAND }];
   const changed = [];
   let total = 0;
 
@@ -495,13 +576,18 @@ async function main() {
     const items = (data[sec.col] || []).filter((i) => clean(i.title) && i.hidden !== true && i.published !== false);
     // slugs فريدة
     const seen = new Set();
+    const redirects = [];
     for (const it of items) {
       it._updated ??= it.updatedAt;
       let s = slugify(it);
       while (seen.has(s)) s += "-" + it.id.slice(0, 4).toLowerCase();
       seen.add(s);
       it._slug = s;
+      // غيّرت الرابط من لوحة التحكم؟ الرابط القديم يحوّل للجديد بدل ما يعطي 404
+      const old = autoSlug(it);
+      if (old !== s) redirects.push([old, s]);
     }
+    for (const [old] of redirects) seen.add(old);
     data[sec.col] = items;
     if (!items.length) continue;
 
@@ -515,6 +601,8 @@ async function main() {
     if (await writeFile(`${sec.dir}/index.html`, hubPage(sec, items))) changed.push(`${SITE}/${sec.dir}/`);
     entries.push({ loc: `/${sec.dir}/`, priority: 0.9 });
 
+    for (const [old, to] of redirects) await writeFile(`${sec.dir}/${old}/index.html`, redirectPage(`${SITE}/${sec.dir}/${to}/`));
+
     for (const it of items) {
       const rel = `${sec.dir}/${it._slug}/index.html`;
       if (await writeFile(rel, itemPage(sec, it, items))) changed.push(`${SITE}/${sec.dir}/${it._slug}/`);
@@ -527,6 +615,7 @@ async function main() {
   for (const e of EXTRA_URLS) entries.push({ priority: 0.3, ...e });
   await writeFile("sitemap.xml", sitemap(entries));
   await writeFile("llms.txt", llms(data));
+  if (await updateHome(data)) { changed.push(`${SITE}/`); console.log("✅ الصفحة الرئيسية: محتوى ثابت محدّث"); }
   await indexNow(changed);
 
   console.log(`\n🎉 تم توليد ${total} صفحة + ${SECTIONS.length} فهارس + sitemap.xml + llms.txt`);

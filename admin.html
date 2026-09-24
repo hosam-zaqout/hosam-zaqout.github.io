@@ -852,6 +852,7 @@ makeTagSystem('Requirement',_requirements,'m-req-inp','m-requirements');
 const mForms={
   product:`
     <div class="cg"><label>اسم المنتج *</label><input class="ci" id="m-title" placeholder="اسم المنتج"></div>
+    <div class="cg"><label>🔗 رابط الصفحة بالإنجليزي (اختياري — مهم لجوجل)</label><input class="ci" id="m-slug" placeholder="ch340-driver" dir="ltr" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]+/g,'-')"><div style="font-size:.72rem;color:var(--mt);margin-top:4px">حروف إنجليزية وأرقام وشرطات فقط. الصفحة تتحدث تلقائياً كل ليلة، والرابط القديم يحوّل للجديد.</div></div>
     <div class="cg"><label>الوصف</label><textarea class="cta" id="m-desc" rows="4" placeholder="وصف المنتج..."></textarea></div>
     <div class="g2">
       <div class="cg"><label>السعر ($)</label><input class="ci" id="m-price" type="number" min="0" placeholder="29"></div>
@@ -878,6 +879,7 @@ const mForms={
 
   course:`
     <div class="cg"><label>اسم الدورة *</label><input class="ci" id="m-title" placeholder="اسم الدورة"></div>
+    <div class="cg"><label>🔗 رابط الصفحة بالإنجليزي (اختياري — مهم لجوجل)</label><input class="ci" id="m-slug" placeholder="esp32-iot-course" dir="ltr" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]+/g,'-')"><div style="font-size:.72rem;color:var(--mt);margin-top:4px">حروف إنجليزية وأرقام وشرطات فقط. الصفحة تتحدث تلقائياً كل ليلة، والرابط القديم يحوّل للجديد.</div></div>
     <div class="cg"><label>الوصف التفصيلي (يدعم الأسطر)</label><textarea class="cta" id="m-desc" rows="5" placeholder="وصف الدورة..."></textarea></div>
     <div class="g2">
       <div class="cg"><label>التخصص *</label><input class="ci" id="m-category" placeholder="الهندسة الكهربائية"></div>
@@ -913,6 +915,7 @@ const mForms={
 
   book:`
     <div class="cg"><label>عنوان الكتاب *</label><input class="ci" id="m-title" placeholder="عنوان الكتاب"></div>
+    <div class="cg"><label>🔗 رابط الصفحة بالإنجليزي (اختياري — مهم لجوجل)</label><input class="ci" id="m-slug" placeholder="arduino-simply-book" dir="ltr" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]+/g,'-')"><div style="font-size:.72rem;color:var(--mt);margin-top:4px">حروف إنجليزية وأرقام وشرطات فقط. الصفحة تتحدث تلقائياً كل ليلة، والرابط القديم يحوّل للجديد.</div></div>
     <div class="cg"><label>المؤلف</label><input class="ci" id="m-author" placeholder="فريق 3ENG.s"></div>
     <div class="g2">
       <div class="cg"><label>السعر ($)</label><input class="ci" id="m-price" type="number" min="0" placeholder="19"></div>
@@ -936,6 +939,7 @@ const mForms={
 
   project:`
     <div class="cg"><label>اسم المشروع *</label><input class="ci" id="m-title" placeholder="نظام تحكم بالمنزل الذكي عبر ESP32"></div>
+    <div class="cg"><label>🔗 رابط الصفحة بالإنجليزي (اختياري — مهم لجوجل)</label><input class="ci" id="m-slug" placeholder="esp32-smart-home" dir="ltr" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]+/g,'-')"><div style="font-size:.72rem;color:var(--mt);margin-top:4px">حروف إنجليزية وأرقام وشرطات فقط. الصفحة تتحدث تلقائياً كل ليلة، والرابط القديم يحوّل للجديد.</div></div>
     <div class="cg"><label>الوصف المختصر *</label><input class="ci" id="m-shortDesc" placeholder="مشروع متكامل للتحكم بأجهزة المنزل عن بعد"></div>
     <div class="cg"><label>الوصف التفصيلي (يدعم الأسطر)</label><textarea class="cta" id="m-desc" rows="5" placeholder="تفاصيل المشروع، طريقة التركيب، الكود..."></textarea></div>
     <div class="g2">
@@ -1065,6 +1069,7 @@ window.saveModal=async()=>{
   else if(type==='section'){if(!g('m-name')){toast('⚠️ اسم القسم مطلوب','err');return;}data={...data,name:g('m-name'),tagline:g('m-tagline'),emoji:g('m-emoji'),color:g('m-color'),order:parseInt(g('m-order'))||1,active:gc('m-active')};}
   else if(type==='sectionItem'){if(!g('m-title')){toast('⚠️ العنوان مطلوب','err');return;}data={...data,sectionId:window._curSectionId,title:g('m-title'),desc:g('m-desc'),price:parseFloat(g('m-price'))||0,emoji:g('m-emoji'),imageUrl:g('m-imageUrl'),fileUrl:g('m-fileUrl'),videoUrl:g('m-videoUrl')};}
 
+  if(['product','course','book','project'].includes(type))data.slug=g('m-slug').toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80);
   const colMap={product:'products',course:'courses',book:'books',project:'projects',testimonial:'testimonials',section:'custom_sections',sectionItem:'section_items'};
   const reloads={product:loadProducts,course:loadCourses,book:loadBooks,project:loadProjects,testimonial:loadTestimonials,section:loadCustomSections,sectionItem:loadSectionItems};
   const ref=id?doc(db,colMap[type],id):doc(collection(db,colMap[type]));

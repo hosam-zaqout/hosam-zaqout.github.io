@@ -4,7 +4,7 @@
     <loc>https://www.3engs.com/</loc>
     <lastmod>2026-09-24</lastmod>
     <priority>1.0</priority>
-    <image:image><image:loc>https://www.3engs.com/logo.jpg</image:loc><image:title>3ENG.s</image:title></image:image>
+    <image:image><image:loc>https://www.3engs.com/og-image.png</image:loc><image:title>3ENG.s</image:title></image:image>
   </url>
   <url>
     <loc>https://www.3engs.com/courses/</loc>
@@ -87,5 +87,9 @@
     <lastmod>2026-04-26</lastmod>
     <priority>0.8</priority>
     <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/engs-website.firebasestorage.app/o/book-covers%2F1777238098712_ChatGPT_Image_Apr_27__2026__12_14_49_AM.png?alt=media&amp;token=f9fe3172-865f-48a9-936c-6c11d92e3122</image:loc><image:title>راسبيري باي ببساطة</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/privacy.html</loc>
+    <priority>0.3</priority>
   </url>
 </urlset>
