@@ -1,0 +1,205 @@
+<!--
+====================================================================
+  إضافات index.html — 3ENG.s
+  فيه 4 أجزاء، كل جزء مكتوب وين بينحط:
+    (1) CSS            ← جوا <head> قبل </head>
+    (2) قسم "من نحن"   ← بالـ <body> قبل قسم التواصل (#contact)
+    (3) قسم الأسئلة     ← بعد "من نحن" مباشرة
+    (4) سكربتات        ← قبل </body>
+  ⚠️ أي نص عليه [عدّل] راجعه وغيّره حسب الواقع قبل النشر.
+  ⚠️ لو غيّرت نص سؤال أو جواب، غيّره كمان بالـ Schema (جزء 4) بنفس الحروف.
+====================================================================
+-->
+
+
+<!-- ======================= (1) CSS — حطه بالـ <head> ======================= -->
+<style>
+.x-sec{max-width:1100px;margin:70px auto;padding:0 16px}
+.x-sec h2{text-align:center;font-size:1.9rem;margin-bottom:8px}
+.x-sub{text-align:center;opacity:.7;margin-bottom:32px}
+.x-team{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+.x-member{border:1px solid rgba(245,158,11,.25);background:rgba(245,158,11,.05);border-radius:18px;padding:22px;text-align:center}
+.x-av{width:84px;height:84px;border-radius:50%;margin:0 auto 12px;background:linear-gradient(135deg,#F59E0B,#fbbf24);display:grid;place-items:center;font-size:1.8rem;font-weight:900;color:#1a1200;overflow:hidden}
+.x-av img{width:100%;height:100%;object-fit:cover}
+.x-member h3{font-size:1.15rem;margin-bottom:2px}
+.x-role{color:#F59E0B;font-size:.88rem;font-weight:700;margin-bottom:10px}
+.x-member p{font-size:.9rem;opacity:.8;line-height:1.8}
+.x-skills{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:12px}
+.x-skills span{font-size:.75rem;border:1px solid rgba(128,128,128,.3);border-radius:999px;padding:2px 10px}
+.x-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-top:26px;text-align:center}
+.x-stats div{border:1px solid rgba(128,128,128,.2);border-radius:14px;padding:16px}
+.x-stats b{display:block;font-size:1.7rem;color:#F59E0B}
+.x-faq{max-width:820px;margin:auto}
+.x-faq details{border:1px solid rgba(128,128,128,.25);border-radius:14px;margin-bottom:10px;overflow:hidden}
+.x-faq summary{cursor:pointer;padding:16px 20px;font-weight:700;list-style:none;display:flex;justify-content:space-between;gap:12px}
+.x-faq summary::-webkit-details-marker{display:none}
+.x-faq summary::after{content:"+";color:#F59E0B;font-size:1.3rem;transition:.2s}
+.x-faq details[open] summary::after{transform:rotate(45deg)}
+.x-faq details p{padding:0 20px 18px;opacity:.85;line-height:1.9}
+.x-links{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:10px}
+.x-links a{border:1px solid rgba(245,158,11,.4);border-radius:10px;padding:8px 16px;color:#F59E0B;font-weight:700;font-size:.9rem}
+</style>
+
+
+<!-- ======================= (2) قسم من نحن ======================= -->
+<section class="x-sec" id="about">
+  <h2>من نحن</h2>
+  <p class="x-sub">3ENG.s — المهندسون الثلاثة: مهندسون كهربائيون من فلسطين نعلّم الهندسة بطريقة عملية</p>
+
+  <p style="max-width:820px;margin:0 auto 28px;text-align:center;line-height:2;opacity:.85">
+    بدأت 3ENG.s كمبادرة تعليمية هدفها نقل الخبرة العملية في الهندسة الكهربائية والأنظمة المدمجة للطلاب والمهتمين في العالم العربي.
+    نقدّم دورات تدريبية، مشاريع جاهزة بالكود الكامل ومخططات التوصيل، وكتب هندسية مبسطة في مجالات ESP32 و Arduino و PIC وإنترنت الأشياء والذكاء الاصطناعي،
+    وكل محتوانا مبني على تجربة حقيقية في التدريس الجامعي والمشاريع العملية.
+  </p>
+
+  <div class="x-team">
+    <div class="x-member">
+      <div class="x-av">ح</div> <!-- لتحط صورة: <div class="x-av"><img src="hosam.jpg" alt="م. حسام زقوت"></div> -->
+      <h3>م. حسام زقوت</h3>
+      <div class="x-role">مهندس كهربائي • مؤسس ومدرّب</div>
+      <p>بكالوريوس هندسة كهربائية من الجامعة الإسلامية بغزة، مساعد تدريس وبحث ومحاضر زائر في إنترنت الأشياء والحساسات. متخصص في الأنظمة المدمجة وتصميم PCB والعتاد المدمج بالذكاء الاصطناعي.</p>
+      <div class="x-skills"><span>ESP32</span><span>IoT</span><span>PCB Design</span><span>Embedded AI</span><span>Control Systems</span></div>
+    </div>
+    <div class="x-member">
+      <div class="x-av">إ</div>
+      <h3>م. إسراء الطويل</h3>
+      <div class="x-role">مهندسة أنظمة مدمجة • مدرّبة</div>
+      <p>مهندسة متخصصة في إنترنت الأشياء والأنظمة المدمجة، درّبت أكثر من 300 طالب، ولها مشاريع عملية في الطاقة الشمسية والأتمتة والأجهزة الذكية.</p>
+      <div class="x-skills"><span>IoT</span><span>Arduino</span><span>Python</span><span>Electronics</span></div>
+    </div>
+    <div class="x-member">
+      <div class="x-av">؟</div>
+      <h3>[عدّل] اسم المهندس الثالث</h3>
+      <div class="x-role">[عدّل] التخصص • الدور</div>
+      <p>[عدّل] نبذة قصيرة من سطرين: الشهادة، الخبرة، المجالات اللي بيدرّبها.</p>
+      <div class="x-skills"><span>[عدّل]</span></div>
+    </div>
+  </div>
+
+  <div class="x-stats">
+    <div><b>+300</b>طالب متدرب</div>
+    <div><b>[عدّل]</b>دورة تدريبية</div>
+    <div><b>[عدّل]</b>مشروع جاهز</div>
+    <div><b>100%</b>محتوى عربي عملي</div>
+  </div>
+
+  <!-- روابط ثابتة لصفحات الأقسام (مهمة جداً لجوجل عشان يلاقي صفحات المنتجات) -->
+  <div class="x-links">
+    <a href="/courses/">🎓 كل الدورات</a>
+    <a href="/projects/">🛠️ كل المشاريع</a>
+    <a href="/products/">📦 المنتجات الرقمية</a>
+    <a href="/books/">📚 الكتب</a>
+  </div>
+</section>
+
+
+<!-- ======================= (3) قسم الأسئلة الشائعة ======================= -->
+<section class="x-sec" id="faq">
+  <h2>الأسئلة الشائعة</h2>
+  <p class="x-sub">كل اللي بدك تعرفه قبل ما تبدأ</p>
+  <div class="x-faq">
+    <details open>
+      <summary>ما هي منصة 3ENG.s؟</summary>
+      <p>3ENG.s (المهندسون الثلاثة) منصة عربية من فلسطين لتعليم الهندسة الكهربائية والأنظمة المدمجة وإنترنت الأشياء والذكاء الاصطناعي، تقدم دورات تدريبية ومشاريع جاهزة بالكود الكامل وكتباً هندسية مبسطة.</p>
+    </details>
+    <details>
+      <summary>هل الدورات مناسبة للمبتدئين؟</summary>
+      <p>نعم، معظم الدورات تبدأ من الأساسيات مثل مبادئ الإلكترونيات وبرمجة Arduino، ومستوى كل دورة أو مشروع مكتوب بوضوح (مبتدئ، متوسط، متقدم) في صفحته.</p>
+    </details>
+    <details>
+      <summary>ماذا أستلم عند شراء مشروع جاهز؟</summary>
+      <p>تحصل على الكود الكامل المشروح، مخطط التوصيل، قائمة المكونات، وشرح طريقة رفع الكود وتشغيل المشروع، مع دعم فني لمساعدتك في التشغيل.</p>
+    </details>
+    <details>
+      <summary>ما طرق الدفع المتاحة؟</summary>
+      <p>يمكنك الدفع بالبطاقة البنكية عبر بوابة الدفع الإلكتروني، أو عبر PayPal، أو التواصل معنا على واتساب لترتيب طريقة دفع مناسبة.</p>
+    </details>
+    <details>
+      <summary>هل الدورات أونلاين أم حضورية؟</summary>
+      <p>[عدّل] نقدم دورات أونلاين ودورات حضورية في غزة، وتفاصيل كل دورة (المدة وعدد الدروس وطريقة التقديم) موجودة في صفحتها.</p>
+    </details>
+    <details>
+      <summary>هل أحصل على شهادة بعد إتمام الدورة؟</summary>
+      <p>[عدّل] نعم، يحصل المتدرب على شهادة إتمام بعد إنهاء متطلبات الدورة.</p>
+    </details>
+    <details>
+      <summary>هل تساعدون في مشاريع التخرج؟</summary>
+      <p>نعم، مشاريعنا الجاهزة مناسبة كمشاريع تخرج ومعارض علمية، ويمكن التواصل معنا لتنفيذ أو تعديل مشروع حسب متطلباتك.</p>
+    </details>
+    <details>
+      <summary>كيف أتواصل مع فريق 3ENG.s؟</summary>
+      <p>عبر واتساب على الرقم 972592753159+، أو البريد info@3engs.com، أو حساباتنا على إنستغرام وتيك توك باسم ‎@3eng.s.</p>
+    </details>
+  </div>
+</section>
+
+
+<!-- ======================= (4) سكربتات — حطها قبل </body> ======================= -->
+
+<!-- 4-أ: Schema الأسئلة الشائعة (النصوص لازم تطابق الأسئلة فوق حرفياً) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type":"Question","name":"ما هي منصة 3ENG.s؟","acceptedAnswer":{"@type":"Answer","text":"3ENG.s (المهندسون الثلاثة) منصة عربية من فلسطين لتعليم الهندسة الكهربائية والأنظمة المدمجة وإنترنت الأشياء والذكاء الاصطناعي، تقدم دورات تدريبية ومشاريع جاهزة بالكود الكامل وكتباً هندسية مبسطة."}},
+    {"@type":"Question","name":"هل الدورات مناسبة للمبتدئين؟","acceptedAnswer":{"@type":"Answer","text":"نعم، معظم الدورات تبدأ من الأساسيات مثل مبادئ الإلكترونيات وبرمجة Arduino، ومستوى كل دورة أو مشروع مكتوب بوضوح (مبتدئ، متوسط، متقدم) في صفحته."}},
+    {"@type":"Question","name":"ماذا أستلم عند شراء مشروع جاهز؟","acceptedAnswer":{"@type":"Answer","text":"تحصل على الكود الكامل المشروح، مخطط التوصيل، قائمة المكونات، وشرح طريقة رفع الكود وتشغيل المشروع، مع دعم فني لمساعدتك في التشغيل."}},
+    {"@type":"Question","name":"ما طرق الدفع المتاحة؟","acceptedAnswer":{"@type":"Answer","text":"يمكنك الدفع بالبطاقة البنكية عبر بوابة الدفع الإلكتروني، أو عبر PayPal، أو التواصل معنا على واتساب لترتيب طريقة دفع مناسبة."}},
+    {"@type":"Question","name":"هل الدورات أونلاين أم حضورية؟","acceptedAnswer":{"@type":"Answer","text":"نقدم دورات أونلاين ودورات حضورية في غزة، وتفاصيل كل دورة (المدة وعدد الدروس وطريقة التقديم) موجودة في صفحتها."}},
+    {"@type":"Question","name":"هل أحصل على شهادة بعد إتمام الدورة؟","acceptedAnswer":{"@type":"Answer","text":"نعم، يحصل المتدرب على شهادة إتمام بعد إنهاء متطلبات الدورة."}},
+    {"@type":"Question","name":"هل تساعدون في مشاريع التخرج؟","acceptedAnswer":{"@type":"Answer","text":"نعم، مشاريعنا الجاهزة مناسبة كمشاريع تخرج ومعارض علمية، ويمكن التواصل معنا لتنفيذ أو تعديل مشروع حسب متطلباتك."}},
+    {"@type":"Question","name":"كيف أتواصل مع فريق 3ENG.s؟","acceptedAnswer":{"@type":"Answer","text":"عبر واتساب على الرقم 972592753159+، أو البريد info@3engs.com، أو حساباتنا على إنستغرام وتيك توك باسم @3eng.s."}}
+  ]
+}
+</script>
+
+<!-- 4-ب: Schema الفريق (بيربط أسماءكم بالمنصة عند جوجل والـ AI) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  "url": "https://www.3engs.com/#about",
+  "about": {
+    "@type": "EducationalOrganization",
+    "name": "3ENG.s",
+    "url": "https://www.3engs.com",
+    "employee": [
+      {
+        "@type": "Person",
+        "name": "Hosam Zaqout",
+        "alternateName": "حسام زقوت",
+        "jobTitle": "Electrical Engineer, Founder & Trainer",
+        "alumniOf": {"@type":"CollegeOrUniversity","name":"Islamic University of Gaza"},
+        "knowsAbout": ["Embedded Systems","IoT","PCB Design","ESP32","Arduino","AI Hardware"],
+        "sameAs": ["https://www.youtube.com/@Hosam.Zaqout"]
+      },
+      {
+        "@type": "Person",
+        "name": "Israa Al-Taweel",
+        "alternateName": "إسراء الطويل",
+        "jobTitle": "Embedded Systems Engineer & Trainer",
+        "knowsAbout": ["IoT","Embedded Systems","Arduino","Electronics"]
+      }
+    ]
+  }
+}
+</script>
+
+<!-- 4-ج: فتح المنتج أوتوماتيك لما حدا يجي من صفحة ثابتة  (مثال: /?open=courses:4yLgkaFok0LUvNlupIBf) -->
+<script>
+(async function openFromUrl(){
+  const p = new URLSearchParams(location.search).get('open');
+  if (!p) return;
+  const [col, id] = p.split(':');
+  // collection ← [نوع openDetail , اسم المصفوفة]
+  const MAP = { courses:['course','_coursesData'], projects:['project','_projectsData'] };
+  const sec = document.getElementById(col);
+  if (sec) sec.scrollIntoView({behavior:'smooth'});
+  const m = MAP[col];
+  if (!m) return;
+  for (let i = 0; i < 40 && !(window[m[1]] || []).length; i++) await new Promise(r => setTimeout(r, 250));
+  const idx = (window[m[1]] || []).findIndex(x => x.id === id);
+  if (idx > -1 && typeof openDetail === 'function') openDetail(m[0], idx);
+})();
+</script>
