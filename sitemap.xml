@@ -1,56 +1,91 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
-
-  <!-- Homepage -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://www.3engs.com/</loc>
-    <lastmod>2024-12-01</lastmod>
-    <changefreq>daily</changefreq>
+    <lastmod>2026-09-24</lastmod>
     <priority>1.0</priority>
-    <image:image>
-      <image:loc>https://www.3engs.com/logo.jpg</image:loc>
-      <image:title>3ENG.s - المهندسون الثلاثة</image:title>
-      <image:caption>منصة 3ENG.s للهندسة الكهربائية والأنظمة المدمجة</image:caption>
-    </image:image>
+    <image:image><image:loc>https://www.3engs.com/logo.jpg</image:loc><image:title>3ENG.s</image:title></image:image>
   </url>
-
-  <!-- Sections -->
   <url>
-    <loc>https://www.3engs.com/#products</loc>
-    <changefreq>weekly</changefreq>
+    <loc>https://www.3engs.com/courses/</loc>
     <priority>0.9</priority>
   </url>
-
   <url>
-    <loc>https://www.3engs.com/#courses</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-
-  <url>
-    <loc>https://www.3engs.com/#projects</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-
-  <url>
-    <loc>https://www.3engs.com/#books</loc>
-    <changefreq>weekly</changefreq>
+    <loc>https://www.3engs.com/courses/pcb-4ylgka/</loc>
+    <lastmod>2026-09-23</lastmod>
     <priority>0.8</priority>
+    <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/engs-website.firebasestorage.app/o/courses%2F1777134216950_u76r88.png?alt=media&amp;token=fd476c58-8a6b-4b7b-a0e8-519f4b1198c7</image:loc><image:title>الكترونبات و تصميم ال PCB</image:title></image:image>
   </url>
-
   <url>
-    <loc>https://www.3engs.com/#contact</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <loc>https://www.3engs.com/courses/ijifujcwbkigoku99dh5/</loc>
+    <lastmod>2026-09-23</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/engs-website.firebasestorage.app/o/courses%2F1777135190140_5fqcfn.png?alt=media&amp;token=584dfd2b-ac0c-43b6-80cf-73f7d119b92f</image:loc><image:title>مخيم صناع المستقبل</image:title></image:image>
   </url>
-
-  <!-- Auth -->
   <url>
-    <loc>https://www.3engs.com/auth.html</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
+    <loc>https://www.3engs.com/courses/op0pkdjuabl2he9ahzng/</loc>
+    <lastmod>2026-09-23</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/engs-website.firebasestorage.app/o/courses%2F1777134149034_cvtlmm.png?alt=media&amp;token=c5f60051-73e4-404c-8470-4db2058d9d51</image:loc><image:title>اساسيات البايثون والذكاء الاصطناعي</image:title></image:image>
   </url>
-
+  <url>
+    <loc>https://www.3engs.com/courses/iot-zxznfc/</loc>
+    <lastmod>2026-09-23</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/engs-website.firebasestorage.app/o/courses%2F1777134471739_dei2j2.png?alt=media&amp;token=76bd0b07-eec4-417d-a4b2-1ade394c3d60</image:loc><image:title>انترنت الاشياء والانظمة المدمجة (iot)</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/courses/ppgf4s766bsu8h1bo85r/</loc>
+    <lastmod>2026-09-23</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/engs-website.firebasestorage.app/o/courses%2F1777134440312_9c3kdh.png?alt=media&amp;token=87d69900-0b0a-46c2-9d25-195f42d349f4</image:loc><image:title>برمجة الاردوينو روبوتيكس</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/projects/</loc>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/projects/pic-microcontroller-factory-security-system-1hbkxt/</loc>
+    <lastmod>2026-09-23</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/engs-website.firebasestorage.app/o/projects%2F1790200587426_ChatGPT_Image_Sep_24__2026__12_55_07_AM.png?alt=media&amp;token=d2e60064-7c7a-4c7d-a44e-484b8a360995</image:loc><image:title>نظام لتمثيل انظمة الحماية في المصانع باستخدام PIC MICROCONTROLLER | Factory Security System</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/projects/abamsmo49txkwwe8gamk/</loc>
+    <lastmod>2026-09-23</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/engs-website.firebasestorage.app/o/projects%2F1790200213039_ChatGPT_Image_Sep_24__2026__12_50_00_AM.png?alt=media&amp;token=24b66c7b-2b62-4cc4-a878-861773be6473</image:loc><image:title>محطة طقس متنقلة ذكية</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/products/</loc>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/products/ch340-driver-5l1rn9/</loc>
+    <lastmod>2026-04-26</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/engs-website.firebasestorage.app/o/products%2F1777236416668_ChatGPT_Image_Apr_26__2026__11_46_38_PM.png?alt=media&amp;token=2bd0ffc2-816f-42ba-ab54-caabac03ea96</image:loc><image:title>CH340 DRIVER</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/books/</loc>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/books/5une4cjcu7ptpwtngk03/</loc>
+    <lastmod>2026-04-19</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/engs-website.firebasestorage.app/o/book-covers%2F1776636386747_00j5am.png?alt=media&amp;token=3936a3fc-ba45-4381-9758-109092f6bb98</image:loc><image:title>معلومات عن تخصص هندسة الطاقة المتجددة</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/books/lmdlb5k426qbofgyccra/</loc>
+    <lastmod>2026-04-26</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/engs-website.firebasestorage.app/o/book-covers%2F1777237855150_ChatGPT_Image_Apr_27__2026__12_10_30_AM.png?alt=media&amp;token=a577744c-1af0-42c0-b5ba-55cbbf157c6b</image:loc><image:title>اردوينو ببساطة</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/books/sa5okrynddbxtnsxsgrs/</loc>
+    <lastmod>2026-04-26</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/engs-website.firebasestorage.app/o/book-covers%2F1777238098712_ChatGPT_Image_Apr_27__2026__12_14_49_AM.png?alt=media&amp;token=f9fe3172-865f-48a9-936c-6c11d92e3122</image:loc><image:title>راسبيري باي ببساطة</image:title></image:image>
+  </url>
 </urlset>
