@@ -459,7 +459,7 @@ function llms(data) {
 
 // ---------------- IndexNow (Bing / Yandex) ----------------
 async function indexNow(urls) {
-  const key = process.env.INDEXNOW_KEY;
+  const key = (process.env.INDEXNOW_KEY || "").trim(); // trim: سطر فارغ في الـ secret كان يولّد ملف باسم خاطئ
   if (!key || !urls.length) return;
   await fs.writeFile(path.join(OUT_DIR, `${key}.txt`), key);
   try {

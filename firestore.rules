@@ -8,8 +8,10 @@ service cloud.firestore {
     function isSignedIn() {
       return request.auth != null;
     }
+    // الإيميل لازم يكون مؤكَّد — وإلا أي شخص يسجّل بإيميل الأدمن يصير أدمن
     function isAdmin() {
       return isSignedIn() &&
+        request.auth.token.email_verified == true &&
         request.auth.token.email in [
           'hosam2564491@gmail.com',
           'info@3engs.com'
@@ -18,9 +20,13 @@ service cloud.firestore {
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
+    function shortStr(v, max) {
+      return v is string && v.size() <= max;
+    }
 
     // ─────────────────────────────────────────
     // المحتوى العام — قراءة للجميع
+    // ⚠️ fileUrl هنا يكون فقط للعناصر المجانية
     // ─────────────────────────────────────────
     match /products/{doc} {
       allow read: if true;
@@ -56,10 +62,22 @@ service cloud.firestore {
     }
 
     // ─────────────────────────────────────────
+    // 🔒 روابط ملفات العناصر المدفوعة — {col}__{id}
+    // الأدمن فقط. السيرفر يقرأها ويعطيها للمشتري بعد الدفع.
+    // ─────────────────────────────────────────
+    match /private_files/{doc} {
+      allow read, write: if isAdmin();
+    }
+
+    // ─────────────────────────────────────────
     // رسائل التواصل
     // ─────────────────────────────────────────
     match /contact_messages/{doc} {
-      allow create: if true;   // الجميع يرسل
+      allow create: if request.resource.data.keys().hasOnly(['name','email','subject','message','timestamp']) &&
+        shortStr(request.resource.data.name, 100) &&
+        shortStr(request.resource.data.email, 200) &&
+        shortStr(request.resource.data.message, 5000) &&
+        (!('subject' in request.resource.data) || shortStr(request.resource.data.subject, 200));
       allow read, update, delete: if isAdmin();
     }
 
@@ -67,7 +85,8 @@ service cloud.firestore {
     // النشرة البريدية
     // ─────────────────────────────────────────
     match /newsletter_subscribers/{doc} {
-      allow create: if true;
+      allow create: if request.resource.data.keys().hasOnly(['email','timestamp']) &&
+        shortStr(request.resource.data.email, 200);
       allow read, delete: if isAdmin();
     }
 
@@ -76,39 +95,24 @@ service cloud.firestore {
     // ─────────────────────────────────────────
     match /users/{userId} {
       allow read: if isOwner(userId) || isAdmin();
+      // المستخدم ينشئ ملفه بدور "user" فقط
+      allow create: if isOwner(userId) &&
+        (request.resource.data.get('role', 'user') == 'user' || isAdmin());
       // المستخدم يعدّل ملفه فقط — لكن لا يغير role أبداً
-      allow update: if isOwner(userId) &&
-        !request.resource.data.diff(resource.data).affectedKeys()
-          .hasAny(['role', 'userId', 'createdAt']);
-      allow create: if isOwner(userId);
+      allow update: if isAdmin() ||
+        (isOwner(userId) &&
+         !request.resource.data.diff(resource.data).affectedKeys()
+           .hasAny(['role', 'uid', 'userId', 'createdAt']));
       allow delete: if isAdmin();
     }
 
     // ─────────────────────────────────────────
-    // 🔒 الطلبات — ORDERS (أكثر شيء حساس)
-    //
-    // ❌ لا أحد يكتب من client أبداً
-    // ✅ الكتابة فقط من Cloud Functions (Admin SDK)
-    // ✅ المستخدم يقرأ طلباته فقط
-    // ✅ الأدمن يقرأ كل الطلبات
+    // 🔒 الطلبات — الكتابة فقط من Cloud Functions (Admin SDK)
     // ─────────────────────────────────────────
     match /orders/{orderId} {
-      // قراءة: المستخدم يرى طلباته — الأدمن يرى الكل
       allow read: if isAdmin() ||
         (isSignedIn() && resource.data.userId == request.auth.uid);
-
-      // ❌ لا كتابة من client أبداً
-      // الكتابة تتم فقط من Cloud Functions عبر Admin SDK
       allow write: if false;
-    }
-
-    // ─────────────────────────────────────────
-    // 🔒 المدفوعات — PAYMENTS (إضافي)
-    // ─────────────────────────────────────────
-    match /payments/{paymentId} {
-      allow read: if isAdmin() ||
-        (isSignedIn() && resource.data.userId == request.auth.uid);
-      allow write: if false; // السيرفر فقط
     }
 
     // ─────────────────────────────────────────

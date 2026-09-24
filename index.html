@@ -74,8 +74,6 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 
-<!-- Lahza Inline JS -->
-<script src="https://js.lahza.io/inline.js"></script>
 
 <!-- Theme Loader (instant, no flash) -->
 <script>
@@ -605,9 +603,9 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
 <!-- FEATURES -->
 <div class="fstrip">
   <div class="fgrid">
-    <div class="feat reveal"><div class="ficon">🔒</div><div class="ftext"><h4>دفع آمن 100%</h4><p>Lahza & PayPal مع تشفير كامل</p></div></div>
+    <div class="feat reveal"><div class="ficon">🔒</div><div class="ftext"><h4>دفع آمن 100%</h4><p>طرق دفع آمنة وموثوقة</p></div></div>
     <div class="feat reveal"><div class="ficon">⚡</div><div class="ftext"><h4>تسليم فوري</h4><p>احصل على منتجاتك فور الدفع</p></div></div>
-    <div class="feat reveal"><div class="ficon">📥</div><div class="ftext"><h4>تحميل مباشر</h4><p>المحتوى المجاني للمسجلين مباشرة</p></div></div>
+    <div class="feat reveal"><div class="ficon">📥</div><div class="ftext"><h4>تحميل مباشر</h4><p>المحتوى المجاني متاح للتحميل مباشرة</p></div></div>
     <div class="feat reveal"><div class="ficon">🔧</div><div class="ftext"><h4>محتوى تخصصي</h4><p>من مهندسين متخصصين</p></div></div>
   </div>
 </div>
@@ -837,10 +835,12 @@ async function loadConfig(){
 function buildPaymentButtons(){
   const p=window._payConfig;
   let html='';
-  // زر Crosspay/Lahza الرئيسي — دائماً يظهر
-  html+=`<button class="btn-pay-lz" onclick="payWithCrosspay()">⚡ الدفع الإلكتروني (Lahza)</button>`;
+  // كل طريقة دفع تظهر فقط إذا كانت مفعّلة من لوحة التحكم
+  if(p?.lahza?.active){html+=`<button class="btn-pay-lz" onclick="payWithCrosspay('card')">💳 الدفع بالبطاقة (PaySky)</button>`;}
+  if(p?.lahza?.active&&p?.crosspayPaypal?.active){html+=`<button class="btn-pay-pp" onclick="payWithCrosspay('paypal')">🅿️ PayPal (دفع إلكتروني)</button>`;}
   if(p?.paypal?.active&&p.paypal.link){html+=`<button class="btn-pay-pp" onclick="payWithPayPal()">🅿️ الدفع عبر PayPal</button>`;}
   if(p?.whatsapp?.active){html+=`<button class="btn-pay-wa" onclick="payWithWhatsApp()">💬 الدفع عبر واتساب</button>`;}
+  if(!html){html=`<button class="btn-pay-wa" onclick="payWithWhatsApp()">💬 اطلب عبر واتساب</button><p style="font-size:.76rem;color:var(--mt);text-align:center;margin-top:8px">الدفع الإلكتروني غير متاح حالياً — تواصل معنا لإتمام الطلب</p>`;}
   document.getElementById('payMethods').innerHTML=html;
 }
 
@@ -852,7 +852,8 @@ function buildPaymentButtons(){
 // ==============================
 // PHONE MODAL — قبل الدفع
 // ==============================
-window.payWithCrosspay = async function() {
+window.payWithCrosspay = async function(provider) {
+  window._payProvider = provider === 'paypal' ? 'paypal' : 'card';
   if (!_currentUser) {
     toast('⚠️ سجّل الدخول أولاً للدفع','err');
     setTimeout(()=>{ window.location.href='auth.html'; }, 1500);
@@ -861,7 +862,7 @@ window.payWithCrosspay = async function() {
   if (!cart.length) { toast('⚠️ السلة فارغة','err'); return; }
 
   const total = cart.reduce((s,i)=>s+parseFloat(i.price||0),0);
-  if (total <= 0) { toast('⚠️ لا توجد منتجات مدفوعة','err'); return; }
+  if (total <= 0 || !cart.some(i=>i.col&&i.id)) { toast('⚠️ لا توجد منتجات مدفوعة','err'); return; }
 
   // اطلب رقم الجوال قبل الدفع
   showPhoneModal(total);
@@ -943,10 +944,10 @@ window.confirmPhoneAndPay = async function() {
   const fullMobile  = code + cleanNumber;
 
   document.getElementById('phonePayModal').style.display = 'none';
-  await processPayment(fullMobile);
+  await processPayment(fullMobile, window._payProvider || 'card');
 };
 
-async function processPayment(mobile) {
+async function processPayment(mobile, provider) {
   const total = cart.reduce((s,i)=>s+parseFloat(i.price||0),0);
 
   const btnEl = document.getElementById('payMethods');
@@ -963,12 +964,8 @@ async function processPayment(mobile) {
     const customerName = (_currentUser.displayName ||
       _currentUser.email.split('@')[0]).substring(0, 80);
 
-    const itemsJson = JSON.stringify(cart.map(i=>({
-      name:    String(i.name    || ''),
-      price:   parseFloat(i.price  || 0),
-      emoji:   String(i.emoji   || ''),
-      fileUrl: String(i.fileUrl || ''),
-    })));
+    // نرسل فقط نوع العنصر ورقمه — السيرفر يقرأ السعر من قاعدة البيانات
+    const itemsJson = JSON.stringify(cart.filter(i=>i.col&&i.id).map(i=>({col:i.col,id:i.id})));
 
     // إنشاء form مخفي وإرساله بـ POST
     // POST لا يظهر البيانات في الـ URL ✅
@@ -978,11 +975,11 @@ async function processPayment(mobile) {
     form.style.display = 'none';
 
     const fields = {
-      token:  token,
-      items:  itemsJson,
-      total:  total.toFixed(2),
-      mobile: mobile,
-      name:   customerName,
+      token:    token,
+      items:    itemsJson,
+      mobile:   mobile,
+      name:     customerName,
+      provider: provider,
     };
 
     Object.entries(fields).forEach(([k, v]) => {
@@ -1035,15 +1032,16 @@ async function loadProds(){
     const badgeMap={new:{cls:'bn',txt:'جديد'},best:{cls:'bb',txt:'الأكثر مبيعاً'},sale:{cls:'bs',txt:'خصم'},free:{cls:'bf',txt:'مجاني'}};
     let html='';
     snap.forEach(d=>{
-      const p=d.data();const t=typeMap[p.type]||{cls:'tt',lbl:p.type||''};const bdg=badgeMap[p.badge];
+      const p={id:d.id,...d.data()};const t=typeMap[p.type]||{cls:'tt',lbl:p.type||''};const bdg=badgeMap[p.badge];
       const bdgHTML=bdg?`<div class="cbwrap"><span class="cbadge ${bdg.cls}">${bdg.txt}</span></div>`:'';
       const thumb=p.imageUrl?`<img src="${p.imageUrl}" alt="${p.title||''}" loading="lazy" onerror="this.style.display='none'">`:`<span class="ef">${p.emoji||'📦'}</span>`;
       const oldP=p.oldPrice?`<span class="pold">$${p.oldPrice}</span>`:'';
-      const priceDisp=p.isFree?`<span style="color:var(--ok);font-size:1.1rem;font-weight:900">مجاني</span>`:`${oldP}<span class="pcur">$${p.price||0}</span>`;
+      const pFree=isFreeItem(p);
+      const priceDisp=pFree?`<span style="color:var(--ok);font-size:1.1rem;font-weight:900">مجاني</span>`:`${oldP}<span class="pcur">$${p.price||0}</span>`;
       const pTitle=(p.title||'').replace(/"/g,'&quot;');
-      const actionBtn=p.isFree
-        ?`<button class="btn-free" onclick="downloadFree(this)" data-fileurl="${p.fileUrl||''}" data-name="${pTitle}">📥 تحميل مجاني</button>`
-        :`<button class="btn-c" onclick="addCartFromEl(this)" data-name="${pTitle}" data-price="${p.price||0}" data-emoji="${p.emoji||'📦'}" data-fileurl="${p.fileUrl||''}">أضف للسلة</button>`;
+      const actionBtn=pFree
+        ?`<button class="btn-free" onclick="downloadFree(this)" data-fileurl="${escAttr(p.fileUrl)}" data-name="${pTitle}">📥 تحميل مجاني</button>`
+        :`<button class="btn-c" onclick="addCartFromEl(this)" data-name="${pTitle}" data-price="${p.price||0}" data-emoji="${p.emoji||'📦'}" data-col="products" data-id="${p.id}">أضف للسلة</button>`;
       html+=`<div class="pcard reveal" data-cat="${p.type||'tool'}">${bdgHTML}<div class="cthumb ${t.cls}">${thumb}</div><div class="cbody"><div class="ctype">${t.lbl}</div><div class="ctitle">${p.title||''}</div><div class="cdesc">${p.desc||''}</div><div class="cfooter"><div>${priceDisp}</div><span class="pstars">★★★★★</span></div>${actionBtn}</div></div>`;
     });
     grid.innerHTML=html;
@@ -1103,6 +1101,7 @@ async function loadProjects(){
       const videoTag=pr.videoUrl?`<div class="pr-video-tag">▶️ فيديو</div>`:'';
       const catTag=pr.category?`<div class="pr-cat">${pr.category}</div>`:'';
       const oldP=pr.oldPrice?`<span class="price-old-s">$${pr.oldPrice}</span> `:'';
+      const prPrice=isFreeItem(pr)?'<span class="price-new-s" style="color:var(--ok)">مجاني</span>':`${oldP}<span class="price-new-s">$${pr.price||0}</span>`;
       html+=`<div class="prcard reveal" onclick="openDetail('project',${idx})">
         <div class="pr-thumb">${thumb}${videoTag}${catTag}</div>
         <div class="pr-body">
@@ -1114,7 +1113,7 @@ async function loadProjects(){
           </div>
           <div class="pr-foot">
             <div class="instr"><div class="iav">3E</div><div><div class="inm">3ENG.s</div><div class="irl">مشروع جاهز</div></div></div>
-            <div class="price-wrap">${oldP}<span class="price-new-s">$${pr.price||0}</span></div>
+            <div class="price-wrap">${prPrice}</div>
           </div>
         </div>
       </div>`;
@@ -1191,9 +1190,12 @@ window.openDetail=function(type,idx){
   }else{reqSec.style.display='none';}
 
   // Price
-  document.getElementById('dmPriceOld').textContent=item.oldPrice?`$${item.oldPrice}`:'';
-  document.getElementById('dmPriceNew').textContent=`$${item.price||0}`;
-  document.getElementById('dmBuyBtn').textContent=type==='course'?'الاشتراك الآن 🚀':'شراء المشروع 🚀';
+  const free=isFreeItem(item);
+  document.getElementById('dmPriceOld').textContent=!free&&item.oldPrice?`$${item.oldPrice}`:'';
+  document.getElementById('dmPriceNew').textContent=free?'مجاني':`$${item.price||0}`;
+  document.getElementById('dmBuyBtn').textContent=free
+    ?(item.fileUrl?'📥 تحميل مجاني':'مجاني — تواصل معنا 💬')
+    :(type==='course'?'الاشتراك الآن 🚀':'شراء المشروع 🚀');
 
   document.getElementById('detailModal').classList.add('show');
 };
@@ -1205,7 +1207,13 @@ window.openVideo=()=>{
 window.buyDetailItem=()=>{
   const d=window._currentDetail;if(!d)return;
   const i=d.item;
-  addCartItem(i.title||'عنصر',i.price||0,i.emoji||(d.type==='course'?'🎓':'🔧'),i.fileUrl||'');
+  if(isFreeItem(i)){
+    if(i.fileUrl){startDownload(i.fileUrl,i.title||'ملف');}
+    else{window.open('https://wa.me/972592753159?text='+encodeURIComponent('مرحبا، أريد الحصول على: '+(i.title||'')),'_blank');}
+    return;
+  }
+  if(!i.id){toast('⚠️ هذا العنصر للعرض فقط','err');return;}
+  addCartItem(i.title||'عنصر',i.price||0,i.emoji||(d.type==='course'?'🎓':'🔧'),d.type==='course'?'courses':'projects',i.id);
   closeDetailModal();openCart();
 };
 
@@ -1218,18 +1226,18 @@ async function loadBooks(){
     const cls=['bk1','bk2','bk3','bk4','bk5','bk6'];let i=0;
     let html='';
     snap.forEach(d=>{
-      const b=d.data();
+      const b={id:d.id,...d.data()};const bFree=isFreeItem(b);
       const bTitle=(b.title||'').replace(/"/g,'&quot;');
       const cover=b.imageUrl?`<img src="${b.imageUrl}" alt="${bTitle}" loading="lazy" onerror="this.style.display='none'">`:'';
-      const action=b.isFree
-        ?`onclick="downloadFree(this)" data-fileurl="${b.fileUrl||''}" data-name="${bTitle}"`
-        :`onclick="addCartFromEl(this)" data-name="${bTitle}" data-price="${b.price||0}" data-emoji="${b.emoji||'📚'}" data-fileurl="${b.fileUrl||''}"`;
+      const action=bFree
+        ?`onclick="downloadFree(this)" data-fileurl="${escAttr(b.fileUrl)}" data-name="${bTitle}"`
+        :`onclick="addCartFromEl(this)" data-name="${bTitle}" data-price="${b.price||0}" data-emoji="${b.emoji||'📚'}" data-col="books" data-id="${b.id}"`;
       html+=`<div class="bkcard reveal" ${action}>
         <div class="bkcover ${cls[i%6]}"><div class="bkspine"></div>${cover}<span class="bke">${b.emoji||'📚'}</span></div>
-        ${b.isFree?'<div class="bk-free-tag">📥 مجاني للمسجلين</div>':''}
+        ${bFree?'<div class="bk-free-tag">📥 تحميل مجاني</div>':''}
         <div class="bktitle">${b.title||''}</div>
         <div class="bkauthor">${b.author||'فريق 3ENG.s'}</div>
-        <div class="bkprice">${b.isFree?'<span style="color:var(--ok)">مجاني</span>':'$'+(b.price||0)}</div>
+        <div class="bkprice">${bFree?'<span style="color:var(--ok)">مجاني</span>':'$'+(b.price||0)}</div>
       </div>`;
       i++;
     });
@@ -1256,7 +1264,10 @@ async function loadCustomSections(){
       const itemsHTML=items.map(i=>{
         const thumb=i.imageUrl?`<img src="${i.imageUrl}" alt="" loading="lazy" onerror="this.style.display='none'">`:'';
         const iTitle=(i.title||'').replace(/"/g,'&quot;');
-        return `<div class="cs-card" onclick="addCartFromEl(this)" data-name="${iTitle}" data-price="${i.price||0}" data-emoji="${i.emoji||'•'}" data-fileurl="${i.fileUrl||''}">
+        const iAction=isFreeItem(i)
+          ?`onclick="downloadFree(this)" data-fileurl="${escAttr(i.fileUrl)}" data-name="${iTitle}"`
+          :`onclick="addCartFromEl(this)" data-name="${iTitle}" data-price="${i.price||0}" data-emoji="${i.emoji||'•'}" data-col="section_items" data-id="${i.id}"`;
+        return `<div class="cs-card" ${iAction}>
           <div class="cs-thumb">${thumb}<span style="position:relative;z-index:1">${i.emoji||'•'}</span></div>
           <div class="cs-body">
             <div class="cs-title">${i.title||''}</div>
@@ -1320,7 +1331,7 @@ window.doNewsletter=async()=>{
 };
 
 // Init
-loadConfig(); loadProds(); loadCourses(); loadProjects(); loadBooks(); loadTests(); loadCustomSections();
+buildPaymentButtons(); loadConfig(); loadProds(); loadCourses(); loadProjects(); loadBooks(); loadTests(); loadCustomSections();
 </script>
 
 <script>
@@ -1350,7 +1361,12 @@ window.scrollToSec=function(id){
 };
 
 // Cart
-let cart=JSON.parse(localStorage.getItem('3engs_cart')||'[]');
+// العناصر القديمة (بدون col/id) تُحذف — السعر يُحسب على السيرفر
+let cart=[];
+try{cart=JSON.parse(localStorage.getItem('3engs_cart')||'[]').filter(i=>i&&i.col&&i.id);}catch(e){}
+function isFreeItem(d){return d.isFree===true||!(parseFloat(d.price)>0);}
+function escAttr(v){return String(v||'').replace(/[&"<>]/g,c=>({'&':'&amp;','"':'&quot;','<':'&lt;','>':'&gt;'}[c]));}
+window.isFreeItem=isFreeItem;window.escAttr=escAttr;
 function saveCart(){try{localStorage.setItem('3engs_cart',JSON.stringify(cart));}catch(e){}updateCartUI();}
 window.saveCart=saveCart;
 function updateCartUI(){
@@ -1370,8 +1386,10 @@ function renderCartItems(){
   }).join('');
   document.getElementById('cartTotal').textContent='$'+total.toFixed(2);
 }
-function addCartItem(name,price,emoji,fileUrl){
-  cart.push({name,price,emoji,fileUrl}); saveCart();
+function addCartItem(name,price,emoji,col,id){
+  if(!col||!id){toast('⚠️ هذا العنصر للعرض فقط','err');return;}
+  if(cart.some(i=>i.col===col&&i.id===id)){toast('ℹ️ العنصر موجود في السلة','warn');openCart();return;}
+  cart.push({name,price,emoji,col,id}); saveCart();
   toast(`✓ أُضيف "${name}" للسلة`,'ok');
 }
 window.addCartItem=addCartItem;
@@ -1380,8 +1398,7 @@ window.addCartFromEl=function(el){
   const name=card.dataset.name||'منتج';
   const price=parseFloat(card.dataset.price)||0;
   const emoji=card.dataset.emoji||'📦';
-  const fileUrl=card.dataset.fileurl||'';
-  addCartItem(name,price,emoji,fileUrl);
+  addCartItem(name,price,emoji,card.dataset.col||'',card.dataset.id||'');
 };
 window.removeFromCart=function(idx){cart.splice(idx,1);saveCart();};
 window.clearCart=function(){if(!confirm('إفراغ السلة؟'))return;cart=[];saveCart();};
@@ -1393,15 +1410,15 @@ updateCartUI();
 window.downloadFree=function(el){
   const fileUrl=el.dataset?.fileurl||'';
   const name=el.dataset?.name||'ملف';
-  if(!window._currentUser){
-    document.getElementById('lrMsg').textContent=`"${name}" متاح مجاناً للمسجلين. سجّل الآن!`;
-    document.getElementById('loginReqModal').classList.add('show');
-    return;
-  }
-  if(!fileUrl){toast('⚠️ الملف غير متاح حالياً','err');return;}
-  const a=document.createElement('a');a.href=fileUrl;a.target='_blank';a.click();
-  toast('📥 جاري تحميل '+name,'ok');
+  startDownload(fileUrl,name);
 };
+function startDownload(fileUrl,name){
+  if(!fileUrl){toast('⚠️ الملف غير متاح حالياً','err');return;}
+  if(!/^https?:\/\//i.test(fileUrl)){toast('⚠️ رابط الملف غير صالح','err');return;}
+  const a=document.createElement('a');a.href=fileUrl;a.target='_blank';a.rel='noopener';a.click();
+  toast('📥 جاري تحميل '+name,'ok');
+}
+window.startDownload=startDownload;
 
 // User menu
 window.toggleUserMenu=function(){document.getElementById('userDD').classList.toggle('open');};
@@ -1463,7 +1480,7 @@ function defaultBooks(){
     const isFree=b[4];
     const action=isFree?`onclick="downloadFree(this)" data-fileurl="${b[5]}" data-name="${b[1]}"`:
       `onclick="addCartFromEl(this)" data-name="${b[1]}" data-price="${parseFloat(b[3])||0}" data-emoji="${b[0]}"`;
-    return `<div class="bkcard reveal" ${action}><div class="bkcover bk${i+1}"><div class="bkspine"></div><span class="bke">${b[0]}</span></div>${isFree?'<div class="bk-free-tag">📥 مجاني للمسجلين</div>':''}<div class="bktitle">${b[1]}</div><div class="bkauthor">${b[2]}</div><div class="bkprice">${isFree?'<span style="color:var(--ok)">مجاني</span>':'$'+b[3]}</div></div>`;
+    return `<div class="bkcard reveal" ${action}><div class="bkcover bk${i+1}"><div class="bkspine"></div><span class="bke">${b[0]}</span></div>${isFree?'<div class="bk-free-tag">📥 تحميل مجاني</div>':''}<div class="bktitle">${b[1]}</div><div class="bkauthor">${b[2]}</div><div class="bkprice">${isFree?'<span style="color:var(--ok)">مجاني</span>':'$'+b[3]}</div></div>`;
   }).join('');}
 
 function defaultTests(){return`

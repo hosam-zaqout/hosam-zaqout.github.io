@@ -121,15 +121,17 @@ const auth=getAuth(app); const db=getFirestore(app); const gp=new GoogleAuthProv
 onAuthStateChanged(auth, async user => {
   if(user) {
     await saveUser(user, user.providerData?.[0]?.providerId||'email');
-    const isAdmin = ADMINS.includes(user.email);
-    window.location.href = isAdmin ? 'admin.html' : 'index.html';
+    const isAdmin = ADMINS.includes(user.email) && user.emailVerified;
+    const back = new URLSearchParams(location.search).get('redirect') || '';
+    const safeBack = back.startsWith('https://www.3engs.com/') ? back : '';
+    window.location.href = safeBack || (isAdmin ? 'admin.html' : 'index.html');
   }
 });
 
 async function saveUser(user, provider='email'){
   const ref=doc(db,'users',user.uid);
   const snap=await getDoc(ref);
-  const isAdmin=ADMINS.includes(user.email);
+  const isAdmin=ADMINS.includes(user.email)&&user.emailVerified;
   if(!snap.exists()){
     await setDoc(ref,{uid:user.uid,email:user.email,displayName:user.displayName||'',photoURL:user.photoURL||'',provider:provider.includes('google')?'google':'email',role:isAdmin?'admin':'user',createdAt:serverTimestamp(),lastLogin:serverTimestamp()});
   } else {

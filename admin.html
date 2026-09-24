@@ -159,6 +159,7 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
   <div class="ni" onclick="showP('testimonials',this)"><span class="ic">⭐</span> آراء الطلاب</div>
   <div class="ni" onclick="showP('sections',this)"><span class="ic">➕</span> أقسام مخصصة</div>
   <div class="ns">إدارة الموقع</div>
+  <div class="ni" onclick="showP('orders',this);loadOrders()"><span class="ic">🧾</span> الطلبات <span class="nb" id="oc">0</span></div>
   <div class="ni" onclick="showP('users',this)"><span class="ic">👥</span> المستخدمون <span class="nb" id="uc">0</span></div>
   <div class="ni" onclick="showP('messages',this)"><span class="ic">💬</span> الرسائل <span class="nb" id="mc">0</span></div>
   <div class="ni" onclick="showP('newsletter',this)"><span class="ic">📧</span> النشرة البريدية</div>
@@ -275,6 +276,25 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
       </div>
     </div>
 
+    <!-- ORDERS -->
+    <div class="panel" id="p-orders">
+      <div class="pc"><h3>🧾 الطلبات</h3>
+        <p style="font-size:.8rem;color:var(--mt);margin-bottom:12px">قارن الطلبات المدفوعة مع لوحة Crosspay. "بانتظار الموافقة" يظهر فقط إذا فعّلت المراجعة اليدوية من إعدادات الدفع.</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+          <select class="cs" id="oFilter" style="width:200px" onchange="renderOrders()">
+            <option value="">كل الحالات</option><option value="awaiting_approval">⏳ بانتظار الموافقة</option><option value="paid">✅ مدفوع</option><option value="pending">🕓 لم يكتمل</option><option value="failed">❌ فشل</option><option value="revoked">🚫 ملغى</option>
+          </select>
+          <button class="btn-sm" onclick="loadOrders()">🔄 تحديث</button>
+        </div>
+        <div class="tbl-wrap">
+          <table class="dtbl">
+            <thead><tr><th>رقم الطلب</th><th>العميل</th><th>العناصر</th><th>المبلغ</th><th>الحالة</th><th>التاريخ</th><th>إجراء</th></tr></thead>
+            <tbody id="oTable"><tr><td colspan="7" style="text-align:center;color:var(--mt);padding:30px">اضغط تحديث</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- USERS -->
     <div class="panel" id="p-users">
       <div class="pc"><h3>👥 جميع المستخدمين</h3>
@@ -306,23 +326,24 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
       <div class="pc"><h3>💳 إعدادات الدفع</h3>
         <p style="font-size:.8rem;color:var(--mt);margin-bottom:16px">طرق الدفع المتاحة للمستخدمين عند الشراء</p>
 
-        <!-- LAHZA / CROSSPAY -->
+        <!-- CROSSPAY / PAYSKY -->
         <div class="pay-card" style="background:rgba(99,102,241,.08);border-color:rgba(99,102,241,.3)">
           <div class="pc-head">
-            <span style="font-size:1.3rem">⚡</span>
-            <strong>Crosspay / Lahza — بوابة الدفع الإلكتروني</strong>
+            <span style="font-size:1.3rem">💳</span>
+            <strong>Crosspay — الدفع بالبطاقة (PaySky)</strong>
             <label class="pay-toggle"><input type="checkbox" id="pay-lz-active" checked> تفعيل</label>
           </div>
-          <div class="cg"><label>API Key من Crosspay Dashboard (PaySky)</label><input class="ci" id="pay-lz-pk" placeholder="34d9f7-955a73-..." dir="ltr" value="34d9f7-955a73-c93a4d-2c3f93-01138d"></div>
-          <div class="g2">
-            <div class="cg"><label>العملة</label>
-              <select class="cs" id="pay-lz-currency"><option value="USD" selected>دولار (USD)</option><option value="ILS">شيكل (ILS)</option><option value="JOD">دينار (JOD)</option></select>
-            </div>
-            <div class="cg"><label>الـ Endpoint</label>
-              <select class="cs" id="pay-lz-mode"><option value="Lahza" selected>Lahza</option><option value="PaySky">PaySky</option></select>
-            </div>
-          </div>
-          <div class="note-info">ℹ️ الـ API Key يُحفظ في Firebase ويُستخدم لبناء رابط الدفع. تأكد من صحة المفتاح من Crosspay Dashboard.</div>
+          <div class="note-info">🔒 مفتاح Crosspay محفوظ على السيرفر فقط (Firebase Secret Manager باسم CROSSPAY_API_KEY) — لا يُكتب هنا أبداً. لتغييره:<br><code dir="ltr">firebase functions:secrets:set CROSSPAY_API_KEY</code> ثم أعد نشر الـ Functions.</div>
+          <div class="cg" style="display:flex;align-items:center;gap:8px;margin-top:12px"><input type="checkbox" id="pay-manual" style="accent-color:var(--p);width:16px;height:16px"><label for="pay-manual" style="cursor:pointer;font-size:.86rem">مراجعة يدوية: لا تُسلَّم الملفات حتى أوافق على الطلب من صفحة "الطلبات"</label></div>
+          <div class="cg" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="pay-cp-paypal" style="accent-color:var(--p);width:16px;height:16px"><label for="pay-cp-paypal" style="cursor:pointer;font-size:.86rem">إظهار زر PayPal عبر Crosspay (تأكد أنه مفعّل في حسابك لدى Crosspay)</label></div>
+        </div>
+
+        <!-- SECURE FILES -->
+        <div class="pay-card" style="background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.25)">
+          <div class="pc-head"><span style="font-size:1.3rem">🔒</span><strong>حماية ملفات المنتجات المدفوعة</strong></div>
+          <p style="font-size:.8rem;color:var(--mt);margin-bottom:10px">روابط ملفات العناصر المدفوعة تُخزَّن في مكان خاص لا يراه إلا الأدمن، وتُعطى للمشتري بعد الدفع فقط. العناصر المحفوظة قبل هذا التحديث تحتاج نقل مرة واحدة:</p>
+          <button class="btn-sm" onclick="migratePrivateFiles()">🔒 نقل روابط الملفات المدفوعة الآن</button>
+          <div id="migrateLog" style="font-size:.78rem;color:var(--mt);margin-top:8px;white-space:pre-line"></div>
         </div>
 
         <!-- PAYPAL -->
@@ -464,7 +485,7 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, setDoc, addDoc, deleteDoc, serverTimestamp, getDoc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, setDoc, addDoc, deleteDoc, serverTimestamp, getDoc, updateDoc, query, where, deleteField } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 const CFG={apiKey:"AIzaSyALJiF8l_wnk_6FU6etQpz44Z43lSORXQk",authDomain:"engs-website.firebaseapp.com",projectId:"engs-website",storageBucket:"engs-website.firebasestorage.app",messagingSenderId:"1028163586505",appId:"1:1028163586505:web:c09de00bb30a3369ca4018",measurementId:"G-GZJCYL5YM8"};
@@ -474,6 +495,7 @@ const auth=getAuth(app); const db=getFirestore(app); const storage=getStorage(ap
 
 onAuthStateChanged(auth,user=>{
   if(!user||!ADMINS.includes(user.email)){window.location.href='auth.html';return;}
+  if(!user.emailVerified){document.getElementById('authLoad').innerHTML='<p style="color:#fff;text-align:center;padding:20px">⚠️ يجب تأكيد البريد الإلكتروني لهذا الحساب قبل استخدام لوحة التحكم.<br>استخدم "نسيت كلمة المرور" في صفحة الدخول لتأكيده.</p>';return;}
   document.getElementById('authLoad').style.display='none';
   const name=user.displayName||user.email.split('@')[0];
   document.getElementById('aName').textContent=name;
@@ -545,7 +567,7 @@ async function loadProducts(){
   document.getElementById('pc').textContent=window._prods.length;
   const el=document.getElementById('prodList');
   if(!window._prods.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد منتجات</p>';return;}
-  el.innerHTML=window._prods.map(p=>`<div class="irow"><div class="iemoji">${p.emoji||'📦'}</div><div class="iinfo"><div class="ititle">${p.title||''}</div><div class="imeta">${p.type||''} • $${p.price||0}${p.fileUrl?' • <span style="color:var(--ok)">📦 ZIP</span>':''}${p.isFree?' • <span style="color:var(--ok)">مجاني</span>':''}</div></div><div class="iacts"><button class="btn-edit" onclick="editItem('product','${p.id}')">✏️</button><button class="btn-del" onclick="delItem('products','${p.id}',loadProducts)">🗑️</button></div></div>`).join('');
+  el.innerHTML=window._prods.map(p=>`<div class="irow"><div class="iemoji">${p.emoji||'📦'}</div><div class="iinfo"><div class="ititle">${p.title||''}</div><div class="imeta">${p.type||''} • $${p.price||0}${fileBadge(p)}${isFreeItem(p)?' • <span style="color:var(--ok)">مجاني</span>':''}</div></div><div class="iacts"><button class="btn-edit" onclick="editItem('product','${p.id}')">✏️</button><button class="btn-del" onclick="delItem('products','${p.id}',loadProducts)">🗑️</button></div></div>`).join('');
 }
 window.loadProducts=loadProducts;
 
@@ -569,7 +591,7 @@ async function loadBooks(){
   document.getElementById('bc').textContent=window._books.length;
   const el=document.getElementById('bookList');
   if(!window._books.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد كتب</p>';return;}
-  el.innerHTML=window._books.map(b=>`<div class="irow"><div class="iemoji">${b.emoji||'📚'}</div><div class="iinfo"><div class="ititle">${b.title||''}</div><div class="imeta">${b.author||''} • $${b.price||0}${b.isFree?' • <span style="color:var(--ok)">مجاني</span>':''}${b.fileUrl?' • <span style="color:var(--ac)">📄</span>':''}</div></div><div class="iacts"><button class="btn-edit" onclick="editItem('book','${b.id}')">✏️</button><button class="btn-del" onclick="delItem('books','${b.id}',loadBooks)">🗑️</button></div></div>`).join('');
+  el.innerHTML=window._books.map(b=>`<div class="irow"><div class="iemoji">${b.emoji||'📚'}</div><div class="iinfo"><div class="ititle">${b.title||''}</div><div class="imeta">${b.author||''} • $${b.price||0}${isFreeItem(b)?' • <span style="color:var(--ok)">مجاني</span>':''}${fileBadge(b)}</div></div><div class="iacts"><button class="btn-edit" onclick="editItem('book','${b.id}')">✏️</button><button class="btn-del" onclick="delItem('books','${b.id}',loadBooks)">🗑️</button></div></div>`).join('');
 }
 window.loadBooks=loadBooks;
 
@@ -581,7 +603,7 @@ async function loadProjects(){
   document.getElementById('prc').textContent=window._projects.length;
   const el=document.getElementById('projList');
   if(!window._projects.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد مشاريع — اضغط "إضافة مشروع"</p>';return;}
-  el.innerHTML=window._projects.map(p=>`<div class="irow"><div class="iemoji">${p.emoji||'🔧'}</div><div class="iinfo"><div class="ititle">${p.title||''}</div><div class="imeta">${p.category||''} • $${p.price||0}${p.oldPrice?` <span style="text-decoration:line-through;color:var(--mt);font-size:.7rem">$${p.oldPrice}</span>`:''}${p.fileUrl?' • <span style="color:var(--ok)">📦 ZIP</span>':''}${p.videoUrl?' • <span style="color:var(--er)">▶️ فيديو</span>':''}</div></div><div class="iacts"><button class="btn-edit" onclick="editItem('project','${p.id}')">✏️</button><button class="btn-del" onclick="delItem('projects','${p.id}',loadProjects)">🗑️</button></div></div>`).join('');
+  el.innerHTML=window._projects.map(p=>`<div class="irow"><div class="iemoji">${p.emoji||'🔧'}</div><div class="iinfo"><div class="ititle">${p.title||''}</div><div class="imeta">${p.category||''} • ${isFreeItem(p)?'<span style="color:var(--ok)">مجاني</span>':'$'+(p.price||0)}${p.oldPrice&&!isFreeItem(p)?` <span style="text-decoration:line-through;color:var(--mt);font-size:.7rem">$${p.oldPrice}</span>`:''}${fileBadge(p)}${p.videoUrl?' • <span style="color:var(--er)">▶️ فيديو</span>':''}</div></div><div class="iacts"><button class="btn-edit" onclick="editItem('project','${p.id}')">✏️</button><button class="btn-del" onclick="delItem('projects','${p.id}',loadProjects)">🗑️</button></div></div>`).join('');
 }
 window.loadProjects=loadProjects;
 
@@ -623,7 +645,7 @@ async function loadSectionItems(){
   window._curSectionItems=items;
   const el=document.getElementById('sectionItemsList');
   if(!items.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد عناصر</p>';return;}
-  el.innerHTML=items.map(i=>`<div class="irow"><div class="iemoji">${i.emoji||'•'}</div><div class="iinfo"><div class="ititle">${i.title||''}</div><div class="imeta">${i.price?'$'+i.price:'مجاني'}${i.imageUrl?' • <span style="color:var(--ok)">🖼️</span>':''}</div></div><div class="iacts"><button class="btn-edit" onclick="editSectionItem('${i.id}')">✏️</button><button class="btn-del" onclick="delSectionItem('${i.id}')">🗑️</button></div></div>`).join('');
+  el.innerHTML=items.map(i=>`<div class="irow"><div class="iemoji">${i.emoji||'•'}</div><div class="iinfo"><div class="ititle">${i.title||''}</div><div class="imeta">${i.price?'$'+i.price:'مجاني'}${fileBadge(i)}${i.imageUrl?' • <span style="color:var(--ok)">🖼️</span>':''}</div></div><div class="iacts"><button class="btn-edit" onclick="editSectionItem('${i.id}')">✏️</button><button class="btn-del" onclick="delSectionItem('${i.id}')">🗑️</button></div></div>`).join('');
 }
 window.openSectionItemModal=function(id=null){
   const labels={};
@@ -632,7 +654,7 @@ window.openSectionItemModal=function(id=null){
   document.getElementById('mBody').innerHTML=mForms.sectionItem;
   if(id){
     const item=(window._curSectionItems||[]).find(i=>i.id===id);
-    if(item){fillForm(item);}
+    if(item){fillForm(item);loadPrivateFileUrl('sectionItem',id);}
   }
   document.getElementById('modal').classList.add('show');
 };
@@ -640,6 +662,7 @@ window.editSectionItem=window.openSectionItemModal;
 window.delSectionItem=async function(id){
   if(!confirm('حذف هذا العنصر؟'))return;
   await deleteDoc(doc(db,'section_items',id));
+  await deleteDoc(doc(db,'private_files','section_items__'+id)).catch(()=>{});
   toast('🗑️ تم الحذف','warn');
   loadSectionItems();
 };
@@ -728,14 +751,10 @@ async function loadConfig(){
       // PaySky / Lahza
       if(p.lahza){
         const lzActive=document.getElementById('pay-lz-active');
-        const lzPk=document.getElementById('pay-lz-pk');
-        const lzCur=document.getElementById('pay-lz-currency');
-        const lzMode=document.getElementById('pay-lz-mode');
         if(lzActive)lzActive.checked=!!p.lahza.active;
-        if(lzPk&&p.lahza.publicKey)lzPk.value=p.lahza.publicKey;
-        if(lzCur&&p.lahza.currency)lzCur.value=p.lahza.currency;
-        if(lzMode&&p.lahza.mode)lzMode.value=p.lahza.mode;
       }
+      document.getElementById('pay-manual').checked=!!p.manualApproval;
+      document.getElementById('pay-cp-paypal').checked=!!p.crosspayPaypal?.active;
       // PayPal
       if(p.paypal){
         const ppActive=document.getElementById('pay-pp-active');
@@ -775,12 +794,11 @@ window.saveSec=async(sec)=>{
     const existing = existingSnap.exists() ? (existingSnap.data().payment || {}) : {};
     data.payment={
       lahza:{
-        ...( existing.lahza || {} ),
         active:    gb('pay-lz-active'),
-        publicKey: g('pay-lz-pk') || existing.lahza?.publicKey || '',
-        currency:  g('pay-lz-currency') || existing.lahza?.currency || 'USD',
-        mode:      g('pay-lz-mode')     || existing.lahza?.mode     || 'live',
+        currency:  'USD',
       },
+      manualApproval: gb('pay-manual'),
+      crosspayPaypal: { active: gb('pay-cp-paypal') },
       paypal:{
         ...( existing.paypal || {} ),
         active: gb('pay-pp-active'),
@@ -795,6 +813,7 @@ window.saveSec=async(sec)=>{
       },
     };
   }
+  if(sec==='payment')data.payment.lahza.publicKey=deleteField();
   await setDoc(doc(db,'site_config','main'),data,{merge:true});
   toast('✅ تم حفظ '+({hero:'Hero',social:'الروابط',brand:'الهوية',design:'الألوان',siteConfig:'الإعدادات',payment:'إعدادات الدفع',seo:'إعدادات SEO'}[sec]||sec));
 };
@@ -803,6 +822,7 @@ window.saveAllSections=async()=>{await Promise.all(['hero','social','brand','des
 window.delItem=async(col,id,reloadFn)=>{
   if(!confirm('تأكيد الحذف؟'))return;
   await deleteDoc(doc(db,col,id));
+  if(['products','books','projects','section_items'].includes(col))await deleteDoc(doc(db,'private_files',col+'__'+id)).catch(()=>{});
   toast('🗑️ تم الحذف','warn');
   if(typeof reloadFn==='function')reloadFn();
 };
@@ -900,7 +920,7 @@ const mForms={
     </div>
     <div class="g2">
       <div class="cg"><label>الإيموجي</label><input class="ci" id="m-emoji" placeholder="📘"></div>
-      <div class="cg" style="display:flex;align-items:center;gap:8px;padding-top:22px"><input type="checkbox" id="m-isFree" style="accent-color:var(--p);width:16px;height:16px"><label for="m-isFree" style="cursor:pointer;font-size:.86rem">كتاب مجاني للمسجلين</label></div>
+      <div class="cg" style="display:flex;align-items:center;gap:8px;padding-top:22px"><input type="checkbox" id="m-isFree" style="accent-color:var(--p);width:16px;height:16px"><label for="m-isFree" style="cursor:pointer;font-size:.86rem">كتاب مجاني (تحميل للجميع)</label></div>
     </div>
     <div class="cg"><label>الوصف</label><textarea class="cta" id="m-desc" rows="3"></textarea></div>
     <div class="cg"><label>📄 ملف الكتاب (PDF/EPUB)</label>
@@ -926,6 +946,7 @@ const mForms={
       <div class="cg"><label>السعر ($) *</label><input class="ci" id="m-price" type="number" min="0" placeholder="35"></div>
       <div class="cg"><label>السعر القديم ($)</label><input class="ci" id="m-oldPrice" type="number" min="0" placeholder="50"></div>
     </div>
+    <div class="cg" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="m-isFree" style="accent-color:var(--p);width:16px;height:16px" onchange="document.getElementById('m-price').disabled=this.checked"><label for="m-isFree" style="cursor:pointer;font-size:.86rem">🎁 مشروع مجاني — أي زائر يقدر يحمّل الملف بدون دفع أو تسجيل</label></div>
     <div class="g2">
       <div class="cg"><label>مستوى الصعوبة</label><select class="cs" id="m-level"><option value="مبتدئ">مبتدئ</option><option value="وسط">وسط</option><option value="متقدم">متقدم</option></select></div>
       <div class="cg"><label>وقت التنفيذ</label><input class="ci" id="m-duration" placeholder="3-5 ساعات"></div>
@@ -984,7 +1005,7 @@ const mForms={
     <div class="cg"><label>عنوان العنصر *</label><input class="ci" id="m-title" placeholder="ورشة Arduino"></div>
     <div class="cg"><label>الوصف</label><textarea class="cta" id="m-desc" rows="3"></textarea></div>
     <div class="g2">
-      <div class="cg"><label>السعر ($)</label><input class="ci" id="m-price" type="number" min="0" placeholder="50"></div>
+      <div class="cg"><label>السعر ($) — اتركه 0 ليكون مجانياً</label><input class="ci" id="m-price" type="number" min="0" placeholder="50"></div>
       <div class="cg"><label>الإيموجي</label><input class="ci" id="m-emoji" placeholder="•"></div>
     </div>
     <div class="cg"><label>🖼️ الصورة (اختياري)</label>
@@ -1022,7 +1043,9 @@ window.openModal=(type,id=null)=>{
   if(id){
     const colMap={product:window._prods,course:window._courses,book:window._books,project:window._projects,testimonial:window._tests,section:window._sections};
     const item=colMap[type]?.find(i=>i.id===id);
-    if(item)fillForm(item);
+    if(item){fillForm(item);loadPrivateFileUrl(type,id);}
+    const pr=document.getElementById('m-price'),fr=document.getElementById('m-isFree');
+    if(pr&&fr&&type==='project')pr.disabled=fr.checked;
   }
   document.getElementById('modal').classList.add('show');
 };
@@ -1037,17 +1060,113 @@ window.saveModal=async()=>{
   if(type==='product'){if(!g('m-title')){toast('⚠️ اسم المنتج مطلوب','err');return;}data={...data,title:g('m-title'),desc:g('m-desc'),price:parseFloat(g('m-price'))||0,oldPrice:parseFloat(g('m-oldPrice'))||0,type:g('m-type'),emoji:g('m-emoji'),badge:g('m-badge'),isFree:gc('m-isFree'),imageUrl:g('m-imageUrl'),fileUrl:g('m-fileUrl')};}
   else if(type==='course'){if(!g('m-title')){toast('⚠️ اسم الدورة مطلوب','err');return;}data={...data,title:g('m-title'),desc:g('m-desc'),category:g('m-category'),emoji:g('m-emoji'),duration:g('m-duration'),lessons:g('m-lessons'),price:parseFloat(g('m-price'))||0,oldPrice:parseFloat(g('m-oldPrice'))||0,level:g('m-level'),learns:[..._learns],topics:[..._topics],imageUrl:g('m-imageUrl'),videoUrl:g('m-videoUrl')};}
   else if(type==='book'){if(!g('m-title')){toast('⚠️ عنوان الكتاب مطلوب','err');return;}data={...data,title:g('m-title'),author:g('m-author'),price:parseFloat(g('m-price'))||0,oldPrice:parseFloat(g('m-oldPrice'))||0,emoji:g('m-emoji'),desc:g('m-desc'),isFree:gc('m-isFree'),imageUrl:g('m-imageUrl'),fileUrl:g('m-fileUrl')};}
-  else if(type==='project'){if(!g('m-title')){toast('⚠️ اسم المشروع مطلوب','err');return;}data={...data,title:g('m-title'),shortDesc:g('m-shortDesc'),desc:g('m-desc'),category:g('m-category'),emoji:g('m-emoji'),price:parseFloat(g('m-price'))||0,oldPrice:parseFloat(g('m-oldPrice'))||0,level:g('m-level'),duration:g('m-duration'),videoUrl:g('m-videoUrl'),components:[..._components],learns:[..._learns],requirements:[..._requirements],imageUrl:g('m-imageUrl'),fileUrl:g('m-fileUrl')};}
+  else if(type==='project'){if(!g('m-title')){toast('⚠️ اسم المشروع مطلوب','err');return;}data={...data,title:g('m-title'),shortDesc:g('m-shortDesc'),desc:g('m-desc'),category:g('m-category'),emoji:g('m-emoji'),isFree:gc('m-isFree'),price:gc('m-isFree')?0:(parseFloat(g('m-price'))||0),oldPrice:parseFloat(g('m-oldPrice'))||0,level:g('m-level'),duration:g('m-duration'),videoUrl:g('m-videoUrl'),components:[..._components],learns:[..._learns],requirements:[..._requirements],imageUrl:g('m-imageUrl'),fileUrl:g('m-fileUrl')};}
   else if(type==='testimonial'){if(!g('m-name')||!g('m-text')){toast('⚠️ الاسم والنص مطلوبان','err');return;}data={...data,name:g('m-name'),role:g('m-role'),text:g('m-text'),rating:parseInt(g('m-rating'))||5};}
   else if(type==='section'){if(!g('m-name')){toast('⚠️ اسم القسم مطلوب','err');return;}data={...data,name:g('m-name'),tagline:g('m-tagline'),emoji:g('m-emoji'),color:g('m-color'),order:parseInt(g('m-order'))||1,active:gc('m-active')};}
   else if(type==='sectionItem'){if(!g('m-title')){toast('⚠️ العنوان مطلوب','err');return;}data={...data,sectionId:window._curSectionId,title:g('m-title'),desc:g('m-desc'),price:parseFloat(g('m-price'))||0,emoji:g('m-emoji'),imageUrl:g('m-imageUrl'),fileUrl:g('m-fileUrl'),videoUrl:g('m-videoUrl')};}
 
   const colMap={product:'products',course:'courses',book:'books',project:'projects',testimonial:'testimonials',section:'custom_sections',sectionItem:'section_items'};
   const reloads={product:loadProducts,course:loadCourses,book:loadBooks,project:loadProjects,testimonial:loadTestimonials,section:loadCustomSections,sectionItem:loadSectionItems};
-  if(id)await setDoc(doc(db,colMap[type],id),data,{merge:true});
-  else{data.createdAt=serverTimestamp();await addDoc(collection(db,colMap[type]),data);}
+  const ref=id?doc(db,colMap[type],id):doc(collection(db,colMap[type]));
+  if(!id)data.createdAt=serverTimestamp();
+  try{
+    // الملف المدفوع ← private_files (للأدمن فقط). المجاني ← يبقى عام للتحميل المباشر
+    if('fileUrl' in data && !isFreeItem(data)){
+      const fu=data.fileUrl; data.fileUrl=deleteField();
+      await setDoc(doc(db,'private_files',colMap[type]+'__'+ref.id),{fileUrl:fu,col:colMap[type],title:data.title||'',updatedAt:serverTimestamp()});
+      await setDoc(ref,data,{merge:true});
+    }else{
+      await setDoc(ref,data,{merge:true});
+      if('fileUrl' in data)await deleteDoc(doc(db,'private_files',colMap[type]+'__'+ref.id));
+    }
+  }catch(e){console.error(e);toast('⚠️ فشل الحفظ: '+e.message,'err');return;}
   closeModal(); toast('✅ تم الحفظ!');
   if(reloads[type])reloads[type]();
+};
+
+// ─── ملفات خاصة / طلبات ───
+function isFreeItem(d){return d.isFree===true||!(parseFloat(d.price)>0);}
+window.isFreeItem=isFreeItem;
+function fileBadge(d){
+  if(d.fileUrl)return isFreeItem(d)?' • <span style="color:var(--ok)">📥 ملف مجاني</span>':' • <span style="color:var(--er)">⚠️ ملف مكشوف — انقله</span>';
+  return isFreeItem(d)?'':' • <span style="color:var(--mt)">🔒 ملف محمي</span>';
+}
+window.fileBadge=fileBadge;
+async function loadPrivateFileUrl(type,id){
+  const col={product:'products',book:'books',project:'projects',sectionItem:'section_items'}[type];
+  if(!col)return;
+  try{
+    const snap=await getDoc(doc(db,'private_files',col+'__'+id));
+    const inp=document.getElementById('m-fileUrl');
+    if(snap.exists()&&inp&&!inp.value)inp.value=snap.data().fileUrl||'';
+  }catch(e){console.error(e);}
+}
+window.migratePrivateFiles=async()=>{
+  if(!confirm('نقل روابط ملفات كل العناصر المدفوعة إلى المكان الخاص؟'))return;
+  const log=document.getElementById('migrateLog');log.textContent='جاري النقل...';
+  let moved=0;
+  try{
+    for(const col of ['products','books','projects','section_items']){
+      const snap=await getDocs(collection(db,col));
+      for(const d of snap.docs){
+        const it=d.data();
+        if(!it.fileUrl||isFreeItem(it))continue;
+        await setDoc(doc(db,'private_files',col+'__'+d.id),{fileUrl:it.fileUrl,col,title:it.title||'',updatedAt:serverTimestamp()});
+        await updateDoc(doc(db,col,d.id),{fileUrl:deleteField()});
+        moved++;log.textContent+=`\n✅ ${col}: ${it.title||d.id}`;
+      }
+    }
+    log.textContent+=`\n\nتم نقل ${moved} ملف.`;
+    toast('✅ تم نقل '+moved+' ملف');
+    loadProducts();loadBooks();loadProjects();
+  }catch(e){console.error(e);log.textContent+='\n⚠️ خطأ: '+e.message;}
+};
+
+const FN_BASE='https://us-central1-engs-website.cloudfunctions.net';
+async function callFn(name,body){
+  const token=await auth.currentUser.getIdToken();
+  const res=await fetch(`${FN_BASE}/${name}`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(body)});
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok)throw new Error(data.error||'HTTP '+res.status);
+  return data;
+}
+const O_STATUS={paid:['✅ مدفوع','var(--ok)'],awaiting_approval:['⏳ بانتظار الموافقة','var(--p)'],pending:['🕓 لم يكتمل','var(--mt)'],failed:['❌ فشل','var(--er)'],revoked:['🚫 ملغى','var(--er)']};
+function escH(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+window._orders=[];
+window.loadOrders=async()=>{
+  const tb=document.getElementById('oTable');
+  tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--mt);padding:30px">جاري التحميل...</td></tr>';
+  try{
+    const r=await callFn('getUserOrders',{all:true});
+    window._orders=r.orders||[];
+    document.getElementById('oc').textContent=window._orders.filter(o=>o.status==='awaiting_approval').length||window._orders.length;
+    renderOrders();
+  }catch(e){tb.innerHTML=`<tr><td colspan="7" style="text-align:center;color:var(--er);padding:30px">⚠️ ${escH(e.message)}</td></tr>`;}
+};
+window.renderOrders=()=>{
+  const f=document.getElementById('oFilter').value;
+  const list=window._orders.filter(o=>!f||o.status===f);
+  const tb=document.getElementById('oTable');
+  if(!list.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--mt);padding:30px">لا توجد طلبات</td></tr>';return;}
+  tb.innerHTML=list.map(o=>{
+    const st=O_STATUS[o.status]||[o.status,'var(--mt)'];
+    const dt=o.createdAt?new Date(o.createdAt).toLocaleString('ar'):'—';
+    const acts=[];
+    if(o.status!=='paid')acts.push(`<button class="btn-edit" style="font-size:.72rem" onclick="orderAction('${escH(o.invoiceId)}','approve')">✅ موافقة</button>`);
+    if(o.status==='paid'||o.status==='awaiting_approval')acts.push(`<button class="btn-del" style="font-size:.72rem" onclick="orderAction('${escH(o.invoiceId)}','revoke')">🚫 إلغاء</button>`);
+    return `<tr><td dir="ltr" style="font-size:.7rem">${escH(o.invoiceId)}${o.transactionId?'<br><span style="color:var(--mt)">tx: '+escH(o.transactionId)+'</span>':''}</td>
+      <td dir="ltr" style="font-size:.74rem">${escH(o.userEmail)}<br><span style="color:var(--mt)">${escH(o.userMobile)}</span></td>
+      <td style="font-size:.76rem">${(o.items||[]).map(i=>escH((i.emoji||'')+' '+i.name)).join('<br>')}</td>
+      <td style="font-weight:800">$${Number(o.total||0).toFixed(2)}</td>
+      <td style="color:${st[1]};font-size:.78rem;font-weight:700">${st[0]}</td>
+      <td style="color:var(--mt);font-size:.72rem">${dt}</td>
+      <td>${acts.join(' ')}</td></tr>`;
+  }).join('');
+};
+window.orderAction=async(invoiceId,action)=>{
+  if(!confirm(action==='approve'?'تأكيد الموافقة؟ سيتمكن العميل من تحميل الملفات.':'إلغاء هذا الطلب؟ سيفقد العميل روابط التحميل.'))return;
+  try{await callFn('adminUpdateOrder',{invoiceId,action});toast('✅ تم التحديث');loadOrders();}
+  catch(e){toast('⚠️ '+e.message,'err');}
 };
 
 function toast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+(type||'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);}
@@ -1055,7 +1174,7 @@ window.toast=toast;
 </script>
 
 <script>
-const panelTitles={dashboard:'🏠 الرئيسية',hero:'🎯 القسم الرئيسي',products:'📦 المنتجات',courses:'🎓 الدورات',books:'📚 الكتب',projects:'🔧 المشاريع',testimonials:'⭐ آراء الطلاب',sections:'➕ أقسام مخصصة',users:'👥 المستخدمون',messages:'💬 الرسائل',newsletter:'📧 النشرة',payment:'💳 إعدادات الدفع',design:'🎨 التصميم',seo:'🔍 SEO',brand:'💡 الهوية',social:'🔗 التواصل'};
+const panelTitles={dashboard:'🏠 الرئيسية',hero:'🎯 القسم الرئيسي',products:'📦 المنتجات',courses:'🎓 الدورات',books:'📚 الكتب',projects:'🔧 المشاريع',testimonials:'⭐ آراء الطلاب',sections:'➕ أقسام مخصصة',orders:'🧾 الطلبات',users:'👥 المستخدمون',messages:'💬 الرسائل',newsletter:'📧 النشرة',payment:'💳 إعدادات الدفع',design:'🎨 التصميم',seo:'🔍 SEO',brand:'💡 الهوية',social:'🔗 التواصل'};
 function showP(id,el){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
