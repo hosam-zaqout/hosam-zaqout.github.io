@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>نظام لتمثيل انظمة الحماية في المصانع باستخدام PIC… | 3ENG.s</title>
+<meta name="description" content="نظام حماية متكامل لبيئة المصانع يعمل عبر PIC18F4550، يشمل 5 مستويات حماية: حريق، غاز، مجال مغناطيسي، إضاءة، وتقارب من الآلات، مع لوحة تحكم مركزية ومقياس…">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="https://www.3engs.com/projects/security-system-factory/">
+<link rel="icon" href="/logo.jpg">
+<meta name="theme-color" content="#F59E0B">
+<meta property="og:type" content="product">
+<meta property="og:site_name" content="3ENG.s">
+<meta property="og:locale" content="ar_PS">
+<meta property="og:url" content="https://www.3engs.com/projects/security-system-factory/">
+<meta property="og:title" content="نظام لتمثيل انظمة الحماية في المصانع باستخدام PIC… | 3ENG.s">
+<meta property="og:description" content="نظام حماية متكامل لبيئة المصانع يعمل عبر PIC18F4550، يشمل 5 مستويات حماية: حريق، غاز، مجال مغناطيسي، إضاءة، وتقارب من الآلات، مع لوحة تحكم مركزية ومقياس…">
+<meta property="og:image" content="https://firebasestorage.googleapis.com/v0/b/engs-website.firebasestorage.app/o/projects%2F1790200587426_ChatGPT_Image_Sep_24__2026__12_55_07_AM.png?alt=media&amp;token=d2e60064-7c7a-4c7d-a44e-484b8a360995">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="نظام لتمثيل انظمة الحماية في المصانع باستخدام PIC… | 3ENG.s">
+<meta name="twitter:description" content="نظام حماية متكامل لبيئة المصانع يعمل عبر PIC18F4550، يشمل 5 مستويات حماية: حريق، غاز، مجال مغناطيسي، إضاءة، وتقارب من الآلات، مع لوحة تحكم مركزية ومقياس…">
+<meta name="twitter:image" content="https://firebasestorage.googleapis.com/v0/b/engs-website.firebasestorage.app/o/projects%2F1790200587426_ChatGPT_Image_Sep_24__2026__12_55_07_AM.png?alt=media&amp;token=d2e60064-7c7a-4c7d-a44e-484b8a360995">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b1020;--card:#131a2e;--line:#232c47;--txt:#e9edf7;--mut:#98a2bf;--acc:#F59E0B;--acc2:#fbbf24;--ok:#34d399}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Cairo,system-ui,Tahoma,sans-serif;background:var(--bg);color:var(--txt);line-height:1.8}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1080px;margin:auto;padding:0 16px}
+header.top{border-bottom:1px solid var(--line);background:#0b1020e6;position:sticky;top:0;z-index:5;backdrop-filter:blur(8px)}
+header.top .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800}
+.logo img{width:36px;height:36px;border-radius:10px}
+.nav{display:flex;gap:18px;font-size:.92rem;color:var(--mut)}
+.nav a:hover{color:var(--acc)}
+.crumbs{font-size:.82rem;color:var(--mut);margin:18px 0 8px}
+.crumbs a:hover{color:var(--acc)}
+.hero{display:grid;grid-template-columns:1.3fr 1fr;gap:26px;align-items:start;margin:10px 0 26px}
+.hero img{width:100%;height:auto;border-radius:18px;border:1px solid var(--line);aspect-ratio:16/9;object-fit:cover;background:var(--card)}
+.emoji-cover{aspect-ratio:16/9;border-radius:18px;background:linear-gradient(135deg,#1e2a55,#131a2e);display:grid;place-items:center;font-size:5rem;border:1px solid var(--line)}
+h1{font-size:1.75rem;line-height:1.5;margin-bottom:10px}
+.lead{color:var(--mut);margin-bottom:16px}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.tag{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-size:.82rem}
+.price{display:flex;align-items:baseline;gap:12px;margin-bottom:16px}
+.price b{font-size:2rem;color:var(--acc)}
+.price s{color:var(--mut)}
+.price .off{background:#34d39922;color:var(--ok);padding:2px 10px;border-radius:999px;font-size:.8rem}
+.cta{display:flex;flex-wrap:wrap;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:12px;font-weight:700;font-size:.95rem}
+.btn.main{background:var(--acc);color:#1a1200}
+.btn.main:hover{background:var(--acc2)}
+.btn.wa{background:#25d36622;color:#4ade80;border:1px solid #25d36655}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:16px}
+.box h2{font-size:1.1rem;margin-bottom:10px;color:var(--acc2)}
+.box p{margin-bottom:10px;color:#d3d9ea}
+.list{list-style:none;display:grid;gap:6px}
+.list li{display:flex;gap:10px;color:#d3d9ea}
+.list li span{color:var(--ok)}
+.video{position:relative;max-width:760px;margin:auto;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#000}
+.video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;transition:.2s}
+.card:hover{border-color:var(--acc);transform:translateY(-2px)}
+.card img,.card .ph{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:#1a2340}
+.card .ph{display:grid;place-items:center;font-size:2.6rem}
+.card .b{padding:12px 14px}
+.card h3{font-size:.98rem;line-height:1.6;margin-bottom:4px}
+.card .p{color:var(--acc);font-weight:700}
+.sec-title{font-size:1.3rem;margin:30px 0 14px}
+footer{border-top:1px solid var(--line);margin-top:40px;padding:26px 0;color:var(--mut);font-size:.85rem;text-align:center}
+footer nav{display:flex;justify-content:center;flex-wrap:wrap;gap:16px;margin-bottom:10px}
+@media(max-width:820px){.hero,.grid2{grid-template-columns:1fr}.nav{display:none}h1{font-size:1.4rem}}
+</style>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Product","name":"نظام لتمثيل انظمة الحماية في المصانع باستخدام PIC MICROCONTROLLER | Factory Security System","description":"نموذج مشروع نظام أمان المصنع اسم المشروع Factory Security System — نظام أمان المصنع الوصف المختصر نظام حماية متكامل لبيئة المصانع يعمل عبر PIC18F4550، يشمل 5 مستويات حماية: حريق، غاز، مجال مغناطيسي، إضاءة، وتقارب من الآلات، مع لوحة تحكم مركزية ومقياس جهد ثلاثي الأطوار. الوصف التفصيلي يستخدم هذا النظام مجموعة من الحساسات للكشف عن المخاطر في بيئة المصانع والمنشآت الصناعية وإدارتها تلقائيًا: • حساس اللهب + DHT11: كشف الحريق وتشغيل مضخة الماء تلقائيًا مع قياس الحرارة والرطوبة • MQ2: كشف تسرب الغاز…","url":"https://www.3engs.com/projects/security-system-factory/","sku":"1hBkXtJAJg71IsEaaNwJ","image":"https://firebasestorage.googleapis.com/v0/b/engs-website.firebasestorage.app/o/projects%2F1790200587426_ChatGPT_Image_Sep_24__2026__12_55_07_AM.png?alt=media&token=d2e60064-7c7a-4c7d-a44e-484b8a360995","brand":{"@type":"Brand","name":"3ENG.s"},"category":"الكهرباء","offers":{"@type":"Offer","price":"12","priceCurrency":"USD","availability":"https://schema.org/InStock","url":"https://www.3engs.com/projects/security-system-factory/"},"dateModified":"2026-09-24T23:12:45.785Z"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"الرئيسية","item":"https://www.3engs.com/"},{"@type":"ListItem","position":2,"name":"المشاريع الجاهزة","item":"https://www.3engs.com/projects/"},{"@type":"ListItem","position":3,"name":"نظام لتمثيل انظمة الحماية في المصانع باستخدام PIC…","item":"https://www.3engs.com/projects/security-system-factory/"}]}</script>
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GZJCYL5YM8"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-GZJCYL5YM8');</script>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="logo" href="/"><img src="/logo.jpg" alt="شعار 3ENG.s" width="36" height="36">3ENG.s</a>
+  <nav class="nav"><a href="/courses/">الدورات</a><a href="/projects/">المشاريع الجاهزة</a><a href="/products/">المنتجات الرقمية</a><a href="/books/">الكتب الهندسية</a></nav>
+</div></header>
+<main class="wrap">
+
+<nav class="crumbs" aria-label="مسار التنقل"><a href="/">الرئيسية</a> ‹ <a href="/projects/">المشاريع الجاهزة</a> ‹ <span>نظام لتمثيل انظمة الحماية في المصانع باستخدام PIC…</span></nav>
+<section class="hero">
+  <div><img src="https://firebasestorage.googleapis.com/v0/b/engs-website.firebasestorage.app/o/projects%2F1790200587426_ChatGPT_Image_Sep_24__2026__12_55_07_AM.png?alt=media&amp;token=d2e60064-7c7a-4c7d-a44e-484b8a360995" alt="نظام لتمثيل انظمة الحماية في المصانع باستخدام PIC MICROCONTROLLER | Factory Security System" width="800" height="450" fetchpriority="high"></div>
+  <div>
+    <h1>نظام لتمثيل انظمة الحماية في المصانع باستخدام PIC MICROCONTROLLER | Factory Security System</h1>
+    <p class="lead">نظام حماية متكامل لبيئة المصانع يعمل عبر PIC18F4550، يشمل 5 مستويات حماية: حريق، غاز، مجال مغناطيسي، إضاءة، وتقارب من الآلات، مع لوحة تحكم مركزية ومقياس جهد ثلاثي الأطوار.</p>
+    <div class="tags"><span class="tag">📂 الكهرباء</span><span class="tag">🎯 متقدم</span><span class="tag">⏱ 12 ساعة</span></div>
+    <div class="price"><b>$12</b><s>$21</s><span class="off">وفّر 43%</span></div>
+    <div class="cta">
+      <a class="btn main" href="/?open=projects:1hBkXtJAJg71IsEaaNwJ">🛒 اطلب الآن</a>
+      <a class="btn wa" href="https://wa.me/972592753159?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D9%8B%203ENG.s%D8%8C%20%D8%A3%D8%B1%D8%BA%D8%A8%20%D9%81%D9%8A%20%D8%B7%D9%84%D8%A8%3A%20%D9%86%D8%B8%D8%A7%D9%85%20%D9%84%D8%AA%D9%85%D8%AB%D9%8A%D9%84%20%D8%A7%D9%86%D8%B8%D9%85%D8%A9%20%D8%A7%D9%84%D8%AD%D9%85%D8%A7%D9%8A%D8%A9%20%D9%81%D9%8A%20%D8%A7%D9%84%D9%85%D8%B5%D8%A7%D9%86%D8%B9%20%D8%A8%D8%A7%D8%B3%D8%AA%D8%AE%D8%AF%D8%A7%D9%85%20PIC%20MICROCONTROLLER%20%7C%20Factory%20Security%20System%0Ahttps%3A%2F%2Fwww.3engs.com%2Fprojects%2Fsecurity-system-factory%2F" rel="nofollow">💬 استفسار واتساب</a>
+    </div>
+  </div>
+</section>
+
+<section class="box"><h2>📖 التفاصيل</h2><p>نموذج مشروع نظام أمان المصنع<br>اسم المشروع</p>
+<p>Factory Security System — نظام أمان المصنع</p>
+<p>الوصف المختصر</p>
+<p>نظام حماية متكامل لبيئة المصانع يعمل عبر PIC18F4550، يشمل 5 مستويات حماية: حريق، غاز، مجال مغناطيسي، إضاءة، وتقارب من الآلات، مع لوحة تحكم مركزية ومقياس جهد ثلاثي الأطوار.</p>
+<p>الوصف التفصيلي</p>
+<p>يستخدم هذا النظام مجموعة من الحساسات للكشف عن المخاطر في بيئة المصانع والمنشآت الصناعية وإدارتها تلقائيًا:</p>
+<p>• حساس اللهب + DHT11: كشف الحريق وتشغيل مضخة الماء تلقائيًا مع قياس الحرارة والرطوبة<br>• MQ2: كشف تسرب الغاز وقياس نسبته في الهواء<br>• Hall Effect: إنذار عند اقتراب مجال مغناطيسي من الأجهزة الحساسة<br>• PIR + LDR: نظام إضاءة تلقائي للممرات والآلات<br>• HC-SR04 Ultrasonic: إنذار عند اقتراب شخص من آلة خطرة (أقل من 20cm)<br>• مقياس جهد ثلاثي الأطوار: مراقبة الجهد الكهربائي والإنذار عند انخفاضه<br>• لوحة تحكم مركزية: ضبط حدود حساسية كل حساس عبر متغيرات ومقاطعة<br>• نظام إنذار PWM: بازر مع شاشة LCD تحدد موقع الخطر</p>
+<p>المشروع نُفِّذ بالكامل: محاكاة Proteus + كود MikroC + نموذج عملي + تصميم PCB ثلاثي الأبعاد.</p></section>
+<div class="grid2">
+  <section class="box"><h2>🎁 ماذا ستحصل عليه</h2><ul class="list"><li><span>✔</span>الكود كامل</li><li><span>✔</span>التقرير الخاص بالمشروع</li><li><span>✔</span>الدارة الكهربائبة</li><li><span>✔</span>فيديو شرح لكود المشروع</li><li><span>✔</span>تصميمPCB خاص بالمشروع</li></ul></section>
+  <section class="box"><h2>🔧 المكونات المستخدمة</h2><ul class="list"><li><span>•</span>PIC18F4550 (Micro Kit 4)</li><li><span>•</span>DHT11 (حرارة + رطوبة) — بديل LM35</li><li><span>•</span>MQ2 (حساس غاز)</li><li><span>•</span>Flame Sensor (حساس لهب)</li><li><span>•</span>Hall Effect Sensor (مجال مغناطيسي)</li><li><span>•</span>PIR Sensor (حركة للإضاءة)</li><li><span>•</span>LDR Sensor (إضاءة آلية)</li><li><span>•</span>HC-SR04 Ultrasonic (قياس مسافة)</li><li><span>•</span>LCD 20x4</li><li><span>•</span>Relay Module (4 relays، 12V)</li><li><span>•</span>Buzzer + PWM Circuit</li><li><span>•</span>PC817C Optocoupler</li><li><span>•</span>2N2222 Transistor</li><li><span>•</span>متغيرات (Potentiometers) x3</li><li><span>•</span>مضخة ماء (Water Pump)</li><li><span>•</span>مصدر 12V + 5V</li></ul></section>
+  <section class="box"><h2>📝 المتطلبات المسبقة</h2><ul class="list"><li><span>•</span>أساسيات البرمجة بـ C (MikroC)</li><li><span>•</span>معرفة بالـ PIC Microcontrollers</li><li><span>•</span>فهم الـ ADC والـ PWM والـ Interrupts</li><li><span>•</span>أساسيات المحاكاة بـ Proteus</li><li><span>•</span>معرفة قراءة دوائر الريلي والـ Optocoupler</li></ul></section>
+</div>
+
+<section class="box"><h2>🎬 فيديو مشروع</h2><div class="video"><iframe src="https://www.youtube-nocookie.com/embed/8Mz325tkxdA" title="نظام لتمثيل انظمة الحماية في المصانع باستخدام PIC MICROCONTROLLER | Factory Security System" loading="lazy" allowfullscreen></iframe></div></section>
+
+<section class="box"><h2>👷 عن 3ENG.s</h2><p>3ENG.s (المهندسون الثلاثة) منصة عربية من فلسطين يديرها مهندسون كهربائيون ومدربون جامعيون، تقدّم دورات ومشاريع جاهزة وكتباً في الهندسة الكهربائية والأنظمة المدمجة وإنترنت الأشياء. <a href="/#about" style="color:var(--acc)">تعرّف على الفريق</a> • <a href="/#faq" style="color:var(--acc)">الأسئلة الشائعة</a> • <a href="/privacy.html#refund" style="color:var(--acc)">سياسة الإرجاع</a></p></section>
+
+<h2 class="sec-title">🛠️ المشاريع الجاهزة أخرى قد تهمك</h2><div class="cards"><a class="card" href="/projects/weather-station-project/"><img src="https://firebasestorage.googleapis.com/v0/b/engs-website.firebasestorage.app/o/projects%2F1790200213039_ChatGPT_Image_Sep_24__2026__12_50_00_AM.png?alt=media&amp;token=24b66c7b-2b62-4cc4-a878-861773be6473" alt="محطة طقس متنقلة ذكية" loading="lazy" width="400" height="225"><div class="b"><h3>محطة طقس متنقلة ذكية</h3><div class="p">مجاني</div></div></a></div>
+
+</main>
+<footer><div class="wrap">
+  <nav><a href="/">الرئيسية</a><a href="/courses/">الدورات</a><a href="/projects/">المشاريع الجاهزة</a><a href="/products/">المنتجات الرقمية</a><a href="/books/">الكتب الهندسية</a><a href="/#about">من نحن</a><a href="/#faq">الأسئلة الشائعة</a><a href="/privacy.html">سياسة الخصوصية</a></nav>
+  © 2026 3ENG.s — المهندسون الثلاثة • منصة تعليم الهندسة الكهربائية والأنظمة المدمجة
+</div></footer>
+</body>
+</html>
