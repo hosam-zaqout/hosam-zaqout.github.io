@@ -3,12 +3,13 @@
 #
 # كل محركات البحث وبوتات الذكاء الاصطناعي مرحّب فيها (GEO).
 # الصفحات الخاصة (لوحة التحكم، الدخول، الدفع) مستثناة.
+# Disallow قبل Allow — عشان البوتات اللي بتطبّق أول قاعدة مطابقة كمان.
 
 User-agent: *
-Allow: /
 Disallow: /admin.html
 Disallow: /auth.html
 Disallow: /payment-success.html
+Allow: /
 
 # بوتات الذكاء الاصطناعي — مسموح لها صراحةً بقراءة المحتوى والاقتباس منه
 User-agent: GPTBot
@@ -23,9 +24,9 @@ User-agent: Google-Extended
 User-agent: Applebot-Extended
 User-agent: meta-externalagent
 User-agent: CCBot
-Allow: /
 Disallow: /admin.html
 Disallow: /auth.html
 Disallow: /payment-success.html
+Allow: /
 
 Sitemap: https://www.3engs.com/sitemap.xml
