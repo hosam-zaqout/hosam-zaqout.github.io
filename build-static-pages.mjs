@@ -266,6 +266,7 @@ footer nav{display:flex;justify-content:center;flex-wrap:wrap;gap:16px;margin-bo
 .prose code{background:#1a2340;padding:1px 6px;border-radius:6px;direction:ltr;unicode-bidi:embed}
 .prose pre{background:#0a0f1d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto;direction:ltr;text-align:left;margin:14px 0}
 .prose pre code{background:none;padding:0}
+.tbl{overflow-x:auto;margin:14px 0}.tbl table{border-collapse:collapse;width:100%;font-size:.94rem}.tbl th,.tbl td{border:1px solid var(--line);padding:8px 12px;text-align:right;vertical-align:top}.tbl th{background:#1a2340;color:var(--acc2)}.tbl tr:nth-child(even) td{background:#0f1528}
 @media(max-width:820px){.hero,.grid2{grid-template-columns:1fr}.nav{display:none}h1{font-size:1.4rem}.facts th{white-space:normal}}
 `;
 

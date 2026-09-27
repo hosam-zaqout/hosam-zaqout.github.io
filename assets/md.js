@@ -32,7 +32,25 @@
     let para = [], list = null, code = null;
     const flushPara = () => { if (para.length) { out.push(`<p>${para.map(inline).join("<br>")}</p>`); para = []; } };
     const flushList = () => { if (list) { out.push(`<${list.tag}>${list.items.map((i) => `<li>${inline(i)}</li>`).join("")}</${list.tag}>`); list = null; } };
-    for (const raw of lines) {
+    // جدول: | عمود | عمود |  ثم سطر فاصل |---|---|
+    let table = null;
+    const cells = (t) => t.replace(/^\||\|$/g, "").split("|").map((c) => c.trim());
+    const flushTable = () => {
+      if (!table) return;
+      const [head, ...rows] = table;
+      out.push(`<div class="tbl"><table><thead><tr>${head.map((c) => `<th>${inline(c)}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${inline(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`);
+      table = null;
+    };
+    for (let li = 0; li < lines.length; li++) {
+      const raw = lines[li];
+      if (!code) {
+        const tt = raw.trim();
+        if (/^\|.*\|$/.test(tt)) {
+          const next = (lines[li + 1] || "").trim();
+          if (!table && /^\|[\s:|-]+\|$/.test(next)) { flushPara(); flushList(); table = [cells(esc(tt))]; li++; continue; }
+          if (table) { table.push(cells(esc(tt))); continue; }
+        } else if (table) flushTable();
+      }
       if (code) {
         if (/^```/.test(raw.trim())) { out.push(`<pre><code>${code.join("\n")}</code></pre>`); code = null; }
         else code.push(esc(raw));
@@ -64,7 +82,7 @@
       }
     }
     if (code) out.push(`<pre><code>${code.join("\n")}</code></pre>`);
-    flushPara(); flushList();
+    flushTable(); flushPara(); flushList();
     return out.join("\n");
   }
 
@@ -74,7 +92,9 @@
       .replace(/```[\s\S]*?```/g, " ")
       .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
       .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
-      .replace(/[#>*`•-]+/g, " ")
+      .replace(/^\s*\|?[\s:|-]+\|?\s*$/gm, " ")
+      .replace(/[#>*`•|]+/g, " ")
+      .replace(/(^|\s)-+(\s|$)/g, " ")
       .replace(/\s+/g, " ")
       .trim();
   }

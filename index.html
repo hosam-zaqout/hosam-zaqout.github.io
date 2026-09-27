@@ -1492,7 +1492,8 @@ async function loadCustomSections(){
       // Load section items
       const q1=query(collection(db,'section_items'),where('sectionId','==',s.id));
       const itemsSnap=await getDocs(q1);
-      const items=[];itemsSnap.forEach(d=>items.push({id:d.id,...d.data()}));
+      const items=[];itemsSnap.forEach(d=>{const x={id:d.id,...d.data()};if(x.hidden!==true)items.push(x);});
+      if(!items.length)continue; // قسم بدون عناصر منشورة (أو مسودات فقط) ما بيظهر
       const isArt=s.type==='articles';
       const secSlug=slug3(s.slug)||autoSlug3(s.name,s.id);
       if(isArt)items.sort((a,b)=>((b.publishedAt||b.createdAt)?.seconds||0)-((a.publishedAt||a.createdAt)?.seconds||0));
