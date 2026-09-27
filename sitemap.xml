@@ -95,6 +95,15 @@
     <image:image><image:loc>https://www.3engs.com/img/books/sa5okrynddbXTNsxsGrS.webp</image:loc><image:title>راسبيري باي ببساطة</image:title></image:image>
   </url>
   <url>
+    <loc>https://www.3engs.com/sections/articles/</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/sections/articles/esp32-vs-arduino/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.3engs.com/team/</loc>
     <priority>0.6</priority>
   </url>
