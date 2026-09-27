@@ -12,25 +12,25 @@
   </url>
   <url>
     <loc>https://www.3engs.com/courses/electronic-pcb-course/</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-09-27</lastmod>
     <priority>0.8</priority>
-    <image:image><image:loc>https://www.3engs.com/img/courses/4yLgkaFok0LUvNlupIBf.webp</image:loc><image:title>الكترونبات و تصميم ال PCB</image:title></image:image>
+    <image:image><image:loc>https://www.3engs.com/img/courses/4yLgkaFok0LUvNlupIBf.webp</image:loc><image:title>الإلكترونيات وتصميم الدوائر المطبوعة PCB</image:title></image:image>
   </url>
   <url>
     <loc>https://www.3engs.com/courses/python-ai-course/</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-09-27</lastmod>
     <priority>0.8</priority>
     <image:image><image:loc>https://www.3engs.com/img/courses/OP0pkdjuaBl2hE9AhZNG.webp</image:loc><image:title>اساسيات البايثون والذكاء الاصطناعي</image:title></image:image>
   </url>
   <url>
     <loc>https://www.3engs.com/courses/esp32-iot-course/</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-09-27</lastmod>
     <priority>0.8</priority>
     <image:image><image:loc>https://www.3engs.com/img/courses/ZxzNfCmOOXnEQUOWJDaI.webp</image:loc><image:title>انترنت الاشياء والانظمة المدمجة (iot)</image:title></image:image>
   </url>
   <url>
     <loc>https://www.3engs.com/courses/arduino-course/</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-09-27</lastmod>
     <priority>0.8</priority>
     <image:image><image:loc>https://www.3engs.com/img/courses/ppgf4S766bSU8H1BO85r.webp</image:loc><image:title>برمجة الاردوينو روبوتيكس</image:title></image:image>
   </url>
@@ -42,11 +42,11 @@
     <loc>https://www.3engs.com/projects/security-system-factory/</loc>
     <lastmod>2026-09-27</lastmod>
     <priority>0.8</priority>
-    <image:image><image:loc>https://www.3engs.com/img/projects/1hBkXtJAJg71IsEaaNwJ.webp</image:loc><image:title>نظام لتمثيل انظمة الحماية في المصانع باستخدام PIC MICROCONTROLLER | Factory Security System</image:title></image:image>
+    <image:image><image:loc>https://www.3engs.com/img/projects/1hBkXtJAJg71IsEaaNwJ.webp</image:loc><image:title>نظام حماية المصانع باستخدام PIC18F4550 | Factory Security System</image:title></image:image>
   </url>
   <url>
     <loc>https://www.3engs.com/projects/weather-station-project/</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-09-27</lastmod>
     <priority>0.8</priority>
     <image:image><image:loc>https://www.3engs.com/img/projects/ABaMSMO49TXKwWE8GaMk.webp</image:loc><image:title>محطة طقس متنقلة ذكية</image:title></image:image>
   </url>
@@ -56,43 +56,79 @@
   </url>
   <url>
     <loc>https://www.3engs.com/products/ch340-driver/</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-09-27</lastmod>
     <priority>0.8</priority>
     <image:image><image:loc>https://www.3engs.com/img/products/5L1Rn98iIMEk02s1E7jf.webp</image:loc><image:title>CH340 DRIVER</image:title></image:image>
   </url>
   <url>
     <loc>https://www.3engs.com/products/cp210-driver/</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-09-27</lastmod>
     <priority>0.8</priority>
-    <image:image><image:loc>https://www.3engs.com/img/products/AX88UPXucTD67WRfMkRY.webp</image:loc><image:title>CP210 driver</image:title></image:image>
+    <image:image><image:loc>https://www.3engs.com/img/products/AX88UPXucTD67WRfMkRY.webp</image:loc><image:title>CP210 Driver</image:title></image:image>
   </url>
   <url>
     <loc>https://www.3engs.com/books/</loc>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.3engs.com/books/simply-solar-panel-book/</loc>
-    <lastmod>2026-09-26</lastmod>
+    <loc>https://www.3engs.com/books/renewable-energy-engineering-book/</loc>
+    <lastmod>2026-09-27</lastmod>
     <priority>0.8</priority>
     <image:image><image:loc>https://www.3engs.com/img/books/5une4cJcU7ptPWtngK03.webp</image:loc><image:title>معلومات عن تخصص هندسة الطاقة المتجددة</image:title></image:image>
   </url>
   <url>
     <loc>https://www.3engs.com/books/simply-arduino-book/</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-09-27</lastmod>
     <priority>0.8</priority>
     <image:image><image:loc>https://www.3engs.com/img/books/LmDlB5k426QbOfGYcCRa.webp</image:loc><image:title>اردوينو ببساطة</image:title></image:image>
   </url>
   <url>
     <loc>https://www.3engs.com/books/electronic-practical-book/</loc>
-    <lastmod>2026-09-26</lastmod>
+    <lastmod>2026-09-27</lastmod>
     <priority>0.8</priority>
-    <image:image><image:loc>https://www.3engs.com/img/books/mogzmyFFsPVGdkPyC58u.webp</image:loc><image:title>الاكترونيات العملية المبسطة</image:title></image:image>
+    <image:image><image:loc>https://www.3engs.com/img/books/mogzmyFFsPVGdkPyC58u.webp</image:loc><image:title>الإلكترونيات العملية المبسطة</image:title></image:image>
   </url>
   <url>
     <loc>https://www.3engs.com/books/raspberry-pi-book/</loc>
-    <lastmod>2026-09-24</lastmod>
+    <lastmod>2026-09-27</lastmod>
     <priority>0.8</priority>
     <image:image><image:loc>https://www.3engs.com/img/books/sa5okrynddbXTNsxsGrS.webp</image:loc><image:title>راسبيري باي ببساطة</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/topics/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/topics/arduino/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/topics/esp32/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/topics/python/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/topics/electronics/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/topics/iot/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/topics/embedded-systems/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/topics/ai/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/topics/drivers-tools/</loc>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.3engs.com/privacy.html</loc>

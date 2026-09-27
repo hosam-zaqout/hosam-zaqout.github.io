@@ -237,7 +237,7 @@ footer nav{display:flex;justify-content:center;flex-wrap:wrap;gap:16px;margin-bo
 @media(max-width:820px){.hero,.grid2{grid-template-columns:1fr}.nav{display:none}h1{font-size:1.4rem}.facts th{white-space:normal}}
 `;
 
-function layout({ title, description, canonical, image, schemas, body, ogType = "website" }) {
+function layout({ title, description, canonical, image, schemas, body, ogType = "website", itemId = "" }) {
   const img = image || OG_DEFAULT;
   return `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -246,7 +246,7 @@ function layout({ title, description, canonical, image, schemas, body, ogType = 
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
-<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="robots" content="index, follow, max-image-preview:large">${itemId ? `\n<meta name="3engs-id" content="${esc(itemId)}">` : ""}
 <link rel="canonical" href="${canonical}">
 <link rel="icon" href="/logo.jpg">
 <meta name="theme-color" content="#F59E0B">
@@ -572,6 +572,7 @@ ${related.length ? `<h2 class="sec-title">🔗 قد يهمك أيضاً</h2><div
     ogType: "product",
     schemas,
     body,
+    itemId: item.id,
   });
 }
 
@@ -625,8 +626,8 @@ function topicsHub(list) {
   });
 }
 
-function redirectPage(to) {
-  return `<!DOCTYPE html><html lang="ar"><head><meta charset="UTF-8"><title>تم نقل الصفحة</title>
+function redirectPage(to, id = "") {
+  return `<!DOCTYPE html><html lang="ar"><head><meta charset="UTF-8"><title>تم نقل الصفحة</title>${id ? `<meta name="3engs-id" content="${esc(id)}">` : ""}
 <link rel="canonical" href="${to}"><meta name="robots" content="noindex, follow">
 <meta http-equiv="refresh" content="0; url=${to}"><script>location.replace(${JSON.stringify(to)})</script></head>
 <body><a href="${to}">${to}</a></body></html>`;
@@ -793,7 +794,7 @@ async function main() {
       it._slug = sl;
       // غيّرت الرابط من لوحة التحكم؟ الرابط القديم يحوّل للجديد بدل ما يعطي 404
       const old = autoSlug(it);
-      if (old !== sl) redirects.push([old, sl]);
+      if (old !== sl) redirects.push([old, sl, it.id]);
     }
     for (const [old] of redirects) seen.add(old);
     data[sec.col] = items;
@@ -810,17 +811,30 @@ async function main() {
     const items = data[sec.col];
     if (!items.length) continue;
 
-    // مسح الصفحات القديمة لعناصر انحذفت
+    // روابط قديمة: إذا المجلد لعنصر لسا موجود (تغيّر رابطه) ← تحويل للرابط الجديد، وإلا ← حذف
     const dir = path.join(OUT_DIR, sec.dir);
+    const byId = new Map(items.map((it) => [it.id, it]));
     try {
-      for (const d of await fs.readdir(dir, { withFileTypes: true }))
-        if (d.isDirectory() && !seenBy[sec.col].has(d.name)) await fs.rm(path.join(dir, d.name), { recursive: true });
+      for (const d of await fs.readdir(dir, { withFileTypes: true })) {
+        if (!d.isDirectory() || seenBy[sec.col].has(d.name)) continue;
+        let html = "";
+        try { html = await fs.readFile(path.join(dir, d.name, "index.html"), "utf8"); } catch {}
+        const id = (html.match(/name="3engs-id" content="([^"]+)"/) || html.match(/"sku":"([^"]+)"/) || html.match(/[?&]open=[a-z_]+:([A-Za-z0-9_-]+)/) || [])[1];
+        const redirSlug = (html.match(/http-equiv="refresh" content="0; url=[^"]*\/([^/"]+)\/"/) || [])[1];
+        const target = (id && byId.get(id)) || (redirSlug && items.find((x) => x._slug === redirSlug));
+        if (target) {
+          await writeFile(`${sec.dir}/${d.name}/index.html`, redirectPage(`${SITE}/${sec.dir}/${target._slug}/`, target.id));
+          console.log(`↪️  ${sec.dir}/${d.name}/ → ${target._slug}/`);
+        } else {
+          await fs.rm(path.join(dir, d.name), { recursive: true });
+        }
+      }
     } catch {}
 
     if (await writeFile(`${sec.dir}/index.html`, hubPage(sec, items))) changed.push(`${SITE}/${sec.dir}/`);
     entries.push({ loc: `/${sec.dir}/`, priority: 0.9 });
 
-    for (const [old, to] of redirectsBy[sec.col]) await writeFile(`${sec.dir}/${old}/index.html`, redirectPage(`${SITE}/${sec.dir}/${to}/`));
+    for (const [old, to, id] of redirectsBy[sec.col]) await writeFile(`${sec.dir}/${old}/index.html`, redirectPage(`${SITE}/${sec.dir}/${to}/`, id));
 
     for (const it of items) {
       const rel = `${sec.dir}/${it._slug}/index.html`;
