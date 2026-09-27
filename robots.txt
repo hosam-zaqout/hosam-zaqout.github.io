@@ -1,27 +1,31 @@
-# 3ENG.s - robots.txt
+# 3ENG.s — robots.txt
 # https://www.3engs.com
+#
+# كل محركات البحث وبوتات الذكاء الاصطناعي مرحّب فيها (GEO).
+# الصفحات الخاصة (لوحة التحكم، الدخول، الدفع) مستثناة.
 
 User-agent: *
 Allow: /
 Disallow: /admin.html
-Disallow: /admin/
+Disallow: /auth.html
 Disallow: /payment-success.html
 
-# Sitemap
+# بوتات الذكاء الاصطناعي — مسموح لها صراحةً بقراءة المحتوى والاقتباس منه
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: meta-externalagent
+User-agent: CCBot
+Allow: /
+Disallow: /admin.html
+Disallow: /auth.html
+Disallow: /payment-success.html
+
 Sitemap: https://www.3engs.com/sitemap.xml
-
-# Crawl-delay
-Crawl-delay: 1
-
-# Specific bots
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /

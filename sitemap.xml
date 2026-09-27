@@ -95,6 +95,22 @@
     <image:image><image:loc>https://www.3engs.com/img/books/sa5okrynddbXTNsxsGrS.webp</image:loc><image:title>راسبيري باي ببساطة</image:title></image:image>
   </url>
   <url>
+    <loc>https://www.3engs.com/team/</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/team/hosam-zaqout/</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/team/israa-altaweel/</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/team/furat-altaweel/</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://www.3engs.com/topics/</loc>
     <priority>0.7</priority>
   </url>

@@ -44,6 +44,7 @@
 {
   "@context": "https://schema.org",
   "@type": "EducationalOrganization",
+  "@id": "https://www.3engs.com/#organization",
   "name": "3ENG.s",
   "alternateName": ["المهندسون الثلاثة", "Three Engineers"],
   "url": "https://www.3engs.com/",
@@ -51,7 +52,25 @@
   "image": "https://www.3engs.com/og-image.jpg",
   "description": "منصة فلسطينية لتعليم الهندسة الكهربائية والأنظمة المدمجة وإنترنت الأشياء: دورات، كتب، ومشاريع ESP32 و Arduino جاهزة.",
   "email": "info@3engs.com",
-  "areaServed": "PS",
+  "telephone": "+972592753159",
+  "address": { "@type": "PostalAddress", "addressLocality": "غزة", "addressCountry": "PS" },
+  "areaServed": ["PS", "Arab world"],
+  "inLanguage": "ar",
+  "knowsAbout": ["Electrical Engineering", "Embedded Systems", "IoT", "ESP32", "Arduino", "PCB Design", "Python", "Artificial Intelligence"],
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "contactType": "customer support",
+    "telephone": "+972592753159",
+    "email": "info@3engs.com",
+    "availableLanguage": ["Arabic", "English"],
+    "url": "https://wa.me/972592753159"
+  },
+  "founder": { "@id": "https://www.3engs.com/team/hosam-zaqout/#person" },
+  "member": [
+    { "@id": "https://www.3engs.com/team/hosam-zaqout/#person" },
+    { "@id": "https://www.3engs.com/team/israa-altaweel/#person" },
+    { "@id": "https://www.3engs.com/team/furat-altaweel/#person" }
+  ],
   "sameAs": [
     "https://www.instagram.com/3eng.s",
     "https://www.tiktok.com/@3eng.s",
@@ -508,11 +527,14 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
   "url": "https://www.3engs.com/#about",
   "about": {
     "@type": "EducationalOrganization",
+    "@id": "https://www.3engs.com/#organization",
     "name": "3ENG.s",
     "url": "https://www.3engs.com/",
     "employee": [
       {
         "@type": "Person",
+        "@id": "https://www.3engs.com/team/hosam-zaqout/#person",
+        "url": "https://www.3engs.com/team/hosam-zaqout/",
         "name": "Hosam Zaqout",
         "alternateName": "حسام زقوت",
         "jobTitle": "Electrical Engineer, Founder & Trainer",
@@ -522,6 +544,8 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
       },
       {
         "@type": "Person",
+        "@id": "https://www.3engs.com/team/israa-altaweel/#person",
+        "url": "https://www.3engs.com/team/israa-altaweel/",
         "name": "Israa Al-Taweel",
         "alternateName": "إسراء الطويل",
         "jobTitle": "Embedded Systems Engineer & Trainer",
@@ -529,6 +553,8 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
       },
       {
         "@type": "Person",
+        "@id": "https://www.3engs.com/team/furat-altaweel/#person",
+        "url": "https://www.3engs.com/team/furat-altaweel/",
         "name": "Furat Al-Taweel",
         "alternateName": "فرات الطويل",
         "jobTitle": "Smart Systems Engineer, Product Development & Trainer",
@@ -771,21 +797,21 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
   <div class="x-team">
     <div class="x-member">
       <div class="x-av">ح</div>
-      <h3>م. حسام زقوت</h3>
+      <h3><a href="/team/hosam-zaqout/" style="color:inherit;text-decoration:none">م. حسام زقوت</a></h3>
       <div class="x-role">مهندس كهربائي • مؤسس ومدرّب</div>
       <p>بكالوريوس هندسة كهربائية من الجامعة الإسلامية بغزة، مساعد تدريس وبحث ومحاضر زائر في إنترنت الأشياء والحساسات. متخصص في الأنظمة المدمجة وتصميم PCB والعتاد المدمج بالذكاء الاصطناعي.</p>
       <div class="x-skills"><span>ESP32</span><span>IoT</span><span>PCB Design</span><span>Embedded AI</span><span>Control Systems</span></div>
     </div>
     <div class="x-member">
       <div class="x-av">إ</div>
-      <h3>م. إسراء الطويل</h3>
+      <h3><a href="/team/israa-altaweel/" style="color:inherit;text-decoration:none">م. إسراء الطويل</a></h3>
       <div class="x-role">مهندسة أنظمة مدمجة • مدرّبة</div>
       <p>مهندسة متخصصة في إنترنت الأشياء والأنظمة المدمجة، درّبت أكثر من 300 طالب، ولها مشاريع عملية في الطاقة الشمسية والأتمتة والأجهزة الذكية.</p>
       <div class="x-skills"><span>IoT</span><span>Arduino</span><span>Python</span><span>Electronics</span></div>
     </div>
     <div class="x-member">
       <div class="x-av">ف</div>
-      <h3>م. فرات الطويل</h3>
+      <h3><a href="/team/furat-altaweel/" style="color:inherit;text-decoration:none">م. فرات الطويل</a></h3>
       <div class="x-role">مهندسة أنظمة ذكية • تطوير المنتجات والتدريب</div>
       <p>مهندسة أنظمة ذكية مهتمة بتطوير المنتجات وبتعليم الأطفال علوم الإلكترونيات واللغات، ولديها خبرة كبيرة في إعداد السيرة الذاتية وتدريب الطلاب على اجتياز المقابلات والتقدّم للمنح الدراسية.</p>
       <div class="x-skills"><span>Smart Systems</span><span>Product Development</span><span>تعليم الأطفال</span><span>CV & Interviews</span><span>المنح الدراسية</span></div>
@@ -802,6 +828,7 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
     <a href="/projects/">🛠️ كل المشاريع</a>
     <a href="/products/">📦 المنتجات الرقمية</a>
     <a href="/books/">📚 الكتب</a>
+    <a href="/team/">👷 تعرّف على الفريق</a>
   </div>
 </section>
 

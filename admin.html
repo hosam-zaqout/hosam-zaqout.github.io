@@ -969,7 +969,10 @@ ${GEO_FIELDS}
       <div class="cg"><label>السعر ($) *</label><input class="ci" id="m-price" type="number" min="0" placeholder="75"></div>
       <div class="cg"><label>السعر القديم ($)</label><input class="ci" id="m-oldPrice" type="number" min="0" placeholder="99"></div>
     </div>
-    <div class="cg"><label>المستوى</label><select class="cs" id="m-level"><option value="مبتدئ">مبتدئ</option><option value="وسط">وسط</option><option value="متقدم">متقدم</option></select></div>
+    <div class="g2">
+      <div class="cg"><label>المستوى</label><select class="cs" id="m-level"><option value="مبتدئ">مبتدئ</option><option value="وسط">وسط</option><option value="متقدم">متقدم</option></select></div>
+      <div class="cg"><label>👨‍🏫 المدرّب</label><input class="ci" id="m-instructor" list="team-names" placeholder="م. حسام زقوت"><datalist id="team-names"><option value="م. حسام زقوت"><option value="م. إسراء الطويل"><option value="م. فرات الطويل"></datalist><div style="font-size:.72rem;color:var(--mt);margin-top:4px">اسم من الفريق بيربط الدورة بصفحته تلقائياً</div></div>
+    </div>
 
     <div class="opt-section"><div class="opt-head" onclick="this.parentElement.classList.toggle('open')"><h4>📚 ماذا ستتعلم؟ (اختياري)</h4><span class="opt-chev">▼</span></div><div class="opt-body">
       <div class="tag-row" id="m-learns"></div>
@@ -1201,7 +1204,7 @@ window.saveModal=async()=>{
   const gc=eid=>document.getElementById(eid)?.checked||false;
   let data={updatedAt:serverTimestamp()};
   if(type==='product'){if(!g('m-title')){toast('⚠️ اسم المنتج مطلوب','err');return;}data={...data,title:g('m-title'),desc:g('m-desc'),price:parseFloat(g('m-price'))||0,oldPrice:parseFloat(g('m-oldPrice'))||0,type:g('m-type'),emoji:g('m-emoji'),badge:g('m-badge'),isFree:gc('m-isFree'),imageUrl:g('m-imageUrl'),fileUrl:g('m-fileUrl')};}
-  else if(type==='course'){if(!g('m-title')){toast('⚠️ اسم الدورة مطلوب','err');return;}data={...data,title:g('m-title'),desc:g('m-desc'),category:g('m-category'),emoji:g('m-emoji'),duration:g('m-duration'),lessons:g('m-lessons'),price:parseFloat(g('m-price'))||0,oldPrice:parseFloat(g('m-oldPrice'))||0,level:g('m-level'),learns:[..._learns],topics:[..._topics],imageUrl:g('m-imageUrl'),videoUrl:g('m-videoUrl')};}
+  else if(type==='course'){if(!g('m-title')){toast('⚠️ اسم الدورة مطلوب','err');return;}data={...data,title:g('m-title'),desc:g('m-desc'),category:g('m-category'),emoji:g('m-emoji'),duration:g('m-duration'),lessons:g('m-lessons'),price:parseFloat(g('m-price'))||0,oldPrice:parseFloat(g('m-oldPrice'))||0,level:g('m-level'),instructor:g('m-instructor'),learns:[..._learns],topics:[..._topics],imageUrl:g('m-imageUrl'),videoUrl:g('m-videoUrl')};}
   else if(type==='book'){if(!g('m-title')){toast('⚠️ عنوان الكتاب مطلوب','err');return;}data={...data,title:g('m-title'),author:g('m-author'),price:parseFloat(g('m-price'))||0,oldPrice:parseFloat(g('m-oldPrice'))||0,emoji:g('m-emoji'),desc:g('m-desc'),isFree:gc('m-isFree'),imageUrl:g('m-imageUrl'),fileUrl:g('m-fileUrl')};}
   else if(type==='project'){if(!g('m-title')){toast('⚠️ اسم المشروع مطلوب','err');return;}data={...data,title:g('m-title'),shortDesc:g('m-shortDesc'),desc:g('m-desc'),category:g('m-category'),emoji:g('m-emoji'),isFree:gc('m-isFree'),price:gc('m-isFree')?0:(parseFloat(g('m-price'))||0),oldPrice:parseFloat(g('m-oldPrice'))||0,level:g('m-level'),duration:g('m-duration'),videoUrl:g('m-videoUrl'),components:[..._components],learns:[..._learns],requirements:[..._requirements],imageUrl:g('m-imageUrl'),fileUrl:g('m-fileUrl')};}
   else if(type==='testimonial'){if(!g('m-name')||!g('m-text')){toast('⚠️ الاسم والنص مطلوبان','err');return;}data={...data,name:g('m-name'),role:g('m-role'),text:g('m-text'),rating:parseInt(g('m-rating'))||5};}

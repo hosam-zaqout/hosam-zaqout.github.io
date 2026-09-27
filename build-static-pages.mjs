@@ -14,6 +14,7 @@
  *    - صور WebP مضغوطة لكل عنصر في /img/  (يحتاج مكتبة sharp — اختيارية)
  *    - صفحات تصنيف حسب التقنية/المجال في /topics/
  *    - الأقسام المخصصة من لوحة التحكم في /sections/{slug}/ (منتجات أو مقالات)
+ *    - صفحات الفريق /team/{slug}/ (Person) وربط كل دورة/كتاب بمدرّبه أو مؤلفه
  *    - محتوى ثابت داخل index.html (روابط العناصر + الأرقام + الآراء)
  *      بين علامات <!--SSR:xxx--> … <!--/SSR:xxx--> — عشان جوجل والـ AI يشوفوه بدون JavaScript
  *    - (اختياري) إرسال الروابط الجديدة لـ Bing عبر IndexNow
@@ -241,6 +242,13 @@ footer nav{display:flex;justify-content:center;flex-wrap:wrap;gap:16px;margin-bo
 .faq summary{cursor:pointer;padding:12px 0;font-weight:700}
 .faq p{padding-bottom:12px;color:#d3d9ea}
 .card .k{font-size:.72rem;color:var(--mut)}
+.answer{border-color:var(--acc);background:linear-gradient(135deg,#1c2542,#131a2e)}
+.answer p{font-size:1.02rem;color:#eef1f8}
+.person{display:grid;grid-template-columns:140px 1fr;gap:24px;align-items:center;margin:14px 0 24px}
+.person .av{width:140px;height:140px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--acc2));display:grid;place-items:center;font-size:3rem;font-weight:800;color:#1a1200;overflow:hidden;border:3px solid var(--acc)}
+.person .av img{width:100%;height:100%;object-fit:cover}
+.person .role{color:var(--acc2);font-weight:700}
+@media(max-width:600px){.person{grid-template-columns:1fr;text-align:center}.person .av{margin:auto}}
 .article{max-width:760px;margin:0 auto}
 .article .meta{color:var(--mut);font-size:.88rem;margin:6px 0 18px;display:flex;flex-wrap:wrap;gap:14px}
 .article .cover{width:100%;height:auto;border-radius:16px;border:1px solid var(--line);margin-bottom:22px}
@@ -300,7 +308,7 @@ ${schemas.map(jsonLd).join("\n")}
 ${body}
 </main>
 <footer><div class="wrap">
-  <nav><a href="/">الرئيسية</a>${SECTIONS.map((s) => `<a href="/${s.dir}/">${s.label}</a>`).join("")}<a href="/topics/">التصنيفات</a><a href="/#about">من نحن</a><a href="/#faq">الأسئلة الشائعة</a><a href="/privacy.html">سياسة الخصوصية</a></nav>
+  <nav><a href="/">الرئيسية</a>${SECTIONS.map((s) => `<a href="/${s.dir}/">${s.label}</a>`).join("")}<a href="/topics/">التصنيفات</a><a href="/team/">الفريق</a><a href="/#about">من نحن</a><a href="/#faq">الأسئلة الشائعة</a><a href="/privacy.html">سياسة الخصوصية</a></nav>
   © ${new Date().getFullYear()} ${BRAND} — ${BRAND_AR} • منصة تعليم الهندسة الكهربائية والأنظمة المدمجة
 </div></footer>
 </body>
@@ -318,7 +326,71 @@ function crumbs(items) {
   return { html, schema };
 }
 
-const ORG = { "@type": "EducationalOrganization", name: BRAND, alternateName: BRAND_AR, url: SITE, logo: `${SITE}/logo.jpg` };
+const ORG_ID = `${SITE}/#organization`;
+const ORG = { "@type": "EducationalOrganization", "@id": ORG_ID, name: BRAND, alternateName: BRAND_AR, url: SITE + "/", logo: `${SITE}/logo.jpg` };
+
+// ---------------- الفريق (E-E-A-T) ----------------
+// photo: ضع صورة في /img/team/{slug}.jpg وبتظهر تلقائياً
+const TEAM = [
+  {
+    slug: "hosam-zaqout", name: "م. حسام زقوت", en: "Hosam Zaqout", aliases: ["حسام زقوت", "hosam zaqout", "hosam"],
+    role: "مهندس كهربائي • مؤسس ومدرّب", jobTitle: "Electrical Engineer, Founder & Trainer", founder: true,
+    bio: [
+      "مهندس كهربائي ومؤسس منصة 3ENG.s. حاصل على بكالوريوس الهندسة الكهربائية من الجامعة الإسلامية بغزة، وعمل مساعد تدريس وبحث ومحاضراً زائراً في إنترنت الأشياء والحساسات.",
+      "متخصص في الأنظمة المدمجة وتصميم الدوائر المطبوعة PCB والعتاد المدمج بالذكاء الاصطناعي، ويدرّب على ESP32 و Arduino و Python ومعالجة الصور.",
+    ],
+    alumniOf: "Islamic University of Gaza", alumniAr: "الجامعة الإسلامية بغزة",
+    knows: ["Embedded Systems", "IoT", "PCB Design", "ESP32", "Arduino", "Python", "AI Hardware", "Control Systems"],
+    sameAs: ["https://www.youtube.com/@Hosam.Zaqout"],
+  },
+  {
+    slug: "israa-altaweel", name: "م. إسراء الطويل", en: "Israa Al-Taweel", aliases: ["إسراء الطويل", "اسراء الطويل", "israa"],
+    role: "مهندسة أنظمة مدمجة • مدرّبة", jobTitle: "Embedded Systems Engineer & Trainer",
+    bio: [
+      "مهندسة متخصصة في إنترنت الأشياء والأنظمة المدمجة، درّبت أكثر من 300 طالب.",
+      "لها مشاريع عملية في الطاقة الشمسية والأتمتة والأجهزة الذكية.",
+    ],
+    knows: ["IoT", "Embedded Systems", "Arduino", "Python", "Electronics"],
+    sameAs: [],
+  },
+  {
+    slug: "furat-altaweel", name: "م. فرات الطويل", en: "Furat Al-Taweel", aliases: ["فرات الطويل", "furat"],
+    role: "مهندسة أنظمة ذكية • تطوير المنتجات والتدريب", jobTitle: "Smart Systems Engineer, Product Development & Trainer",
+    bio: [
+      "مهندسة أنظمة ذكية مهتمة بتطوير المنتجات، وبتعليم الأطفال علوم الإلكترونيات واللغات.",
+      "لديها خبرة كبيرة في إعداد السيرة الذاتية، وتدريب الطلاب على اجتياز المقابلات والتقدّم للمنح الدراسية.",
+    ],
+    knows: ["Smart Systems", "Product Development", "Electronics for Kids", "CV Writing", "Interview Preparation", "Scholarships"],
+    sameAs: [],
+  },
+];
+const normName = (t) => clean(t).replace(/^م\.?\s*/, "").replace(/\s+/g, " ").toLowerCase();
+function teamOf(name) {
+  const n = normName(name);
+  if (!n) return null;
+  return TEAM.find((m) => normName(m.name) === n || m.aliases.some((a) => n.includes(a.toLowerCase()))) || null;
+}
+// المدرّب: حقل instructor، أو سطر "المدرب: ..." داخل الوصف
+function instructorOf(item) {
+  const raw = clean(item.instructor) || ((String(item.desc || "").match(/المدرب\s*[:：]\s*([^\n]+)/) || [])[1] || "");
+  return clean(raw);
+}
+function personLd(name) {
+  const m = teamOf(name);
+  return m
+    ? { "@type": "Person", "@id": `${SITE}/team/${m.slug}/#person`, name: m.en, alternateName: m.name.replace(/^م\.\s*/, ""), url: `${SITE}/team/${m.slug}/` }
+    : { "@type": "Person", name: clean(name) };
+}
+function personLink(name) {
+  const m = teamOf(name);
+  return m ? `<a href="/team/${m.slug}/" style="color:var(--acc)">${esc(clean(name))}</a>` : esc(clean(name));
+}
+async function teamPhoto(m) {
+  for (const ext of ["webp", "jpg", "png"]) {
+    try { await fs.access(path.join(OUT_DIR, "img", "team", `${m.slug}.${ext}`)); return `/img/team/${m.slug}.${ext}`; } catch {}
+  }
+  return "";
+}
 
 // ---------------- ضغط الصور (WebP) ----------------
 // لكل عنصر: /img/{col}/{id}.webp (1200px) و {id}-480.webp للبطاقات
@@ -452,9 +524,11 @@ function itemPage(sec, item, siblings, all) {
       ...(arr(item.learns).length ? { teaches: arr(item.learns).map(clean) } : {}),
       ...(arr(item.requirements).length ? { coursePrerequisites: arr(item.requirements).map(clean) } : {}),
       ...(arr(item.topics).length ? { syllabusSections: arr(item.topics).slice(0, 30).map((t) => ({ "@type": "Syllabus", name: clean(t) })) } : {}),
+      ...(instructorOf(item) ? { author: personLd(instructorOf(item)) } : {}),
       hasCourseInstance: {
         "@type": "CourseInstance",
         courseMode: item.mode || "Online",
+        ...(instructorOf(item) ? { instructor: personLd(instructorOf(item)) } : {}),
         ...(workload ? { courseWorkload: workload } : {}),
         inLanguage: "ar",
       },
@@ -463,15 +537,16 @@ function itemPage(sec, item, siblings, all) {
   } else {
     main = {
       "@context": "https://schema.org",
-      "@type": "Product",
+      "@type": sec.col === "books" ? ["Product", "Book"] : "Product",
       name: title,
       description: cut(item.desc || item.shortDesc || desc, 500),
       url: canonical,
       sku: item.id,
+      ...(sec.col === "books" ? { bookFormat: "https://schema.org/EBook", ...(num(item.pages) ? { numberOfPages: num(item.pages) } : {}) } : {}),
       image: imgAbs || `${SITE}/logo.jpg`,
       brand: { "@type": "Brand", name: BRAND },
       category: (item.category && isNaN(item.category) ? item.category : "") || sec.one,
-      ...(item.author ? { author: { "@type": "Person", name: clean(item.author) } } : {}),
+      ...(item.author ? { author: personLd(item.author) } : {}),
       offers: offer,
       ...extra,
     };
@@ -513,7 +588,8 @@ function itemPage(sec, item, siblings, all) {
     item.level ? ["المستوى", item.level] : null,
     item.duration ? ["المدة", item.duration] : null,
     item.lessons ? ["عدد الدروس", item.lessons] : null,
-    item.author ? ["المؤلف", item.author] : null,
+    instructorOf(item) ? ["المدرّب", personLink(instructorOf(item)), true] : null,
+    item.author ? ["المؤلف", personLink(item.author), true] : null,
     ["اللغة", "العربية"],
     ["السعر", free ? "مجاني" : `$${price} ${CURRENCY}`],
     ["طريقة الحصول عليه", howGet],
@@ -536,6 +612,29 @@ function itemPage(sec, item, siblings, all) {
     : `<div class="emoji-cover">${item.emoji || sec.emoji}</div>`;
 
   const learnTitle = sec.type === "Course" ? "🎯 ماذا ستتعلم" : "🎁 ماذا ستحصل عليه";
+
+  // ✅ باختصار: جواب مباشر يقدر جوجل والذكاء الاصطناعي يقتبسه كما هو
+  const instr = instructorOf(item);
+  const firstSentence = (t) => cut((clean(t).split(/(?<=[.!؟?])\s/)[0] || ""), 160);
+  const L = arr(item.learns).map(clean).filter((x) => x.length < 90);
+  const topicNames = topics.map((t) => t.ar);
+  const priceTxt = free ? "وهو مجاني بالكامل" : `وسعره ${price}$`;
+  let answer;
+  if (sec.type === "Course") {
+    answer = `«${title}» دورة${item.level ? " بمستوى " + item.level : ""} باللغة العربية من منصة ${BRAND}${instr ? "، يقدّمها " + instr : ""}${item.duration ? "، مدتها " + item.duration : ""}${item.lessons ? " في " + item.lessons : ""}.`
+      + (L.length ? ` ستتعلم فيها: ${L.slice(0, 4).join("، ")}.` : item.desc ? " " + firstSentence(item.desc) : "")
+      + (audience.length ? ` الفئة المستهدفة: ${audience.slice(0, 2).join("، ")}.` : "")
+      + ` تُمنح شهادة معتمدة عند إتمامها، ${free ? "وهي مجانية" : "وسعرها " + price + "$"}.`;
+  } else {
+    const kind = sec.col === "books" ? "كتاب" : sec.col === "projects" ? "مشروع" + (item.level ? " بمستوى " + item.level : "") + " جاهز" : sec.one;
+    answer = `«${title}» ${kind} باللغة العربية من منصة ${BRAND}${item.author ? " من تأليف " + clean(item.author) : ""}${topicNames.length ? " في مجال " + topicNames.slice(0, 3).join(" و") : ""}.`
+      + (item.shortDesc ? " " + cut(item.shortDesc, 170) : item.desc ? " " + firstSentence(item.desc) : "")
+      + (L.length && sec.col === "projects" ? ` يتضمن: ${L.slice(0, 4).join("، ")}.` : "")
+      + (arr(item.components).length ? ` أهم المكونات: ${arr(item.components).slice(0, 4).map((c) => clean(c).split(/[(—]/)[0].trim()).join("، ")}.` : "")
+      + (audience.length ? ` الفئة المستهدفة: ${audience.slice(0, 2).join("، ")}` : "")
+      + `${audience.length ? ". " : " "}${free ? "وهو مجاني بالكامل" : "السعر " + price + "$"}.`;
+  }
+  const answerHtml = `<section class="box answer"><h2>✅ باختصار</h2><p>${esc(answer)}</p>${instr ? `<p style="margin:0">👨‍🏫 المدرّب: ${personLink(instr)}</p>` : item.author && teamOf(item.author) ? `<p style="margin:0">✍️ المؤلف: ${personLink(item.author)}</p>` : ""}</section>`;
 
   // عناصر مرتبطة: نفس التقنية أولاً (من كل الأقسام)، ثم نفس القسم
   const score = (o) => itemTopics(o).filter((t) => topics.includes(t)).length;
@@ -567,6 +666,7 @@ ${bc.html}
   </div>
 </section>
 
+${answerHtml}
 ${factsHtml}
 ${item.desc ? `<section class="box"><h2>📖 التفاصيل</h2>${paragraphs(item.desc)}</section>` : ""}
 <div class="grid2">
@@ -643,7 +743,7 @@ function articlePage(sec, item, all) {
     wordCount: text.split(" ").filter(Boolean).length,
     ...(published ? { datePublished: published } : {}),
     ...(updated ? { dateModified: updated } : {}),
-    author: author ? { "@type": "Person", name: author } : ORG,
+    author: author ? personLd(author) : ORG,
     publisher: ORG,
     ...(topics.length || arr(item.tags).length ? { keywords: [...new Set([...topics.map((t) => t.ar), ...arr(item.tags).map(clean)])].join("، ") } : {}),
   }];
@@ -667,7 +767,7 @@ function articlePage(sec, item, all) {
 ${bc.html}
 <article class="article">
   <h1>${esc(title)}</h1>
-  <div class="meta">${author ? `<span>✍️ ${esc(author)}</span>` : `<span>✍️ فريق ${BRAND}</span>`}${published ? `<span>📅 ${published.slice(0, 10)}</span>` : ""}<span>⏱ ${minutes} دقائق قراءة</span></div>
+  <div class="meta">${author ? `<span>✍️ ${personLink(author)}</span>` : `<span>✍️ فريق ${BRAND}</span>`}${published ? `<span>📅 ${published.slice(0, 10)}</span>` : ""}<span>⏱ ${minutes} دقائق قراءة</span></div>
   ${topics.length ? `<div class="chips" style="margin-bottom:16px">${topics.map((t) => `<a class="chip" href="/topics/${t.slug}/">${esc(t.ar)}</a>`).join("")}</div>` : ""}
   ${img ? `<img class="cover" src="${esc(img)}" alt="${esc(title)}" width="${item._w || 1200}" height="${item._h || 675}" fetchpriority="high" decoding="async">` : ""}
   ${item.desc ? `<p class="lead">${esc(clean(item.desc))}</p>` : ""}
@@ -679,6 +779,66 @@ ${bc.html}
 ${related.length ? `<h2 class="sec-title">🔗 قد يهمك أيضاً</h2><div class="cards">${related.map((r) => card(r._sec, r, r._sec !== sec)).join("")}</div>` : ""}
 `;
   return layout({ title: `${cut(title, 55)} | ${BRAND}`, description: desc, canonical, image: imgAbs, ogType: "article", schemas, body, itemId: item.id });
+}
+
+// ---------------- صفحات الفريق /team/ ----------------
+function teamWorks(m, all) {
+  return all.filter((it) => [instructorOf(it), it.author].some((x) => x && teamOf(x) === m));
+}
+function teamPage(m, photo, works) {
+  const url = `/team/${m.slug}/`;
+  const bc = crumbs([{ name: "الرئيسية", url: "/" }, { name: "فريق 3ENG.s", url: "/team/" }, { name: m.name, url }]);
+  const person = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "@id": `${SITE}${url}#person`,
+    name: m.en,
+    alternateName: m.name.replace(/^م\.\s*/, ""),
+    url: SITE + url,
+    jobTitle: m.jobTitle,
+    description: m.bio.join(" "),
+    worksFor: { "@id": ORG_ID },
+    ...(m.alumniOf ? { alumniOf: { "@type": "CollegeOrUniversity", name: m.alumniOf } } : {}),
+    knowsAbout: m.knows,
+    knowsLanguage: ["ar", "en"],
+    ...(photo ? { image: SITE + photo } : {}),
+    ...(m.sameAs.length ? { sameAs: m.sameAs } : {}),
+  };
+  const profile = { "@context": "https://schema.org", "@type": "ProfilePage", url: SITE + url, mainEntity: { "@id": person["@id"] } };
+  const topicLinks = m.knows.map((k) => { const t = topicOf(k); return t ? `<a class="chip" href="/topics/${t.slug}/">${esc(t.ar)}</a>` : `<span class="chip">${esc(k)}</span>`; });
+  const body = `${bc.html}
+<section class="person">
+  <div class="av">${photo ? `<img src="${photo}" alt="${esc(m.name)}" width="140" height="140">` : esc(m.name.replace(/^م\.\s*/, "")[0])}</div>
+  <div><h1>${esc(m.name)}</h1><div class="role">${esc(m.role)}</div><p class="lead" style="margin-top:8px">فريق ${BRAND} — ${BRAND_AR}</p></div>
+</section>
+<section class="box"><h2>👤 نبذة</h2>${m.bio.map((p) => `<p>${esc(p)}</p>`).join("")}${m.alumniAr ? `<p>🎓 ${esc(m.alumniAr)}</p>` : ""}</section>
+<section class="box"><h2>🧠 مجالات الخبرة</h2><div class="chips">${topicLinks.join("")}</div></section>
+${m.sameAs.length ? `<section class="box"><h2>🔗 روابط</h2><p>${m.sameAs.map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener me" style="color:var(--acc)">${esc(u.replace(/^https?:\/\/(www\.)?/, ""))}</a>`).join(" • ")}</p></section>` : ""}
+${works.length ? `<h2 class="sec-title">📚 محتوى ${esc(m.name)}</h2><div class="cards">${works.map((w) => card(w._sec, w, true)).join("")}</div>` : ""}`;
+  return layout({
+    title: `${m.name} — ${m.role.split("•")[0].trim()} | ${BRAND}`,
+    description: cut(`${m.name}: ${m.bio.join(" ")}`, 155),
+    canonical: SITE + url,
+    image: photo ? SITE + photo : "",
+    ogType: "profile",
+    schemas: [person, profile, bc.schema],
+    body,
+  });
+}
+function teamHub(list) {
+  const url = "/team/";
+  const bc = crumbs([{ name: "الرئيسية", url: "/" }, { name: "فريق 3ENG.s", url }]);
+  const body = `${bc.html}
+<h1>👷 فريق ${BRAND} — ${BRAND_AR}</h1>
+<p class="lead">مهندسون كهربائيون ومدرّبون من فلسطين، يقدّمون الدورات والمشاريع والكتب على منصة ${BRAND}.</p>
+<div class="cards">${list.map(([m, photo]) => `<a class="card" href="/team/${m.slug}/">${photo ? `<img src="${photo}" alt="${esc(m.name)}" loading="lazy" width="480" height="480">` : `<div class="ph">${esc(m.name.replace(/^م\.\s*/, "")[0])}</div>`}<div class="b"><h3>${esc(m.name)}</h3><div class="k">${esc(m.role)}</div></div></a>`).join("")}</div>`;
+  return layout({
+    title: `فريق ${BRAND} | ${BRAND_AR}`,
+    description: `تعرّف على فريق ${BRAND}: ${TEAM.map((m) => m.name).join("، ")} — مهندسون كهربائيون ومدرّبون من فلسطين.`,
+    canonical: SITE + url,
+    schemas: [bc.schema],
+    body,
+  });
 }
 
 // ---------------- صفحات التصنيف /topics/ ----------------
@@ -817,10 +977,10 @@ function llms(data) {
 - فيسبوك: https://www.facebook.com/profile.php?id=61584936014304
 - سياسة الخصوصية والإرجاع: ${SITE}/privacy.html
 
-## الفريق
-- م. حسام زقوت — مهندس كهربائي، مؤسس ومدرّب. بكالوريوس هندسة كهربائية من الجامعة الإسلامية بغزة، مساعد تدريس وبحث ومحاضر زائر في إنترنت الأشياء والحساسات. متخصص في الأنظمة المدمجة وتصميم PCB والعتاد المدمج بالذكاء الاصطناعي.
-- م. إسراء الطويل — مهندسة أنظمة مدمجة ومدرّبة، متخصصة في إنترنت الأشياء والأنظمة المدمجة، درّبت أكثر من 300 طالب.
-- م. فرات الطويل — مهندسة أنظمة ذكية مهتمة بتطوير المنتجات وبتعليم الأطفال علوم الإلكترونيات واللغات، ولديها خبرة كبيرة في إعداد السيرة الذاتية وتدريب الطلاب على اجتياز المقابلات والتقدّم للمنح الدراسية.
+## الفريق (${SITE}/team/)
+- م. حسام زقوت (${SITE}/team/hosam-zaqout/) — مهندس كهربائي، مؤسس ومدرّب. بكالوريوس هندسة كهربائية من الجامعة الإسلامية بغزة، مساعد تدريس وبحث ومحاضر زائر في إنترنت الأشياء والحساسات. متخصص في الأنظمة المدمجة وتصميم PCB والعتاد المدمج بالذكاء الاصطناعي.
+- م. إسراء الطويل (${SITE}/team/israa-altaweel/) — مهندسة أنظمة مدمجة ومدرّبة، متخصصة في إنترنت الأشياء والأنظمة المدمجة، درّبت أكثر من 300 طالب.
+- م. فرات الطويل (${SITE}/team/furat-altaweel/) — مهندسة أنظمة ذكية مهتمة بتطوير المنتجات وبتعليم الأطفال علوم الإلكترونيات واللغات، ولديها خبرة كبيرة في إعداد السيرة الذاتية وتدريب الطلاب على اجتياز المقابلات والتقدّم للمنح الدراسية.
 
 ## أسئلة شائعة
 - هل الدورات مناسبة للمبتدئين؟ نعم، معظمها يبدأ من الأساسيات، ومستوى كل دورة مكتوب في صفحتها.
@@ -978,6 +1138,17 @@ async function main() {
     }
     console.log(`✅ ${sec.label}: ${items.length}`);
   }
+
+  // 3.5) صفحات الفريق
+  const teamList = [];
+  for (const m of TEAM) teamList.push([m, await teamPhoto(m)]);
+  if (await writeFile("team/index.html", teamHub(teamList))) changed.push(`${SITE}/team/`);
+  entries.push({ loc: "/team/", priority: 0.6 });
+  for (const [m, photo] of teamList) {
+    if (await writeFile(`team/${m.slug}/index.html`, teamPage(m, photo, teamWorks(m, all)))) changed.push(`${SITE}/team/${m.slug}/`);
+    entries.push({ loc: `/team/${m.slug}/`, priority: 0.6, ...(photo ? { image: SITE + photo, title: m.name } : {}) });
+  }
+  console.log(`👷 الفريق: ${TEAM.length} صفحات`);
 
   // 4) صفحات التصنيف — فقط للتصنيفات اللي فيها عنصرين أو أكثر (بلا صفحات ضعيفة)
   const topicList = TAXONOMY.map((t) => [t, all.filter((it) => itemTopics(it).includes(t))]).filter(([, items]) => items.length >= 2);
