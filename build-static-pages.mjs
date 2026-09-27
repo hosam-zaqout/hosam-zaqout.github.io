@@ -242,6 +242,9 @@ footer nav{display:flex;justify-content:center;flex-wrap:wrap;gap:16px;margin-bo
 .faq summary{cursor:pointer;padding:12px 0;font-weight:700}
 .faq p{padding-bottom:12px;color:#d3d9ea}
 .card .k{font-size:.72rem;color:var(--mut)}
+.rv{border-right:3px solid var(--acc);background:#0f1528;border-radius:10px;padding:12px 16px;margin:0 0 10px}
+.rv p{margin:6px 0;color:#dfe4f1}
+.rv footer{font-size:.85rem;color:var(--mut)}
 .answer{border-color:var(--acc);background:linear-gradient(135deg,#1c2542,#131a2e)}
 .answer p{font-size:1.02rem;color:#eef1f8}
 .person{display:grid;grid-template-columns:140px 1fr;gap:24px;align-items:center;margin:14px 0 24px}
@@ -327,7 +330,22 @@ function crumbs(items) {
 }
 
 const ORG_ID = `${SITE}/#organization`;
-const ORG = { "@type": "EducationalOrganization", "@id": ORG_ID, name: BRAND, alternateName: BRAND_AR, url: SITE + "/", logo: `${SITE}/logo.jpg` };
+const ORG = {
+  "@type": "EducationalOrganization", "@id": ORG_ID, name: BRAND, alternateName: BRAND_AR, url: SITE + "/", logo: `${SITE}/logo.jpg`,
+  sameAs: ["https://www.instagram.com/3eng.s", "https://www.tiktok.com/@3eng.s", "https://www.facebook.com/profile.php?id=61584936014304", "https://linktr.ee/3eng.s"],
+};
+
+// ---------------- آراء الطلاب ----------------
+let REVIEWS = [];
+function reviewsOf(sec, item) {
+  const key = `${sec.col}/${item.id}`;
+  return REVIEWS.filter((r) => r.itemRef === key && clean(r.text) && clean(r.name));
+}
+function ratingOf(list) {
+  if (!list.length) return null;
+  const vals = list.map((r) => Math.min(5, Math.max(1, Number(r.rating) || 5)));
+  return { avg: Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10, count: vals.length };
+}
 
 // ---------------- الفريق (E-E-A-T) ----------------
 // photo: ضع صورة في /img/team/{slug}.jpg وبتظهر تلقائياً
@@ -341,7 +359,11 @@ const TEAM = [
     ],
     alumniOf: "Islamic University of Gaza", alumniAr: "الجامعة الإسلامية بغزة",
     knows: ["Embedded Systems", "IoT", "PCB Design", "ESP32", "Arduino", "Python", "AI Hardware", "Control Systems"],
-    sameAs: ["https://www.youtube.com/@Hosam.Zaqout"],
+    sameAs: [
+      "https://www.linkedin.com/in/hosam-r-k-zaqout-142533202/",
+      "https://www.researchgate.net/profile/Hosam-Zaqout/",
+      "https://www.youtube.com/@hosam.zaqout",
+    ],
   },
   {
     slug: "israa-altaweel", name: "م. إسراء الطويل", en: "Israa Al-Taweel", aliases: ["إسراء الطويل", "اسراء الطويل", "israa"],
@@ -591,6 +613,18 @@ function itemPage(sec, item, siblings, all) {
     };
   }
   if (updated) main.dateModified = updated;
+  const reviews = reviewsOf(sec, item);
+  const rating = ratingOf(reviews);
+  if (rating) {
+    main.aggregateRating = { "@type": "AggregateRating", ratingValue: rating.avg, reviewCount: rating.count, bestRating: 5, worstRating: 1 };
+    main.review = reviews.slice(0, 10).map((r) => ({
+      "@type": "Review",
+      author: { "@type": "Person", name: clean(r.name) },
+      reviewRating: { "@type": "Rating", ratingValue: Math.min(5, Math.max(1, Number(r.rating) || 5)), bestRating: 5 },
+      reviewBody: clean(r.text),
+      ...(isoDate(r.createdAt) ? { datePublished: isoDate(r.createdAt).slice(0, 10) } : {}),
+    }));
+  }
 
   const schemas = [main];
   if (faqs.length) schemas.push({
@@ -633,6 +667,7 @@ function itemPage(sec, item, siblings, all) {
     ["السعر", free ? "مجاني" : `$${price} ${CURRENCY}`],
     ["طريقة الحصول عليه", howGet],
     sec.type === "Course" ? ["الشهادة", "شهادة معتمدة لكل من يُنجز الدورة"] : null,
+    rating ? ["تقييم الطلاب", `★ ${rating.avg.toFixed(1)} من 5 (${rating.count} ${rating.count === 1 ? "تقييم" : "تقييمات"})`] : null,
     updated ? ["آخر تحديث", updated.slice(0, 10)] : null,
   ].filter(Boolean);
   const factsHtml = `<section class="box"><h2>⚡ ملخص سريع</h2><table class="facts">${facts.map(([k, v, raw]) => `<tr><th>${k}</th><td>${raw ? v : esc(v)}</td></tr>`).join("")}</table></section>`;
@@ -707,7 +742,7 @@ ${bc.html}
 
 ${answerHtml}
 ${factsHtml}
-${item.desc ? `<section class="box"><h2>📖 التفاصيل</h2>${paragraphs(item.desc)}</section>` : ""}
+${item.desc ? `<section class="box"><h2>📖 التفاصيل</h2><div class="prose">${md.render(item.desc)}</div></section>` : ""}
 <div class="grid2">
   ${list("👥 لمن هذا؟", audience, "•")}
   ${list(learnTitle, item.learns)}
@@ -716,6 +751,7 @@ ${item.desc ? `<section class="box"><h2>📖 التفاصيل</h2>${paragraphs(i
 </div>
 ${list("📚 محاور الدورة", item.topics, "▸")}
 ${yt ? `<section class="box"><h2>🎬 فيديو ${esc(sec.one)}</h2><div class="video"><iframe src="https://www.youtube-nocookie.com/embed/${yt}" title="${esc(title)}" loading="lazy" allowfullscreen></iframe></div></section>` : ""}
+${reviews.length ? `<section class="box"><h2>⭐ آراء الطلاب${rating ? ` <span style="font-size:.85rem;color:var(--mut)">(${rating.avg.toFixed(1)} من 5)</span>` : ""}</h2>${reviews.map((r) => { const st = Math.min(5, Math.max(1, Number(r.rating) || 5)); return `<blockquote class="rv"><div style="color:var(--acc)">${"★".repeat(st)}${"☆".repeat(5 - st)}</div><p>${esc(clean(r.text))}</p><footer>— <b>${esc(clean(r.name))}</b>${clean(r.role) ? "، " + esc(clean(r.role)) : ""}</footer></blockquote>`; }).join("")}</section>` : ""}
 ${faqs.length ? `<section class="box faq"><h2>❓ أسئلة عن ${esc(sec.one)}</h2>${faqs.map((f) => `<details><summary>${esc(clean(f.q))}</summary><p>${esc(clean(f.a))}</p></details>`).join("")}</section>` : ""}
 ${license}
 
@@ -1014,6 +1050,7 @@ function llms(data) {
 - إنستغرام: https://www.instagram.com/3eng.s
 - تيك توك: https://www.tiktok.com/@3eng.s
 - فيسبوك: https://www.facebook.com/profile.php?id=61584936014304
+- Linktree: https://linktr.ee/3eng.s
 - سياسة الخصوصية والإرجاع: ${SITE}/privacy.html
 
 ## الفريق (${SITE}/team/)
@@ -1079,6 +1116,7 @@ async function writeFile(rel, content) {
 async function main() {
   console.log("🔄 جاري قراءة البيانات…");
   const data = await loadData();
+  REVIEWS = data.testimonials || [];
   const entries = [{ loc: "/", priority: 1.0, lastmod: new Date().toISOString(), image: OG_DEFAULT, title: BRAND }];
   const changed = [];
   let total = 0;

@@ -74,7 +74,8 @@
   "sameAs": [
     "https://www.instagram.com/3eng.s",
     "https://www.tiktok.com/@3eng.s",
-    "https://www.facebook.com/profile.php?id=61584936014304"
+    "https://www.facebook.com/profile.php?id=61584936014304",
+    "https://linktr.ee/3eng.s"
   ]
 }
 </script>
@@ -422,6 +423,7 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
 .dm-section{margin-bottom:20px;}
 .dm-section h4{font-size:.9rem;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
 .dm-desc{font-size:.88rem;color:var(--mt);line-height:1.85;white-space:pre-line;}
+.dm-desc h2,.dm-desc h3{color:var(--tx);font-size:.98rem;margin:14px 0 6px;}.dm-desc ul,.dm-desc ol{margin:6px 20px 10px 0;}.dm-desc p{margin-bottom:8px;}.dm-desc img{max-width:100%;border-radius:8px;}
 .dm-list{list-style:none;display:flex;flex-direction:column;gap:8px;}
 .dm-list li{display:flex;align-items:flex-start;gap:10px;font-size:.85rem;color:var(--mt);line-height:1.5;}
 .dm-list li::before{content:'✓';color:var(--ok);font-weight:800;flex-shrink:0;margin-top:1px;}
@@ -540,7 +542,7 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
         "jobTitle": "Electrical Engineer, Founder & Trainer",
         "alumniOf": {"@type":"CollegeOrUniversity","name":"Islamic University of Gaza"},
         "knowsAbout": ["Embedded Systems","IoT","PCB Design","ESP32","Arduino","AI Hardware"],
-        "sameAs": ["https://www.youtube.com/@Hosam.Zaqout"]
+        "sameAs": ["https://www.linkedin.com/in/hosam-r-k-zaqout-142533202/", "https://www.researchgate.net/profile/Hosam-Zaqout/", "https://www.youtube.com/@hosam.zaqout"]
       },
       {
         "@type": "Person",
@@ -1383,7 +1385,8 @@ window.openDetail=function(type,idx){
     document.getElementById('dmShort').textContent=item.shortDesc;
   }else{shortSec.style.display='none';}
 
-  document.getElementById('dmDesc').textContent=item.desc||'';
+  const dd=document.getElementById('dmDesc');
+  if(window.md3){dd.style.whiteSpace='normal';dd.innerHTML=md3.render(item.desc||'');}else{dd.textContent=item.desc||'';}
 
   // Video
   const videoSec=document.getElementById('dmVideoSec');
