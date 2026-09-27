@@ -265,7 +265,7 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
     <div class="panel" id="p-sections">
       <div class="pc"><h3>➕ الأقسام المخصصة</h3>
         <p style="font-size:.8rem;color:var(--mt);margin-bottom:12px">يمكنك إضافة أقسام جديدة للموقع (مثل: ورش تدريبية، استشارات، خدمات...) — كل قسم يظهر على الصفحة الرئيسية مع عناصره الخاصة.</p>
-        <div class="note-warn" style="margin-bottom:14px">💡 الأقسام المخصصة تظهر في الموقع تحت الأقسام الأساسية. يمكنك التحكم بترتيبها ولونها الخاص.</div>
+        <div class="note-warn" style="margin-bottom:14px">💡 كل قسم إله نوع: <b>🛒 منتجات</b> (سعر وملف وسلة) أو <b>📝 مقالات</b> (مقالات ومواضيع بصفحة خاصة لكل مقال — ممتازة لجوجل والذكاء الاصطناعي). الصفحة الرئيسية بتعرض أول 4 عناصر من كل قسم وزر "اكتشف المزيد".</div>
         <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn-add" onclick="openModal('section')">➕ إضافة قسم جديد</button></div>
         <div id="sectionsList"><div style="color:var(--mt);text-align:center;padding:30px">جاري التحميل...</div></div>
       </div>
@@ -501,6 +501,17 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
 
 <div class="toast" id="toast"></div>
 
+<script src="/assets/md.js"></script>
+<style>
+.md-bar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.md-bar button{background:rgba(255,255,255,.06);border:1px solid var(--b2,rgba(255,255,255,.1));color:var(--tx,#fff);border-radius:7px;padding:4px 10px;font-family:inherit;font-size:.8rem;cursor:pointer}
+.md-bar button:hover{border-color:var(--p)}
+.md-prev{border:1px dashed var(--b2,rgba(255,255,255,.15));border-radius:10px;padding:14px;margin-top:8px;line-height:1.9;display:none;max-height:420px;overflow:auto}
+.md-prev h2{font-size:1.15rem;color:var(--p);margin:14px 0 6px}.md-prev h3{font-size:1rem;margin:10px 0 6px}
+.md-prev ul,.md-prev ol{margin-right:20px}.md-prev img{max-width:100%;border-radius:8px}
+.md-prev blockquote{border-right:3px solid var(--p);padding:4px 12px;margin:8px 0;opacity:.9}
+.md-prev pre{direction:ltr;text-align:left;background:rgba(0,0,0,.3);padding:10px;border-radius:8px;overflow:auto}
+</style>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
@@ -662,7 +673,7 @@ async function loadCustomSections(){
   snap.forEach(d=>window._sections.push({id:d.id,...d.data()}));
   const el=document.getElementById('sectionsList');
   if(!window._sections.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد أقسام مخصصة — اضغط "إضافة قسم جديد"</p>';return;}
-  el.innerHTML=window._sections.map(s=>`<div class="irow"><div class="iemoji">${s.emoji||'➕'}</div><div class="iinfo"><div class="ititle">${s.name||''}</div><div class="imeta">${s.tagline||''}</div></div><div class="iacts"><button class="btn-edit" onclick="openSectionItems('${s.id}','${s.name||''}')">📋 العناصر</button><button class="btn-edit" onclick="editItem('section','${s.id}')">✏️</button><button class="btn-del" onclick="delItem('custom_sections','${s.id}',loadCustomSections)">🗑️</button></div></div>`).join('');
+  el.innerHTML=window._sections.map(s=>`<div class="irow"><div class="iemoji">${s.emoji||'➕'}</div><div class="iinfo"><div class="ititle">${s.name||''}</div><div class="imeta">${s.type==='articles'?'📝 مقالات':'🛒 منتجات'}${s.active===false?' • <span style="color:var(--er)">معطّل</span>':''}${s.tagline?' • '+s.tagline:''}</div></div><div class="iacts"><button class="btn-edit" onclick="openSectionItems('${s.id}','${s.name||''}')">📋 العناصر</button><button class="btn-edit" onclick="editItem('section','${s.id}')">✏️</button><button class="btn-del" onclick="delItem('custom_sections','${s.id}',loadCustomSections)">🗑️</button></div></div>`).join('');
 }
 window.loadCustomSections=loadCustomSections;
 
@@ -682,13 +693,16 @@ async function loadSectionItems(){
   window._curSectionItems=items;
   const el=document.getElementById('sectionItemsList');
   if(!items.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد عناصر</p>';return;}
-  el.innerHTML=items.map(i=>`<div class="irow"><div class="iemoji">${i.emoji||'•'}</div><div class="iinfo"><div class="ititle">${i.title||''}</div><div class="imeta">${i.price?'$'+i.price:'مجاني'}${fileBadge(i)}${i.imageUrl?' • <span style="color:var(--ok)">🖼️</span>':''}</div></div><div class="iacts"><button class="btn-edit" onclick="editSectionItem('${i.id}')">✏️</button><button class="btn-del" onclick="delSectionItem('${i.id}')">🗑️</button></div></div>`).join('');
+  const art=curSectionIsArticles();
+  if(art)items.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+  el.innerHTML=items.map(i=>`<div class="irow"><div class="iemoji">${i.emoji||(art?'📝':'•')}</div><div class="iinfo"><div class="ititle">${i.title||''}</div><div class="imeta">${art?`${i.hidden?'<span style="color:var(--p)">📄 مسودة</span>':'<span style="color:var(--ok)">✅ منشور</span>'} • ${i.createdAt?.toDate?.()?.toLocaleDateString('ar')||''} • ⏱ ${window.md3?md3.readingMinutes(i.body):1} د`:`${i.price?'$'+i.price:'مجاني'}${fileBadge(i)}`}${i.imageUrl?' • <span style="color:var(--ok)">🖼️</span>':''}</div></div><div class="iacts"><button class="btn-edit" onclick="editSectionItem('${i.id}')">✏️</button><button class="btn-del" onclick="delSectionItem('${i.id}')">🗑️</button></div></div>`).join('');
 }
+function curSectionIsArticles(){return (window._sections||[]).find(x=>x.id===window._curSectionId)?.type==='articles';}
 window.openSectionItemModal=function(id=null){
-  const labels={};
-  window._mType='sectionItem'; window._mId=id;
-  document.getElementById('mTitle').textContent=id?'تعديل عنصر':'إضافة عنصر للقسم';
-  document.getElementById('mBody').innerHTML=mForms.sectionItem;
+  const art=curSectionIsArticles();
+  window._mType=art?'articleItem':'sectionItem'; window._mId=id;
+  document.getElementById('mTitle').textContent=art?(id?'تعديل مقال':'✍️ مقال جديد'):(id?'تعديل عنصر':'إضافة عنصر للقسم');
+  document.getElementById('mBody').innerHTML=art?mForms.articleItem:mForms.sectionItem;
   if(id){
     const item=(window._curSectionItems||[]).find(i=>i.id===id);
     if(item){fillForm(item);loadPrivateFileUrl('sectionItem',id);}
@@ -1065,6 +1079,10 @@ ${GEO_FIELDS}
     <div class="cg"><label>اسم القسم *</label><input class="ci" id="m-name" placeholder="ورش تدريبية"></div>
     <div class="cg"><label>الوصف المختصر</label><input class="ci" id="m-tagline" placeholder="ورش تطبيقية في الهندسة"></div>
     <div class="g2">
+      <div class="cg"><label>نوع القسم</label><select class="cs" id="m-type"><option value="items">🛒 منتجات / خدمات (سعر، ملف، سلة)</option><option value="articles">📝 مقالات ومواضيع (نص طويل، صفحة لكل مقال)</option></select></div>
+      <div class="cg"><label>🔗 رابط القسم بالإنجليزي</label><input class="ci" id="m-slug" placeholder="articles" dir="ltr" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]+/g,'-')"><div style="font-size:.72rem;color:var(--mt);margin-top:4px">مثال: articles ← الرابط www.3engs.com/sections/articles/</div></div>
+    </div>
+    <div class="g2">
       <div class="cg"><label>الإيموجي</label><input class="ci" id="m-emoji" placeholder="🛠️"></div>
       <div class="cg"><label>اللون المميز</label><input type="color" class="cc" id="m-color" value="#F59E0B"></div>
     </div>
@@ -1074,6 +1092,7 @@ ${GEO_FIELDS}
 
   sectionItem:`
     <div class="cg"><label>عنوان العنصر *</label><input class="ci" id="m-title" placeholder="ورشة Arduino"></div>
+    <div class="cg"><label>🔗 رابط الصفحة بالإنجليزي (اختياري)</label><input class="ci" id="m-slug" placeholder="arduino-workshop" dir="ltr" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]+/g,'-')"></div>
     <div class="cg"><label>الوصف</label><textarea class="cta" id="m-desc" rows="3"></textarea></div>
     <div class="g2">
       <div class="cg"><label>السعر ($) — اتركه 0 ليكون مجانياً</label><input class="ci" id="m-price" type="number" min="0" placeholder="50"></div>
@@ -1089,8 +1108,54 @@ ${GEO_FIELDS}
       <div class="up-prog" id="siFileProg"><div class="up-bar-wrap"><div class="up-bar" id="siFileBar"></div></div><div class="up-info"><div class="mini-spin"></div><span>جاري الرفع...</span></div></div>
       <input class="ci" id="m-fileUrl" placeholder="أو رابط الملف" dir="ltr" style="margin-top:8px">
     </div>
-    <div class="cg"><label>رابط فيديو (اختياري)</label><input class="ci" id="m-videoUrl" placeholder="https://youtube.com/..." dir="ltr"></div>`
+    <div class="cg"><label>رابط فيديو (اختياري)</label><input class="ci" id="m-videoUrl" placeholder="https://youtube.com/..." dir="ltr"></div>
+    ${GEO_FIELDS}`,
+
+  // ── نموذج المقال ──
+  articleItem:`
+    <div class="cg"><label>عنوان المقال *</label><input class="ci" id="m-title" placeholder="ما هو ESP32؟ دليل المبتدئين الكامل"></div>
+    <div class="g2">
+      <div class="cg"><label>🔗 رابط المقال بالإنجليزي (مهم لجوجل)</label><input class="ci" id="m-slug" placeholder="what-is-esp32" dir="ltr" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]+/g,'-')"></div>
+      <div class="cg"><label>✍️ الكاتب</label><input class="ci" id="m-author" placeholder="م. حسام زقوت"></div>
+    </div>
+    <div class="cg"><label>📌 ملخص قصير (يظهر بجوجل وبالبطاقة — سطرين)</label><textarea class="cta" id="m-desc" rows="2" maxlength="300" placeholder="شرح مبسّط لمتحكم ESP32: مميزاته، استخداماته، وكيف تبدأ فيه."></textarea></div>
+    <div class="cg"><label>📝 نص المقال *</label>
+      <div class="md-bar">
+        <button type="button" onclick="mdLine('## ')">عنوان</button>
+        <button type="button" onclick="mdLine('### ')">عنوان فرعي</button>
+        <button type="button" onclick="mdWrap('**','**')"><b>عريض</b></button>
+        <button type="button" onclick="mdLine('- ')">• نقاط</button>
+        <button type="button" onclick="mdLine('1. ')">1. ترقيم</button>
+        <button type="button" onclick="mdLine('> ')">❝ اقتباس</button>
+        <button type="button" onclick="mdLink()">🔗 رابط</button>
+        <button type="button" onclick="mdWrap('\\n\`\`\`\\n','\\n\`\`\`\\n')">{ } كود</button>
+        <button type="button" onclick="document.getElementById('artImgFile').click()">🖼️ صورة</button>
+        <button type="button" onclick="mdPreview()" style="margin-right:auto">👁️ معاينة</button>
+      </div>
+      <textarea class="cta" id="m-body" rows="16" style="line-height:1.9" placeholder="## مقدمة&#10;اكتب هنا...&#10;&#10;## المميزات&#10;- النقطة الأولى&#10;- النقطة الثانية"></textarea>
+      <input type="file" id="artImgFile" accept="image/*" style="display:none" onchange="handleUpload(this,'articles','m-bodyImg','artImgProg','artImgBar')">
+      <input type="hidden" id="m-bodyImg" oninput="if(this.value){mdInsert('\\n![صورة](' + this.value + ')\\n');this.value='';}">
+      <div class="up-prog" id="artImgProg"><div class="up-bar-wrap"><div class="up-bar" id="artImgBar"></div></div><div class="up-info"><div class="mini-spin"></div><span>جاري رفع الصورة...</span></div></div>
+      <div class="md-prev" id="mdPrev"></div>
+    </div>
+    <div class="cg"><label>🖼️ صورة الغلاف</label>
+      <div class="upzone"><input type="file" accept="image/*" onchange="handleUpload(this,'articles','m-imageUrl','artCovProg','artCovBar')"><div class="uz-icon">🖼️</div><p>اضغط لرفع الغلاف</p><div class="uz-hint">1200×675 مفضّل — بتنضغط تلقائياً</div></div>
+      <div class="up-prog" id="artCovProg"><div class="up-bar-wrap"><div class="up-bar" id="artCovBar"></div></div><div class="up-info"><div class="mini-spin"></div><span>جاري الرفع...</span></div></div>
+      <input class="ci" id="m-imageUrl" placeholder="أو رابط الصورة" dir="ltr" style="margin-top:8px">
+    </div>
+    <div class="cg"><label>رابط فيديو يوتيوب (اختياري)</label><input class="ci" id="m-videoUrl" placeholder="https://youtube.com/..." dir="ltr"></div>
+    ${GEO_FIELDS}
+    <div class="cg" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="m-hidden" style="accent-color:var(--p);width:16px;height:16px"><label for="m-hidden" style="cursor:pointer;font-size:.86rem">📄 مسودة — لا تنشره بعد</label></div>
+    <div class="note-info">⏱ صفحة المقال بتنشر تلقائياً خلال ساعة (أو فوراً من GitHub ← Actions ← Run workflow). لحد ما تنعمل صفحته، الرابط بيعرض المقال مباشرة.</div>`
 };
+
+// أدوات محرر المقال
+function mdTa(){return document.getElementById('m-body');}
+window.mdInsert=t=>{const a=mdTa();const st=a.selectionStart,en=a.selectionEnd;a.setRangeText(t,st,en,'end');a.focus();if(document.getElementById('mdPrev').style.display==='block')mdPreview(true);};
+window.mdWrap=(b,e)=>{const a=mdTa();const st=a.selectionStart,en=a.selectionEnd;const sel=a.value.slice(st,en)||'نص';a.setRangeText(b+sel+e,st,en,'select');a.focus();};
+window.mdLine=p=>{const a=mdTa();const st=a.selectionStart;const ls=a.value.lastIndexOf('\n',st-1)+1;a.setRangeText(p,ls,ls,'end');a.focus();};
+window.mdLink=()=>{const u=prompt('الرابط (https://...)');if(!u)return;const a=mdTa();const sel=a.value.slice(a.selectionStart,a.selectionEnd)||'نص الرابط';a.setRangeText('['+sel+']('+u+')',a.selectionStart,a.selectionEnd,'end');a.focus();};
+window.mdPreview=(keep)=>{const p=document.getElementById('mdPrev');if(!keep&&p.style.display==='block'){p.style.display='none';return;}p.innerHTML=window.md3?md3.render(mdTa().value):'';p.style.display='block';};
 
 window._mType=''; window._mId=null;
 
@@ -1140,13 +1205,14 @@ window.saveModal=async()=>{
   else if(type==='book'){if(!g('m-title')){toast('⚠️ عنوان الكتاب مطلوب','err');return;}data={...data,title:g('m-title'),author:g('m-author'),price:parseFloat(g('m-price'))||0,oldPrice:parseFloat(g('m-oldPrice'))||0,emoji:g('m-emoji'),desc:g('m-desc'),isFree:gc('m-isFree'),imageUrl:g('m-imageUrl'),fileUrl:g('m-fileUrl')};}
   else if(type==='project'){if(!g('m-title')){toast('⚠️ اسم المشروع مطلوب','err');return;}data={...data,title:g('m-title'),shortDesc:g('m-shortDesc'),desc:g('m-desc'),category:g('m-category'),emoji:g('m-emoji'),isFree:gc('m-isFree'),price:gc('m-isFree')?0:(parseFloat(g('m-price'))||0),oldPrice:parseFloat(g('m-oldPrice'))||0,level:g('m-level'),duration:g('m-duration'),videoUrl:g('m-videoUrl'),components:[..._components],learns:[..._learns],requirements:[..._requirements],imageUrl:g('m-imageUrl'),fileUrl:g('m-fileUrl')};}
   else if(type==='testimonial'){if(!g('m-name')||!g('m-text')){toast('⚠️ الاسم والنص مطلوبان','err');return;}data={...data,name:g('m-name'),role:g('m-role'),text:g('m-text'),rating:parseInt(g('m-rating'))||5};}
-  else if(type==='section'){if(!g('m-name')){toast('⚠️ اسم القسم مطلوب','err');return;}data={...data,name:g('m-name'),tagline:g('m-tagline'),emoji:g('m-emoji'),color:g('m-color'),order:parseInt(g('m-order'))||1,active:gc('m-active')};}
+  else if(type==='section'){if(!g('m-name')){toast('⚠️ اسم القسم مطلوب','err');return;}data={...data,name:g('m-name'),tagline:g('m-tagline'),emoji:g('m-emoji'),color:g('m-color'),order:parseInt(g('m-order'))||1,active:gc('m-active'),type:g('m-type')||'items',slug:g('m-slug').toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60)};}
+  else if(type==='articleItem'){if(!g('m-title')){toast('⚠️ عنوان المقال مطلوب','err');return;}if(!g('m-body').trim()){toast('⚠️ نص المقال فارغ','err');return;}data={...data,sectionId:window._curSectionId,title:g('m-title'),desc:g('m-desc'),body:g('m-body'),author:g('m-author'),imageUrl:g('m-imageUrl'),videoUrl:g('m-videoUrl'),hidden:gc('m-hidden'),price:0,emoji:'📝'};}
   else if(type==='sectionItem'){if(!g('m-title')){toast('⚠️ العنوان مطلوب','err');return;}data={...data,sectionId:window._curSectionId,title:g('m-title'),desc:g('m-desc'),price:parseFloat(g('m-price'))||0,emoji:g('m-emoji'),imageUrl:g('m-imageUrl'),fileUrl:g('m-fileUrl'),videoUrl:g('m-videoUrl')};}
 
-  if(['product','course','book','project'].includes(type)&&document.getElementById('m-tags')){data.tags=parseTags(g('m-tags'));data.audience=parseLines(g('m-audience'));data.faqs=parseFaqs(g('m-faqs'));}
-  if(['product','course','book','project'].includes(type))data.slug=g('m-slug').toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80);
-  const colMap={product:'products',course:'courses',book:'books',project:'projects',testimonial:'testimonials',section:'custom_sections',sectionItem:'section_items'};
-  const reloads={product:loadProducts,course:loadCourses,book:loadBooks,project:loadProjects,testimonial:loadTestimonials,section:loadCustomSections,sectionItem:loadSectionItems};
+  if(['product','course','book','project','sectionItem','articleItem'].includes(type)&&document.getElementById('m-tags')){data.tags=parseTags(g('m-tags'));data.audience=parseLines(g('m-audience'));data.faqs=parseFaqs(g('m-faqs'));}
+  if(['product','course','book','project','sectionItem','articleItem'].includes(type))data.slug=g('m-slug').toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80);
+  const colMap={product:'products',course:'courses',book:'books',project:'projects',testimonial:'testimonials',section:'custom_sections',sectionItem:'section_items',articleItem:'section_items'};
+  const reloads={product:loadProducts,course:loadCourses,book:loadBooks,project:loadProjects,testimonial:loadTestimonials,section:loadCustomSections,sectionItem:loadSectionItems,articleItem:loadSectionItems};
   const ref=id?doc(db,colMap[type],id):doc(collection(db,colMap[type]));
   if(!id)data.createdAt=serverTimestamp();
   try{

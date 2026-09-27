@@ -74,6 +74,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 
 
+<script src="/assets/md.js" defer></script>
+
 <!-- Theme Loader (instant, no flash) -->
 <script>
 try{
@@ -213,9 +215,19 @@ h1.hh .g{color:var(--p);}
 
 /* SECTIONS */
 section{padding:88px 50px;position:relative;}
-.stag{display:inline-block;color:var(--p);font-size:.85rem;font-weight:900;letter-spacing:2px;border-right:4px solid var(--p);padding-right:14px;margin-bottom:14px;}
-.stitle{font-size:clamp(1.65rem,4vw,2.6rem);font-weight:900;margin-bottom:10px;line-height:1.2;}.stitle .g{color:var(--p);}
-.sdesc{color:var(--mt);font-size:.9rem;line-height:1.85;max-width:500px;}
+.stag{display:inline-block;color:var(--p);font-size:clamp(1.05rem,2.2vw,1.25rem);font-weight:900;border-right:4px solid var(--p);padding-right:12px;margin-bottom:12px;line-height:1.5;}
+.stitle{font-size:clamp(1.35rem,3vw,2rem);font-weight:800;margin-bottom:10px;line-height:1.35;}.stitle .g{color:var(--p);}
+.sdesc{color:var(--mt);font-size:.98rem;line-height:1.85;max-width:560px;}
+/* حد أقصى 4 عناصر بالرئيسية + زر اكتشف المزيد */
+.x-more{display:none!important;}
+.more-wrap{display:flex;justify-content:center;margin-top:28px;grid-column:1/-1;}
+.more-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;border:1.5px solid var(--p);border-radius:12px;color:var(--p);font-family:'Cairo',sans-serif;font-weight:800;font-size:.95rem;text-decoration:none;transition:.25s;background:transparent;}
+.more-btn:hover{background:var(--p);color:#0F172A;}
+/* بطاقات المقالات */
+.cs-art{display:flex;flex-direction:column;text-decoration:none;color:inherit;}
+.cs-art .cs-thumb img{width:100%;height:100%;object-fit:cover;}
+.cs-art .cs-meta{font-size:.76rem;color:var(--mt);margin-top:8px;display:flex;gap:10px;flex-wrap:wrap;}
+.cs-art .cs-read{color:var(--p);font-weight:800;font-size:.85rem;margin-top:10px;}
 .shdr{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:46px;flex-wrap:wrap;gap:20px;}
 .gline{width:46px;height:3px;background:linear-gradient(90deg,var(--p),transparent);border-radius:4px;margin-bottom:13px;}
 .view-all{color:var(--p);text-decoration:none;font-size:.84rem;font-weight:800;display:flex;align-items:center;gap:7px;white-space:nowrap;border:1px solid var(--br);padding:8px 16px;border-radius:8px;transition:all .25s;flex-shrink:0;cursor:pointer;background:transparent;font-family:'Cairo',sans-serif;}
@@ -737,7 +749,7 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
 </section>
 
 <!-- Custom sections placeholder -->
-<div id="customSectionsHost"></div>
+<div id="customSectionsHost"><!--SSR:custom--><!--/SSR:custom--></div>
 
 <!-- TESTIMONIALS -->
 <section id="testimonials">
@@ -1234,7 +1246,7 @@ async function loadProds(){
         :`<button class="btn-c" onclick="addCartFromEl(this)" data-name="${pTitle}" data-price="${p.price||0}" data-emoji="${p.emoji||'📦'}" data-col="products" data-id="${p.id}">أضف للسلة</button>`;
       html+=`<div class="pcard reveal" data-cat="${p.type||'tool'}">${bdgHTML}<div class="cthumb ${t.cls}">${thumb}</div><div class="cbody"><div class="ctype">${t.lbl}</div><div class="ctitle">${p.title||''}</div><div class="cdesc">${p.desc||''}</div><div class="cfooter"><div>${priceDisp}</div><span class="pstars">★★★★★</span></div>${actionBtn}</div></div>`;
     });
-    grid.innerHTML=html;
+    grid.innerHTML=html;limitGrid(grid,'/products/');
   }catch(e){console.error(e);grid.innerHTML=defaultProds();reObs();}
   reObs();
 }
@@ -1271,7 +1283,7 @@ async function loadCourses(){
       </div>`;
       i++;
     });
-    grid.innerHTML=html;
+    grid.innerHTML=html;limitGrid(grid,'/courses/');
   }catch(e){console.error(e);grid.innerHTML=defaultCourses();reObs();}
   reObs();
 }
@@ -1308,7 +1320,7 @@ async function loadProjects(){
         </div>
       </div>`;
     });
-    grid.innerHTML=html;
+    grid.innerHTML=html;limitGrid(grid,'/projects/');
   }catch(e){console.error(e);grid.innerHTML='<div class="loading-ph">لا توجد مشاريع حالياً</div>';reObs();}
   reObs();
 }
@@ -1431,7 +1443,7 @@ async function loadBooks(){
       </div>`;
       i++;
     });
-    grid.innerHTML=html;
+    grid.innerHTML=html;limitGrid(grid,'/books/');
   }catch(e){console.error(e);grid.innerHTML=defaultBooks();reObs();}
   reObs();
 }
@@ -1451,8 +1463,24 @@ async function loadCustomSections(){
       const q1=query(collection(db,'section_items'),where('sectionId','==',s.id));
       const itemsSnap=await getDocs(q1);
       const items=[];itemsSnap.forEach(d=>items.push({id:d.id,...d.data()}));
+      const isArt=s.type==='articles';
+      const secSlug=slug3(s.slug)||autoSlug3(s.name,s.id);
+      if(isArt)items.sort((a,b)=>((b.publishedAt||b.createdAt)?.seconds||0)-((a.publishedAt||a.createdAt)?.seconds||0));
       const itemsHTML=items.map(i=>{
-        const thumb=i.imageUrl?`<img src="${i.imageUrl}" alt="" loading="lazy" onerror="this.style.display='none'">`:'';
+        const thumb=i.imageUrl?`<img src="${optImg('section_items',i.id,i.imageUrl,1)}" data-orig="${escAttr(i.imageUrl)}" alt="${escAttr(i.title)}" loading="lazy" decoding="async" onerror="imgFb(this)">`:'';
+        if(isArt){
+          const d=(i.publishedAt||i.createdAt)?.toDate?.();
+          const mins=window.md3?md3.readingMinutes(i.body):1;
+          return `<a class="cs-card cs-art" href="/sections/${secSlug}/${itemSlug3(i)}/">
+            <div class="cs-thumb">${thumb||`<span style="position:relative;z-index:1">${i.emoji||'📝'}</span>`}</div>
+            <div class="cs-body">
+              <div class="cs-title">${escAttr(i.title)}</div>
+              <div class="cs-desc">${escAttr(i.desc||(window.md3?md3.plain(i.body).slice(0,140)+'…':''))}</div>
+              <div class="cs-meta">${d?`<span>📅 ${d.toLocaleDateString('ar')}</span>`:''}<span>⏱ ${mins} دقائق</span>${i.author?`<span>✍️ ${escAttr(i.author)}</span>`:''}</div>
+              <div class="cs-read">اقرأ المقال ←</div>
+            </div>
+          </a>`;
+        }
         const iTitle=(i.title||'').replace(/"/g,'&quot;');
         const iAction=isFreeItem(i)
           ?`onclick="downloadFree(this)" data-fileurl="${escAttr(i.fileUrl)}" data-name="${iTitle}" data-oid="${i.id}"`
@@ -1473,10 +1501,11 @@ async function loadCustomSections(){
         <div class="shdr reveal">
           <div><div class="stag" style="color:${s.color||'var(--p)'};border-color:${s.color||'var(--p)'}">${s.emoji||'•'} ${s.tagline||''}</div><div class="gline" style="background:linear-gradient(90deg,${s.color||'var(--p)'},transparent)"></div><h2 class="stitle">${s.name||''}</h2></div>
         </div>
-        <div class="cs-grid">${itemsHTML||'<div class="loading-ph">لا توجد عناصر بعد</div>'}</div>
+        <div class="cs-grid" data-more="/sections/${secSlug}/">${itemsHTML||'<div class="loading-ph">لا توجد عناصر بعد</div>'}</div>
       </section>`;
     }
     host.innerHTML=html;
+    host.querySelectorAll('.cs-grid').forEach(g=>limitGrid(g,g.dataset.more));
     reObs();
   }catch(e){console.error('Custom sections:',e);}
 }
@@ -1559,6 +1588,23 @@ function isFreeItem(d){return d.isFree===true||!(parseFloat(d.price)>0);}
 function optImg(col,id,orig,small){return orig&&id?`/img/${col}/${id}${small?'-480':''}.webp`:(orig||'');}
 function imgFb(el){const o=el.dataset.orig;if(o&&!el.dataset.fb){el.dataset.fb='1';el.src=o;}else{el.style.display='none';}}
 window.optImg=optImg;window.imgFb=imgFb;
+// يعرض أول 4 عناصر فقط، والباقي مخفي (موجود بالصفحة عشان روابط ?open=) + زر "اكتشف المزيد"
+const HOME_LIMIT=4;
+function limitGrid(grid,href,label){
+  if(!grid)return;
+  const cards=[...grid.children].filter(c=>!c.classList.contains('more-wrap')&&!c.classList.contains('loading-ph'));
+  cards.forEach((c,i)=>c.classList.toggle('x-more',i>=HOME_LIMIT));
+  grid.querySelector(':scope > .more-wrap')?.remove();
+  if(cards.length>HOME_LIMIT&&href){
+    const w=document.createElement('div');w.className='more-wrap';
+    w.innerHTML=`<a class="more-btn" href="${href}">اكتشف المزيد (${cards.length}) ←</a>`;
+    grid.appendChild(w);
+  }
+}
+function slug3(s){return String(s||'').toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/^-+|-+$/g,'');}
+function autoSlug3(title,id){const w=(String(title||'').toLowerCase().match(/[a-z0-9]+/g)||[]).slice(0,5);return w.length?w.join('-')+'-'+String(id).slice(0,6).toLowerCase():String(id).toLowerCase();}
+function itemSlug3(it,titleKey='title'){return slug3(it.slug)||autoSlug3(it[titleKey],it.id);}
+window.limitGrid=limitGrid;window.itemSlug3=itemSlug3;window.autoSlug3=autoSlug3;window.slug3=slug3;
 function escAttr(v){return String(v||'').replace(/[&"<>]/g,c=>({'&':'&amp;','"':'&quot;','<':'&lt;','>':'&gt;'}[c]));}
 window.isFreeItem=isFreeItem;window.escAttr=escAttr;
 function saveCart(){try{localStorage.setItem('3engs_cart',JSON.stringify(cart));}catch(e){}updateCartUI();}
@@ -1636,6 +1682,8 @@ window.toggleMob=toggleMob;window.closeMob=closeMob;
 // Filter
 function fCat(btn,cat){
   document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  const pg=document.getElementById('pGrid');
+  if(cat==='all'){limitGrid(pg,'/products/');}else{pg.querySelectorAll('.pcard').forEach(c=>c.classList.remove('x-more'));pg.querySelector(':scope > .more-wrap')?.remove();}
   document.querySelectorAll('.pcard').forEach(card=>{
     const show=cat==='all'||card.dataset.cat===cat;
     if(show){card.style.display='';requestAnimationFrame(()=>{card.style.opacity='1';card.style.transform='';});}
@@ -1671,6 +1719,7 @@ function defaultTests(){return emptyPh('كن أول من يشاركنا رأيه
   }else{
     const el=await wait(()=>document.querySelector(`[data-id="${CSS.escape(id)}"],[data-oid="${CSS.escape(id)}"]`));
     if(!el)return;
+    el.closest('.x-more')?.classList.remove('x-more');el.classList.remove('x-more');
     el.scrollIntoView({behavior:'smooth',block:'center'});
     const card=el.closest('.pcard,.bkcard,.cs-card')||el;
     card.classList.add('hl-pulse');setTimeout(()=>card.classList.remove('hl-pulse'),4000);

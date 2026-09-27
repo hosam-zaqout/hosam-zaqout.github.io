@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>الصفحة غير موجودة | 3ENG.s</title>
+<meta name="robots" content="noindex, follow">
+<link rel="icon" href="/logo.jpg">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b1020;--card:#131a2e;--line:#232c47;--txt:#e9edf7;--mut:#98a2bf;--acc:#F59E0B;--acc2:#fbbf24}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Cairo,system-ui,Tahoma,sans-serif;background:var(--bg);color:var(--txt);line-height:1.8;min-height:100vh}
+a{color:var(--acc)}
+.wrap{max-width:760px;margin:auto;padding:0 16px}
+header{border-bottom:1px solid var(--line);padding:14px 0}
+header a{color:var(--txt);text-decoration:none;font-weight:800;display:flex;align-items:center;gap:10px}
+header img{width:34px;height:34px;border-radius:9px}
+.nf{text-align:center;padding:70px 0}
+.nf .big{font-size:4rem;font-weight:800;color:var(--acc)}
+.nf p{color:var(--mut);margin:8px 0 26px}
+.links{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+.links a{border:1px solid var(--acc);border-radius:10px;padding:8px 16px;text-decoration:none;font-weight:700}
+.article{padding:26px 0 60px}
+.article h1{font-size:1.7rem;line-height:1.5;margin-bottom:8px}
+.meta{color:var(--mut);font-size:.88rem;margin-bottom:18px;display:flex;gap:14px;flex-wrap:wrap}
+.cover{width:100%;border-radius:14px;margin-bottom:20px;border:1px solid var(--line)}
+.prose{font-size:1.05rem;line-height:2}
+.prose h2{font-size:1.3rem;margin:26px 0 10px;color:var(--acc2)}
+.prose h3{font-size:1.1rem;margin:20px 0 8px}
+.prose p{margin-bottom:14px}
+.prose ul,.prose ol{margin:0 22px 16px 0;display:grid;gap:6px}
+.prose img{max-width:100%;border-radius:12px;margin:10px 0}
+.prose blockquote{border-right:4px solid var(--acc);padding:8px 16px;margin:14px 0;background:var(--card);border-radius:8px}
+.prose code{background:#1a2340;padding:1px 6px;border-radius:6px}
+.prose pre{background:#0a0f1d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto;direction:ltr;text-align:left}
+.prose pre code{background:none}
+.spin{width:30px;height:30px;border:3px solid var(--line);border-top-color:var(--acc);border-radius:50%;animation:s .8s linear infinite;margin:80px auto}
+@keyframes s{to{transform:rotate(360deg)}}
+</style>
+<script src="/assets/md.js"></script>
+</head>
+<body>
+<header><div class="wrap"><a href="/"><img src="/logo.jpg" alt="شعار 3ENG.s" width="34" height="34">3ENG.s</a></div></header>
+<main class="wrap" id="main"><div class="spin"></div></main>
+<script>
+// صفحة 404 ذكية: إذا الرابط لمقال جديد لسا ما انعملتله صفحة ثابتة، بنعرضه مباشرة من قاعدة البيانات
+(async function () {
+  const main = document.getElementById("main");
+  const KEY = "AIzaSyALJiF8l_wnk_6FU6etQpz44Z43lSORXQk";
+  const BASE = "https://firestore.googleapis.com/v1/projects/engs-website/databases/(default)/documents/";
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const dec = (v) => v == null ? null : v.stringValue ?? v.booleanValue ?? (v.integerValue != null ? +v.integerValue : v.doubleValue != null ? +v.doubleValue : v.timestampValue ?? (v.arrayValue ? (v.arrayValue.values || []).map(dec) : v.mapValue ? Object.fromEntries(Object.entries(v.mapValue.fields || {}).map(([k, x]) => [k, dec(x)])) : null));
+  const docs = async (col) => {
+    const r = await fetch(`${BASE}${col}?key=${KEY}&pageSize=300`);
+    if (!r.ok) return [];
+    return ((await r.json()).documents || []).map((d) => ({ id: d.name.split("/").pop(), ...Object.fromEntries(Object.entries(d.fields || {}).map(([k, v]) => [k, dec(v)])) }));
+  };
+  const slug3 = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
+  const auto3 = (t, id) => { const w = (String(t || "").toLowerCase().match(/[a-z0-9]+/g) || []).slice(0, 5); return w.length ? w.join("-") + "-" + String(id).slice(0, 6).toLowerCase() : String(id).toLowerCase(); };
+
+  const notFound = (pending) => {
+    main.innerHTML = `<div class="nf"><div class="big">${pending ? "⏳" : "404"}</div>
+      <h1>${pending ? "هذه الصفحة قيد النشر" : "الصفحة غير موجودة"}</h1>
+      <p>${pending ? "المحتوى الجديد يظهر هنا خلال دقائق. جرّب مرة أخرى لاحقاً." : "ربما تغيّر رابط الصفحة أو حُذفت. تصفّح محتوانا من هنا:"}</p>
+      <div class="links"><a href="/">الرئيسية</a><a href="/courses/">الدورات</a><a href="/projects/">المشاريع</a><a href="/books/">الكتب</a><a href="/topics/">التصنيفات</a></div></div>`;
+  };
+
+  const parts = location.pathname.split("/").filter(Boolean);
+  try {
+    if (parts[0] === "sections" && parts.length >= 3) {
+      const [secs, items] = await Promise.all([docs("custom_sections"), docs("section_items")]);
+      const sec = secs.find((s) => (slug3(s.slug) || auto3(s.name, s.id)) === parts[1]);
+      const it = sec && items.find((i) => i.sectionId === sec.id && !i.hidden && (slug3(i.slug) || auto3(i.title, i.id)) === parts[2]);
+      if (it && it.body) {
+        document.title = `${it.title} | 3ENG.s`;
+        const d = it.createdAt ? new Date(it.createdAt).toLocaleDateString("ar") : "";
+        main.innerHTML = `<article class="article">
+          <p style="font-size:.85rem;color:var(--mut)"><a href="/">الرئيسية</a> ‹ ${esc(sec.name)}</p>
+          <h1>${esc(it.title)}</h1>
+          <div class="meta"><span>✍️ ${esc(it.author || "فريق 3ENG.s")}</span>${d ? `<span>📅 ${d}</span>` : ""}<span>⏱ ${md3.readingMinutes(it.body)} دقائق قراءة</span></div>
+          ${/^https?:\/\//.test(it.imageUrl || "") ? `<img class="cover" src="${esc(it.imageUrl)}" alt="${esc(it.title)}">` : ""}
+          ${it.desc ? `<p style="color:var(--mut);margin-bottom:16px">${esc(it.desc)}</p>` : ""}
+          <div class="prose">${md3.render(it.body)}</div>
+          <div class="links" style="margin-top:30px"><a href="/">← العودة للرئيسية</a></div>
+        </article>`;
+        return;
+      }
+      return notFound(!!sec);
+    }
+    const known = ["courses", "projects", "products", "books", "topics"];
+    notFound(parts.length >= 2 && known.includes(parts[0]));
+  } catch (e) {
+    notFound(false);
+  }
+})();
+</script>
+</body>
+</html>

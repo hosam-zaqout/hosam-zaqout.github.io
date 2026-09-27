@@ -13,6 +13,7 @@
  *    - llms.txt     (للظهور في ChatGPT / Perplexity / Gemini)
  *    - صور WebP مضغوطة لكل عنصر في /img/  (يحتاج مكتبة sharp — اختيارية)
  *    - صفحات تصنيف حسب التقنية/المجال في /topics/
+ *    - الأقسام المخصصة من لوحة التحكم في /sections/{slug}/ (منتجات أو مقالات)
  *    - محتوى ثابت داخل index.html (روابط العناصر + الأرقام + الآراء)
  *      بين علامات <!--SSR:xxx--> … <!--/SSR:xxx--> — عشان جوجل والـ AI يشوفوه بدون JavaScript
  *    - (اختياري) إرسال الروابط الجديدة لـ Bing عبر IndexNow
@@ -30,6 +31,10 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
+import { fileURLToPath } from "node:url";
+// محوّل نصوص المقالات — نفس الملف اللي تستخدمه لوحة التحكم وصفحة 404
+await import(new URL("./assets/md.js", import.meta.url));
+const md = globalThis.md3;
 
 // ---------------- الإعدادات ----------------
 const SITE = "https://www.3engs.com";
@@ -122,6 +127,8 @@ async function loadData() {
   const out = {};
   for (const s of SECTIONS) out[s.col] = await fetchCollection(s.col);
   out.testimonials = await fetchCollection("testimonials");
+  out.custom_sections = await fetchCollection("custom_sections");
+  out.section_items = await fetchCollection("section_items");
   out.config = await fetchDoc("site_config/main");
   return out;
 }
@@ -234,6 +241,20 @@ footer nav{display:flex;justify-content:center;flex-wrap:wrap;gap:16px;margin-bo
 .faq summary{cursor:pointer;padding:12px 0;font-weight:700}
 .faq p{padding-bottom:12px;color:#d3d9ea}
 .card .k{font-size:.72rem;color:var(--mut)}
+.article{max-width:760px;margin:0 auto}
+.article .meta{color:var(--mut);font-size:.88rem;margin:6px 0 18px;display:flex;flex-wrap:wrap;gap:14px}
+.article .cover{width:100%;height:auto;border-radius:16px;border:1px solid var(--line);margin-bottom:22px}
+.prose{font-size:1.06rem;line-height:2}
+.prose h2{font-size:1.35rem;margin:28px 0 10px;color:var(--acc2)}
+.prose h3{font-size:1.12rem;margin:22px 0 8px}
+.prose p{margin-bottom:14px;color:#dfe4f1}
+.prose ul,.prose ol{margin:0 22px 16px 0;display:grid;gap:6px}
+.prose a{color:var(--acc);text-decoration:underline}
+.prose img{max-width:100%;height:auto;border-radius:12px;margin:10px 0}
+.prose blockquote{border-right:4px solid var(--acc);padding:8px 16px;margin:14px 0;background:var(--card);border-radius:8px;color:#dfe4f1}
+.prose code{background:#1a2340;padding:1px 6px;border-radius:6px;direction:ltr;unicode-bidi:embed}
+.prose pre{background:#0a0f1d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto;direction:ltr;text-align:left;margin:14px 0}
+.prose pre code{background:none;padding:0}
 @media(max-width:820px){.hero,.grid2{grid-template-columns:1fr}.nav{display:none}h1{font-size:1.4rem}.facts th{white-space:normal}}
 `;
 
@@ -311,8 +332,8 @@ async function optimizeImages(data) {
   try { manifest = JSON.parse(await fs.readFile(manifestPath, "utf8")); } catch {}
   const keep = new Set();
   let done = 0, reused = 0;
-  for (const sec of SECTIONS) {
-    for (const it of data[sec.col] || []) {
+  for (const { sec, items } of data.groups) {
+    for (const it of items) {
       const src = it.imageUrl || it.coverUrl || it.image;
       if (!src || !/^https?:\/\//.test(src)) continue;
       const key = `${sec.col}/${it.id}`;
@@ -582,7 +603,82 @@ function card(sec, it, showType = false) {
   const h = it._w && it._h ? Math.round((480 * it._h) / it._w) : 225;
   return `<a class="card" href="/${sec.dir}/${it._slug}/">${img
     ? `<img src="${esc(img)}" alt="${esc(clean(it.title))}" loading="lazy" decoding="async" width="480" height="${h}">`
-    : `<div class="ph">${it.emoji || sec.emoji}</div>`}<div class="b">${showType ? `<div class="k">${sec.emoji} ${esc(sec.one)}</div>` : ""}<h3>${esc(cut(it.title, 70))}</h3><div class="p">${price > 0 && !isFree(it) ? "$" + price : "مجاني"}</div></div></a>`;
+    : `<div class="ph">${it.emoji || sec.emoji}</div>`}<div class="b">${showType ? `<div class="k">${sec.emoji} ${esc(sec.one)}</div>` : ""}<h3>${esc(cut(it.title, 70))}</h3>${sec.type === "Article"
+      ? `<div class="k">${articleDate(it) ? "📅 " + articleDate(it) + " • " : ""}⏱ ${md.readingMinutes(it.body)} دقائق قراءة</div>`
+      : `<div class="p">${price > 0 && !isFree(it) ? "$" + price : "مجاني"}</div>`}</div></a>`;
+}
+
+// ---------------- صفحة المقال ----------------
+function articleDate(it) {
+  const d = isoDate(it.publishedAt || it.createdAt);
+  return d ? d.slice(0, 10) : "";
+}
+function articlePage(sec, item, all) {
+  const title = clean(item.title);
+  const url = `/${sec.dir}/${item._slug}/`;
+  const canonical = SITE + url;
+  const text = md.plain(item.body);
+  const desc = cut(item.desc || text || title, 155);
+  const img = item._img || item.imageUrl || "";
+  const imgAbs = absUrl(img) || OG_DEFAULT;
+  const published = isoDate(item.publishedAt || item.createdAt);
+  const updated = isoDate(item._updated) || published;
+  const topics = itemTopics(item);
+  const faqs = (Array.isArray(item.faqs) ? item.faqs : []).filter((f) => f && clean(f.q) && clean(f.a));
+  const author = clean(item.author);
+  const minutes = md.readingMinutes(item.body);
+  const yt = youtubeId(item.videoUrl);
+
+  const bc = crumbs([{ name: "الرئيسية", url: "/" }, { name: sec.label, url: `/${sec.dir}/` }, { name: cut(title, 60), url }]);
+  const schemas = [{
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: cut(title, 110),
+    description: desc,
+    image: imgAbs,
+    url: canonical,
+    mainEntityOfPage: canonical,
+    inLanguage: "ar",
+    articleSection: sec.label,
+    wordCount: text.split(" ").filter(Boolean).length,
+    ...(published ? { datePublished: published } : {}),
+    ...(updated ? { dateModified: updated } : {}),
+    author: author ? { "@type": "Person", name: author } : ORG,
+    publisher: ORG,
+    ...(topics.length || arr(item.tags).length ? { keywords: [...new Set([...topics.map((t) => t.ar), ...arr(item.tags).map(clean)])].join("، ") } : {}),
+  }];
+  if (faqs.length) schemas.push({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({ "@type": "Question", name: clean(f.q), acceptedAnswer: { "@type": "Answer", text: clean(f.a) } })),
+  });
+  schemas.push(bc.schema);
+
+  const score = (o) => itemTopics(o).filter((t) => topics.includes(t)).length;
+  const related = all
+    .filter((o) => o !== item)
+    .map((o) => [o, score(o) * 10 + (o._sec === sec ? 1 : 0)])
+    .filter(([, sc]) => sc > 0)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
+    .map(([o]) => o);
+
+  const body = `
+${bc.html}
+<article class="article">
+  <h1>${esc(title)}</h1>
+  <div class="meta">${author ? `<span>✍️ ${esc(author)}</span>` : `<span>✍️ فريق ${BRAND}</span>`}${published ? `<span>📅 ${published.slice(0, 10)}</span>` : ""}<span>⏱ ${minutes} دقائق قراءة</span></div>
+  ${topics.length ? `<div class="chips" style="margin-bottom:16px">${topics.map((t) => `<a class="chip" href="/topics/${t.slug}/">${esc(t.ar)}</a>`).join("")}</div>` : ""}
+  ${img ? `<img class="cover" src="${esc(img)}" alt="${esc(title)}" width="${item._w || 1200}" height="${item._h || 675}" fetchpriority="high" decoding="async">` : ""}
+  ${item.desc ? `<p class="lead">${esc(clean(item.desc))}</p>` : ""}
+  <div class="prose">${md.render(item.body)}</div>
+  ${yt ? `<section class="box" style="margin-top:20px"><h2>🎬 فيديو</h2><div class="video"><iframe src="https://www.youtube-nocookie.com/embed/${yt}" title="${esc(title)}" loading="lazy" allowfullscreen></iframe></div></section>` : ""}
+  ${faqs.length ? `<section class="box faq" style="margin-top:20px"><h2>❓ أسئلة شائعة</h2>${faqs.map((f) => `<details><summary>${esc(clean(f.q))}</summary><p>${esc(clean(f.a))}</p></details>`).join("")}</section>` : ""}
+  <section class="box" style="margin-top:20px"><h2>👷 عن ${BRAND}</h2><p>${BRAND} (${BRAND_AR}) منصة عربية من فلسطين يديرها مهندسون كهربائيون ومدربون جامعيون، تقدّم دورات ومشاريع جاهزة وكتباً ومقالات في الهندسة الكهربائية والأنظمة المدمجة وإنترنت الأشياء. <a href="/#about" style="color:var(--acc)">تعرّف على الفريق</a> • <a href="/courses/" style="color:var(--acc)">الدورات</a> • <a href="/projects/" style="color:var(--acc)">المشاريع</a></p></section>
+</article>
+${related.length ? `<h2 class="sec-title">🔗 قد يهمك أيضاً</h2><div class="cards">${related.map((r) => card(r._sec, r, r._sec !== sec)).join("")}</div>` : ""}
+`;
+  return layout({ title: `${cut(title, 55)} | ${BRAND}`, description: desc, canonical, image: imgAbs, ogType: "article", schemas, body, itemId: item.id });
 }
 
 // ---------------- صفحات التصنيف /topics/ ----------------
@@ -597,7 +693,7 @@ function topicPage(t, items) {
     about: t.ar,
     mainEntity: { "@type": "ItemList", itemListElement: items.map((it, i) => ({ "@type": "ListItem", position: i + 1, url: `${SITE}/${it._sec.dir}/${it._slug}/`, name: clean(it.title) })) },
   };
-  const groups = SECTIONS.map((sec) => [sec, items.filter((i) => i._sec === sec)]).filter(([, g]) => g.length);
+  const groups = [...new Map(items.map((i) => [i._sec.key, i._sec])).values()].map((sec) => [sec, items.filter((i) => i._sec.key === sec.key)]);
   const body = `${bc.html}
 <h1>${esc(t.ar)}: دورات ومشاريع وكتب</h1>
 <p class="lead">${esc(t.about)} على منصة ${BRAND} تجد ${items.length} ${items.length > 2 && items.length < 11 ? "عناصر" : "عنصراً"} في هذا المجال باللغة العربية.</p>
@@ -642,7 +738,7 @@ function ssrItems(sec, items) {
   if (!items.length) return `<div class="loading-ph">لا توجد عناصر حالياً — قريباً!</div>`;
   return `<div class="ssr-list">${items.map((it) => {
     const price = num(it.price) ?? 0;
-    return `<a href="/${sec.dir}/${it._slug}/">${esc(cut(it.title, 70))}<b>${price > 0 && !isFree(it) ? "$" + price : "مجاني"}</b></a>`;
+    return `<a href="/${sec.dir}/${it._slug}/">${esc(cut(it.title, 70))}<b>${sec.type === "Article" ? "📝" : price > 0 && !isFree(it) ? "$" + price : "مجاني"}</b></a>`;
   }).join("")}</div>`;
 }
 function ssrTestimonials(list) {
@@ -662,6 +758,8 @@ async function updateHome(data) {
     html = ssrReplace(html, "count-" + sec.col, String((data[sec.col] || []).length));
   }
   html = ssrReplace(html, "testimonials", ssrTestimonials(data.testimonials));
+  html = ssrReplace(html, "custom", data.groups.filter((g) => g.sec.custom && g.items.length).map(({ sec, items }) =>
+    `<section class="csec"><div class="shdr"><div><div class="stag">${esc(sec.emoji)} ${esc(sec.tagline || "")}</div><h2 class="stitle">${esc(sec.label)}</h2></div></div>${ssrItems(sec, items.slice(0, 4))}<div class="more-wrap"><a class="more-btn" href="/${sec.dir}/">اكتشف المزيد ←</a></div></section>`).join(""));
   const hero = data.config?.hero || {};
   for (const i of [1, 2, 3, 4]) {
     const v = clean(hero["stat" + i]?.num);
@@ -682,11 +780,11 @@ function hubPage(sec, items) {
   };
   const body = `${bc.html}
 <h1>${sec.emoji} ${esc(sec.label)}</h1>
-<p class="lead">كل ${esc(sec.label)} المتوفرة على منصة ${BRAND} في الهندسة الكهربائية، ESP32، Arduino، إنترنت الأشياء والذكاء الاصطناعي.</p>
+<p class="lead">${sec.custom && sec.tagline ? esc(sec.tagline) : `كل ${esc(sec.label)} المتوفرة على منصة ${BRAND} في الهندسة الكهربائية، ESP32، Arduino، إنترنت الأشياء والذكاء الاصطناعي.`}</p>
 <div class="cards">${items.map((it) => card(sec, it)).join("")}</div>`;
   return layout({
     title: `${sec.label} | ${BRAND} ${BRAND_AR}`,
-    description: cut(`تصفح ${sec.label} على منصة ${BRAND}: ${items.slice(0, 4).map((i) => clean(i.title)).join("، ")}`, 155),
+    description: cut(`${sec.custom && sec.tagline ? clean(sec.tagline) + " — " : `تصفح ${sec.label} على منصة ${BRAND}: `}${items.slice(0, 4).map((i) => clean(i.title)).join("، ")}`, 155),
     canonical: SITE + url,
     schemas: [listSchema, bc.schema],
     body,
@@ -742,6 +840,13 @@ function llms(data) {
       t += `- [${clean(it.title)}](${SITE}/${sec.dir}/${it._slug}/): ${cut(it.shortDesc || it.desc || "", 140)} (${price > 0 && !isFree(it) ? "$" + price : "مجاني"}${tp.length ? " — " + tp.join("، ") : ""})\n`;
     }
   }
+  for (const { sec, items } of data.groups.filter((g) => g.sec.custom && g.items.length)) {
+    t += `\n## ${sec.label}${sec.tagline ? " — " + clean(sec.tagline) : ""}\n`;
+    for (const it of items) {
+      const summary = cut(it.desc || md.plain(it.body), 160);
+      t += `- [${clean(it.title)}](${SITE}/${sec.dir}/${it._slug}/): ${summary}\n`;
+    }
+  }
   return t;
 }
 
@@ -779,13 +884,35 @@ async function main() {
   const changed = [];
   let total = 0;
 
-  // 1) تجهيز العناصر والـ slugs لكل الأقسام
+  // 1) المجموعات: الأقسام الأساسية + الأقسام المخصصة المفعّلة
+  const groups = SECTIONS.map((sec) => ({ sec: { ...sec, key: sec.col }, items: data[sec.col] || [] }));
+  const secSeen = new Set();
+  const customSecs = (data.custom_sections || []).filter((c) => c.active !== false && clean(c.name))
+    .sort((a, b) => (Number(a.order) || 1) - (Number(b.order) || 1));
+  for (const c of customSecs) {
+    let slug = slugify({ slug: c.slug, title: c.name, id: c.id });
+    while (secSeen.has(slug)) slug += "-" + c.id.slice(0, 4).toLowerCase();
+    secSeen.add(slug);
+    const articles = c.type === "articles";
+    const sec = {
+      key: "cs:" + c.id, col: "section_items", dir: `sections/${slug}`, custom: true,
+      label: clean(c.name), tagline: clean(c.tagline), emoji: c.emoji || (articles ? "📝" : "•"),
+      one: articles ? "مقال" : "عنصر", type: articles ? "Article" : "Product", anchor: `#custom-${c.id}`,
+    };
+    let items = (data.section_items || []).filter((i) => i.sectionId === c.id);
+    if (articles) items = items.filter((i) => clean(i.body) || clean(i.desc))
+      .sort((a, b) => (isoDate(b.publishedAt || b.createdAt) || "").localeCompare(isoDate(a.publishedAt || a.createdAt) || ""));
+    groups.push({ sec, items });
+  }
+  data.groups = groups;
+
   const redirectsBy = {}, seenBy = {}, all = [];
-  for (const sec of SECTIONS) {
-    const items = (data[sec.col] || []).filter((i) => clean(i.title) && i.hidden !== true && i.published !== false);
+  for (const g of groups) {
+    const { sec } = g;
+    g.items = g.items.filter((i) => clean(i.title) && i.hidden !== true && i.published !== false);
     const seen = new Set();
     const redirects = [];
-    for (const it of items) {
+    for (const it of g.items) {
       it._updated ??= it.updatedAt;
       it._sec = sec;
       let sl = slugify(it);
@@ -797,18 +924,24 @@ async function main() {
       if (old !== sl) redirects.push([old, sl, it.id]);
     }
     for (const [old] of redirects) seen.add(old);
-    data[sec.col] = items;
-    redirectsBy[sec.col] = redirects;
-    seenBy[sec.col] = seen;
-    all.push(...items);
+    if (!sec.custom) data[sec.col] = g.items;
+    redirectsBy[sec.key] = redirects;
+    seenBy[sec.key] = seen;
+    all.push(...g.items);
   }
 
   // 2) ضغط الصور
   await optimizeImages(data);
 
   // 3) الصفحات
-  for (const sec of SECTIONS) {
-    const items = data[sec.col];
+  // أقسام مخصصة انحذفت أو تعطّلت ← نحذف مجلداتها
+  try {
+    const keepSecs = new Set(groups.filter((g) => g.sec.custom).map((g) => g.sec.dir.split("/")[1]));
+    for (const d of await fs.readdir(path.join(OUT_DIR, "sections"), { withFileTypes: true }))
+      if (d.isDirectory() && !keepSecs.has(d.name)) await fs.rm(path.join(OUT_DIR, "sections", d.name), { recursive: true });
+  } catch {}
+
+  for (const { sec, items } of groups) {
     if (!items.length) continue;
 
     // روابط قديمة: إذا المجلد لعنصر لسا موجود (تغيّر رابطه) ← تحويل للرابط الجديد، وإلا ← حذف
@@ -816,7 +949,7 @@ async function main() {
     const byId = new Map(items.map((it) => [it.id, it]));
     try {
       for (const d of await fs.readdir(dir, { withFileTypes: true })) {
-        if (!d.isDirectory() || seenBy[sec.col].has(d.name)) continue;
+        if (!d.isDirectory() || seenBy[sec.key].has(d.name)) continue;
         let html = "";
         try { html = await fs.readFile(path.join(dir, d.name, "index.html"), "utf8"); } catch {}
         const id = (html.match(/name="3engs-id" content="([^"]+)"/) || html.match(/"sku":"([^"]+)"/) || html.match(/[?&]open=[a-z_]+:([A-Za-z0-9_-]+)/) || [])[1];
@@ -832,14 +965,15 @@ async function main() {
     } catch {}
 
     if (await writeFile(`${sec.dir}/index.html`, hubPage(sec, items))) changed.push(`${SITE}/${sec.dir}/`);
-    entries.push({ loc: `/${sec.dir}/`, priority: 0.9 });
+    entries.push({ loc: `/${sec.dir}/`, priority: sec.custom ? 0.8 : 0.9 });
 
-    for (const [old, to, id] of redirectsBy[sec.col]) await writeFile(`${sec.dir}/${old}/index.html`, redirectPage(`${SITE}/${sec.dir}/${to}/`, id));
+    for (const [old, to, id] of redirectsBy[sec.key]) await writeFile(`${sec.dir}/${old}/index.html`, redirectPage(`${SITE}/${sec.dir}/${to}/`, id));
 
     for (const it of items) {
       const rel = `${sec.dir}/${it._slug}/index.html`;
-      if (await writeFile(rel, itemPage(sec, it, items, all))) changed.push(`${SITE}/${sec.dir}/${it._slug}/`);
-      entries.push({ loc: `/${sec.dir}/${it._slug}/`, priority: 0.8, lastmod: isoDate(it._updated), image: absUrl(it._img || it.imageUrl), title: clean(it.title) });
+      const page = sec.type === "Article" ? articlePage(sec, it, all) : itemPage(sec, it, items, all);
+      if (await writeFile(rel, page)) changed.push(`${SITE}/${sec.dir}/${it._slug}/`);
+      entries.push({ loc: `/${sec.dir}/${it._slug}/`, priority: sec.type === "Article" ? 0.7 : 0.8, lastmod: isoDate(it._updated), image: absUrl(it._img || it.imageUrl), title: clean(it.title) });
       total++;
     }
     console.log(`✅ ${sec.label}: ${items.length}`);
@@ -871,7 +1005,7 @@ async function main() {
   if (await updateHome(data)) { changed.push(`${SITE}/`); console.log("✅ الصفحة الرئيسية: محتوى ثابت محدّث"); }
   await indexNow(changed);
 
-  console.log(`\n🎉 تم توليد ${total} صفحة + ${SECTIONS.length} فهارس + ${topicList.length} تصنيف + sitemap.xml + llms.txt`);
+  console.log(`\n🎉 تم توليد ${total} صفحة + ${groups.filter((g) => g.items.length).length} فهارس + ${topicList.length} تصنيف + sitemap.xml + llms.txt`);
   console.log(`📝 صفحات تغيّرت: ${changed.length}`);
 }
 
