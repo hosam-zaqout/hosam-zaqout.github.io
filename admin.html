@@ -525,14 +525,31 @@ onAuthStateChanged(auth,user=>{
 window.doLogout=async()=>{await signOut(auth);window.location.href='auth.html';};
 
 // UPLOAD HANDLER
-window.handleUpload=function(input, folder, urlInputId, progWrapId, progBarId){
-  const file=input.files[0]; if(!file)return;
-  const isFile=folder==='books'||folder==='projects-files'||folder==='products-files';
-  const maxMB=isFile?100:5;
+// ضغط الصورة في المتصفح قبل الرفع: أقصى عرض 1600px بصيغة WebP
+async function compressImage(file){
+  const bmp=await createImageBitmap(file);
+  const scale=Math.min(1,1600/bmp.width);
+  const c=document.createElement('canvas');c.width=Math.round(bmp.width*scale);c.height=Math.round(bmp.height*scale);
+  c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);bmp.close?.();
+  const blob=await new Promise(r=>c.toBlob(r,'image/webp',0.82));
+  return blob?new File([blob],file.name.replace(/\.[^.]+$/,'')+'.webp',{type:'image/webp'}):null;
+}
+const kb=b=>b>1048576?(b/1048576).toFixed(1)+'MB':Math.round(b/1024)+'KB';
+
+window.handleUpload=async function(input, folder, urlInputId, progWrapId, progBarId){
+  let file=input.files[0]; if(!file)return;
+  const isFile=['books','projects-files','products-files','section-files'].includes(folder);
+  const isImg=!isFile&&/^image\/(png|jpe?g|webp|bmp)$/i.test(file.type);
+  const maxMB=isFile?100:(isImg?25:5);
   if(file.size>maxMB*1024*1024){toast(`⚠️ الملف أكبر من ${maxMB}MB`,'err');return;}
   const progWrap=document.getElementById(progWrapId);
   const progBar=document.getElementById(progBarId);
   if(progWrap)progWrap.classList.add('show');
+  if(isImg){
+    try{const c=await compressImage(file);if(c&&c.size<file.size){toast(`🗜️ تم ضغط الصورة: ${kb(file.size)} ← ${kb(c.size)}`);file=c;}}
+    catch(e){console.warn('compress failed',e);}
+    if(file.size>5*1024*1024){if(progWrap)progWrap.classList.remove('show');toast('⚠️ الصورة كبيرة جداً حتى بعد الضغط','err');return;}
+  }
   const ext=file.name.split('.').pop();
   const safeName=file.name.replace(/[^a-zA-Z0-9.]/g,'_');
   const path=`${folder}/${Date.now()}_${safeName}`;
@@ -869,6 +886,32 @@ makeTagSystem('Component',_components,'m-comp-inp','m-components');
 makeTagSystem('Requirement',_requirements,'m-req-inp','m-requirements');
 
 // MODAL FORMS
+// حقول لجوجل والذكاء الاصطناعي — تظهر في صفحة المنتج الثابتة (ملخص + لمن + أسئلة + تصنيفات)
+const TAG_SUGGEST=['ESP32','Arduino','Raspberry Pi','ESP8266','PIC','STM32','Python','PCB','Electronics','IoT','Embedded Systems','Automation','AI','Robotics','Renewable Energy','Drivers'];
+const GEO_FIELDS=`
+    <div class="opt-section open"><div class="opt-head" onclick="this.parentElement.classList.toggle('open')"><h4>🤖 معلومات لجوجل والذكاء الاصطناعي (مهمة للظهور)</h4><span class="opt-chev">▼</span></div><div class="opt-body">
+      <div class="cg"><label>🏷️ التقنيات والمجالات (افصل بفاصلة)</label><input class="ci" id="m-tags" placeholder="ESP32, IoT, Arduino" dir="ltr">
+        <div class="tag-row" style="margin-top:6px">${TAG_SUGGEST.map(t=>`<span class="tag" style="cursor:pointer" onclick="addTagChip('${t}')">+ ${t}</span>`).join('')}</div>
+        <div style="font-size:.72rem;color:var(--mt);margin-top:4px">كل تقنية فيها عنصرين أو أكثر بتصير إلها صفحة خاصة (مثل /topics/esp32/) وبتربط المنتجات ببعض.</div></div>
+      <div class="cg"><label>👥 لمن هذا؟ (كل سطر نقطة)</label><textarea class="cta" id="m-audience" rows="3" placeholder="طلاب الهندسة الكهربائية&#10;المبتدئين في البرمجة&#10;أصحاب مشاريع التخرج"></textarea></div>
+      <div class="cg"><label>❓ أسئلة وأجوبة عن هذا العنصر</label><textarea class="cta" id="m-faqs" rows="5" placeholder="س: هل يناسب المبتدئين؟&#10;ج: نعم، يبدأ من الأساسيات.&#10;&#10;س: هل يوجد دعم بعد الشراء؟&#10;ج: نعم، عبر واتساب."></textarea>
+        <div style="font-size:.72rem;color:var(--mt);margin-top:4px">كل سؤال بسطر يبدأ بـ «س:» وجوابه بسطر يبدأ بـ «ج:». هاي الأسئلة بتظهر بجوجل وبيستخدمها الذكاء الاصطناعي بالإجابات.</div></div>
+    </div></div>`;
+window.addTagChip=t=>{const el=document.getElementById('m-tags');const cur=el.value.split(/[,،]/).map(x=>x.trim()).filter(Boolean);if(!cur.some(x=>x.toLowerCase()===t.toLowerCase()))cur.push(t);el.value=cur.join(', ');};
+function parseTags(v){const out=[];for(const t of v.split(/[,،\n]/).map(x=>x.trim()).filter(Boolean))if(!out.some(x=>x.toLowerCase()===t.toLowerCase()))out.push(t.slice(0,40));return out.slice(0,12);}
+function parseLines(v){return v.split('\n').map(x=>x.replace(/^[•\-*\s]+/,'').trim()).filter(Boolean).slice(0,15);}
+function parseFaqs(v){
+  const out=[];let cur=null;
+  for(const raw of v.split('\n')){
+    const l=raw.trim();if(!l)continue;
+    const mq=l.match(/^(س|سؤال|Q)\s*[:：\-]\s*(.*)$/i),ma=l.match(/^(ج|جواب|A)\s*[:：\-]\s*(.*)$/i);
+    if(mq){cur={q:mq[2],a:''};out.push(cur);}
+    else if(ma&&cur){cur.a=(cur.a?cur.a+' ':'')+ma[2];}
+    else if(cur){cur.a?cur.a+=' '+l:cur.q+=' '+l;}
+  }
+  return out.filter(f=>f.q&&f.a).slice(0,10).map(f=>({q:f.q.slice(0,200),a:f.a.slice(0,800)}));
+}
+
 const mForms={
   product:`
     <div class="cg"><label>اسم المنتج *</label><input class="ci" id="m-title" placeholder="اسم المنتج"></div>
@@ -886,6 +929,7 @@ const mForms={
       <div class="cg"><label>الشارة</label><select class="cs" id="m-badge"><option value="">بدون</option><option value="new">جديد</option><option value="best">الأكثر مبيعاً</option><option value="sale">خصم</option><option value="free">مجاني</option></select></div>
       <div class="cg" style="display:flex;align-items:center;gap:8px;padding-top:22px"><input type="checkbox" id="m-isFree" style="accent-color:var(--p);width:16px;height:16px"><label for="m-isFree" style="cursor:pointer;font-size:.86rem">منتج مجاني</label></div>
     </div>
+${GEO_FIELDS}
     <div class="cg"><label>🖼️ صورة المنتج</label>
       <div class="upzone"><input type="file" accept="image/*" onchange="handleUpload(this,'products','m-imageUrl','prodImgProg','prodImgBar')"><div class="uz-icon">🖼️</div><p>اضغط لرفع الصورة</p><div class="uz-hint">حتى 5MB</div></div>
       <div class="up-prog" id="prodImgProg"><div class="up-bar-wrap"><div class="up-bar" id="prodImgBar"></div></div><div class="up-info"><div class="mini-spin"></div><span>جاري الرفع...</span></div></div>
@@ -927,6 +971,7 @@ const mForms={
       <div class="cg"><label>رابط فيديو يوتيوب</label><input class="ci" id="m-videoUrl" placeholder="https://youtube.com/watch?v=..." dir="ltr"></div>
     </div></div>
 
+${GEO_FIELDS}
     <div class="cg"><label>🖼️ صورة الدورة</label>
       <div class="upzone"><input type="file" accept="image/*" onchange="handleUpload(this,'courses','m-imageUrl','courImgProg','courImgBar')"><div class="uz-icon">🖼️</div><p>اضغط لرفع الصورة</p><div class="uz-hint">800×450px مفضّل</div></div>
       <div class="up-prog" id="courImgProg"><div class="up-bar-wrap"><div class="up-bar" id="courImgBar"></div></div><div class="up-info"><div class="mini-spin"></div><span>جاري الرفع...</span></div></div>
@@ -946,6 +991,7 @@ const mForms={
       <div class="cg" style="display:flex;align-items:center;gap:8px;padding-top:22px"><input type="checkbox" id="m-isFree" style="accent-color:var(--p);width:16px;height:16px"><label for="m-isFree" style="cursor:pointer;font-size:.86rem">كتاب مجاني (تحميل للجميع)</label></div>
     </div>
     <div class="cg"><label>الوصف</label><textarea class="cta" id="m-desc" rows="3"></textarea></div>
+${GEO_FIELDS}
     <div class="cg"><label>📄 ملف الكتاب (PDF/EPUB)</label>
       <div class="upzone"><input type="file" accept=".pdf,.epub" onchange="handleUpload(this,'books','m-fileUrl','bookFileProg','bookFileBar')"><div class="uz-icon">📄</div><p>اضغط لرفع الملف</p><div class="uz-hint">حتى 100MB</div></div>
       <div class="up-prog" id="bookFileProg"><div class="up-bar-wrap"><div class="up-bar" id="bookFileBar"></div></div><div class="up-info"><div class="mini-spin"></div><span>جاري الرفع...</span></div></div>
@@ -996,6 +1042,7 @@ const mForms={
       <div class="tag-input-row"><input class="ci" id="m-req-inp" placeholder="معرفة بالأردوينو..." onkeypress="if(event.key==='Enter'){addRequirement();event.preventDefault();}"><button onclick="addRequirement()">+ إضافة</button></div>
     </div></div>
 
+${GEO_FIELDS}
     <div class="cg"><label>🖼️ صورة المشروع *</label>
       <div class="upzone"><input type="file" accept="image/*" onchange="handleUpload(this,'projects','m-imageUrl','projImgProg','projImgBar')"><div class="uz-icon">🖼️</div><p>اضغط لرفع الصورة</p><div class="uz-hint">800×450px — حتى 5MB</div></div>
       <div class="up-prog" id="projImgProg"><div class="up-bar-wrap"><div class="up-bar" id="projImgBar"></div></div><div class="up-info"><div class="mini-spin"></div><span>جاري الرفع...</span></div></div>
@@ -1047,6 +1094,12 @@ const mForms={
 
 window._mType=''; window._mId=null;
 
+function fillGeo(item){
+  const t=document.getElementById('m-tags'),a=document.getElementById('m-audience'),f=document.getElementById('m-faqs');
+  if(t)t.value=Array.isArray(item.tags)?item.tags.join(', '):'';
+  if(a)a.value=Array.isArray(item.audience)?item.audience.join('\n'):'';
+  if(f)f.value=Array.isArray(item.faqs)?item.faqs.map(x=>`س: ${x.q}\nج: ${x.a}`).join('\n\n'):'';
+}
 function fillForm(item){
   Object.keys(item).forEach(k=>{
     const el=document.getElementById('m-'+k);
@@ -1055,6 +1108,7 @@ function fillForm(item){
   if(item.learns){_learns.length=0;_learns.push(...item.learns);renderTags(_learns,'m-learns','Learn');}
   if(item.topics){_topics.length=0;_topics.push(...item.topics);renderTags(_topics,'m-topics','Topic');}
   if(item.components){_components.length=0;_components.push(...item.components);renderTags(_components,'m-components','Component');}
+  fillGeo(item);
   if(item.requirements){_requirements.length=0;_requirements.push(...item.requirements);renderTags(_requirements,'m-requirements','Requirement');}
 }
 
@@ -1089,6 +1143,7 @@ window.saveModal=async()=>{
   else if(type==='section'){if(!g('m-name')){toast('⚠️ اسم القسم مطلوب','err');return;}data={...data,name:g('m-name'),tagline:g('m-tagline'),emoji:g('m-emoji'),color:g('m-color'),order:parseInt(g('m-order'))||1,active:gc('m-active')};}
   else if(type==='sectionItem'){if(!g('m-title')){toast('⚠️ العنوان مطلوب','err');return;}data={...data,sectionId:window._curSectionId,title:g('m-title'),desc:g('m-desc'),price:parseFloat(g('m-price'))||0,emoji:g('m-emoji'),imageUrl:g('m-imageUrl'),fileUrl:g('m-fileUrl'),videoUrl:g('m-videoUrl')};}
 
+  if(['product','course','book','project'].includes(type)&&document.getElementById('m-tags')){data.tags=parseTags(g('m-tags'));data.audience=parseLines(g('m-audience'));data.faqs=parseFaqs(g('m-faqs'));}
   if(['product','course','book','project'].includes(type))data.slug=g('m-slug').toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80);
   const colMap={product:'products',course:'courses',book:'books',project:'projects',testimonial:'testimonials',section:'custom_sections',sectionItem:'section_items'};
   const reloads={product:loadProducts,course:loadCourses,book:loadBooks,project:loadProjects,testimonial:loadTestimonials,section:loadCustomSections,sectionItem:loadSectionItems};

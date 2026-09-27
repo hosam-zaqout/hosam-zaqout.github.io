@@ -22,7 +22,7 @@
 <meta property="og:url" id="ogUrl" content="https://www.3engs.com/">
 <meta property="og:title" id="ogTitle" content="3ENG.s | المهندسون الثلاثة">
 <meta property="og:description" id="ogDesc" content="منصة 3ENG.s للهندسة الكهربائية - دورات، كتب، ومشاريع تطبيقية">
-<meta property="og:image" id="ogImage" content="https://www.3engs.com/og-image.png">
+<meta property="og:image" id="ogImage" content="https://www.3engs.com/og-image.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="3ENG.s — المهندسون الثلاثة: منصة تعليم الهندسة الكهربائية">
@@ -33,7 +33,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" id="twTitle" content="3ENG.s | المهندسون الثلاثة">
 <meta name="twitter:description" id="twDesc" content="منصة 3ENG.s للهندسة الكهربائية والأنظمة المدمجة">
-<meta name="twitter:image" id="twImage" content="https://www.3engs.com/og-image.png">
+<meta name="twitter:image" id="twImage" content="https://www.3engs.com/og-image.jpg">
 
 <!-- Theme color for mobile browsers -->
 <meta name="theme-color" content="#F59E0B">
@@ -48,7 +48,7 @@
   "alternateName": ["المهندسون الثلاثة", "Three Engineers"],
   "url": "https://www.3engs.com/",
   "logo": "https://www.3engs.com/logo.jpg",
-  "image": "https://www.3engs.com/og-image.png",
+  "image": "https://www.3engs.com/og-image.jpg",
   "description": "منصة فلسطينية لتعليم الهندسة الكهربائية والأنظمة المدمجة وإنترنت الأشياء: دورات، كتب، ومشاريع ESP32 و Arduino جاهزة.",
   "email": "info@3engs.com",
   "areaServed": "PS",
@@ -1224,7 +1224,7 @@ async function loadProds(){
     snap.forEach(d=>{
       const p={id:d.id,...d.data()};const t=typeMap[p.type]||{cls:'tt',lbl:p.type||''};const bdg=badgeMap[p.badge];
       const bdgHTML=bdg?`<div class="cbwrap"><span class="cbadge ${bdg.cls}">${bdg.txt}</span></div>`:'';
-      const thumb=p.imageUrl?`<img src="${p.imageUrl}" alt="${p.title||''}" loading="lazy" onerror="this.style.display='none'">`:`<span class="ef">${p.emoji||'📦'}</span>`;
+      const thumb=p.imageUrl?`<img src="${optImg('products',p.id,p.imageUrl,1)}" data-orig="${escAttr(p.imageUrl)}" alt="${escAttr(p.title)}" loading="lazy" decoding="async" onerror="imgFb(this)">`:`<span class="ef">${p.emoji||'📦'}</span>`;
       const oldP=p.oldPrice?`<span class="pold">$${p.oldPrice}</span>`:'';
       const pFree=isFreeItem(p);
       const priceDisp=pFree?`<span style="color:var(--ok);font-size:1.1rem;font-weight:900">مجاني</span>`:`${oldP}<span class="pcur">$${p.price||0}</span>`;
@@ -1251,7 +1251,7 @@ async function loadCourses(){
     window._coursesData=arr;
     let html='';
     arr.forEach((c,idx)=>{
-      const thumb=c.imageUrl?`<img src="${c.imageUrl}" alt="${c.title||''}" loading="lazy" onerror="this.style.display='none'"><span class="cov-emoji" style="display:none">${c.emoji||'🎓'}</span>`:`<span class="cov-emoji">${c.emoji||'🎓'}</span>`;
+      const thumb=c.imageUrl?`<img src="${optImg('courses',c.id,c.imageUrl,1)}" data-orig="${escAttr(c.imageUrl)}" alt="${escAttr(c.title)}" loading="lazy" decoding="async" onerror="imgFb(this)"><span class="cov-emoji" style="display:none">${c.emoji||'🎓'}</span>`:`<span class="cov-emoji">${c.emoji||'🎓'}</span>`;
       const oldP=c.oldPrice?`<span class="price-old-s">$${c.oldPrice}</span> `:'';
       html+=`<div class="ccard reveal" onclick="openDetail('course',${idx})">
         <div class="cov-thumb ${cls[i%3]}">${thumb}<div class="cov-overlay">${c.category||''}</div></div>
@@ -1287,7 +1287,7 @@ async function loadProjects(){
     window._projectsData=arr;
     let html='';
     arr.forEach((pr,idx)=>{
-      const thumb=pr.imageUrl?`<img src="${pr.imageUrl}" alt="${pr.title||''}" loading="lazy" onerror="this.style.display='none'"><span class="pr-emoji" style="display:none">${pr.emoji||'🔧'}</span>`:`<span class="pr-emoji">${pr.emoji||'🔧'}</span>`;
+      const thumb=pr.imageUrl?`<img src="${optImg('projects',pr.id,pr.imageUrl,1)}" data-orig="${escAttr(pr.imageUrl)}" alt="${escAttr(pr.title)}" loading="lazy" decoding="async" onerror="imgFb(this)"><span class="pr-emoji" style="display:none">${pr.emoji||'🔧'}</span>`:`<span class="pr-emoji">${pr.emoji||'🔧'}</span>`;
       const videoTag=pr.videoUrl?`<div class="pr-video-tag">▶️ فيديو</div>`:'';
       const catTag=pr.category?`<div class="pr-cat">${pr.category}</div>`:'';
       const oldP=pr.oldPrice?`<span class="price-old-s">$${pr.oldPrice}</span> `:'';
@@ -1324,7 +1324,7 @@ window.openDetail=function(type,idx){
   const hero=document.getElementById('dmHero');
   const oldImg=hero.querySelector('img');
   if(oldImg)oldImg.remove();
-  if(item.imageUrl){const img=document.createElement('img');img.src=item.imageUrl;img.alt=item.title;hero.insertBefore(img,hero.firstChild);}
+  if(item.imageUrl){const img=document.createElement('img');img.dataset.orig=item.imageUrl;img.onerror=()=>imgFb(img);img.src=optImg(type==='course'?'courses':'projects',item.id,item.imageUrl,0);img.alt=item.title||'';hero.insertBefore(img,hero.firstChild);}
   document.getElementById('dmEmoji').textContent=item.emoji||(type==='course'?'🎓':'🔧');
   document.getElementById('dmEmoji').style.display=item.imageUrl?'none':'flex';
   document.getElementById('dmCat').textContent=item.category||'';
@@ -1418,7 +1418,7 @@ async function loadBooks(){
     snap.forEach(d=>{
       const b={id:d.id,...d.data()};const bFree=isFreeItem(b);
       const bTitle=(b.title||'').replace(/"/g,'&quot;');
-      const cover=b.imageUrl?`<img src="${b.imageUrl}" alt="${bTitle}" loading="lazy" onerror="this.style.display='none'">`:'';
+      const cover=b.imageUrl?`<img src="${optImg('books',b.id,b.imageUrl,1)}" data-orig="${escAttr(b.imageUrl)}" alt="${bTitle}" loading="lazy" decoding="async" onerror="imgFb(this)">`:'';
       const action=bFree
         ?`onclick="downloadFree(this)" data-fileurl="${escAttr(b.fileUrl)}" data-name="${bTitle}" data-oid="${b.id}"`
         :`onclick="addCartFromEl(this)" data-name="${bTitle}" data-price="${b.price||0}" data-emoji="${b.emoji||'📚'}" data-col="books" data-id="${b.id}"`;
@@ -1555,6 +1555,10 @@ window.scrollToSec=function(id){
 let cart=[];
 try{cart=JSON.parse(localStorage.getItem('3engs_cart')||'[]').filter(i=>i&&i.col&&i.id);}catch(e){}
 function isFreeItem(d){return d.isFree===true||!(parseFloat(d.price)>0);}
+// صور WebP مضغوطة يولّدها سكربت البناء في /img/ — ولو مش موجودة بعد نرجع للأصلية
+function optImg(col,id,orig,small){return orig&&id?`/img/${col}/${id}${small?'-480':''}.webp`:(orig||'');}
+function imgFb(el){const o=el.dataset.orig;if(o&&!el.dataset.fb){el.dataset.fb='1';el.src=o;}else{el.style.display='none';}}
+window.optImg=optImg;window.imgFb=imgFb;
 function escAttr(v){return String(v||'').replace(/[&"<>]/g,c=>({'&':'&amp;','"':'&quot;','<':'&lt;','>':'&gt;'}[c]));}
 window.isFreeItem=isFreeItem;window.escAttr=escAttr;
 function saveCart(){try{localStorage.setItem('3engs_cart',JSON.stringify(cart));}catch(e){}updateCartUI();}

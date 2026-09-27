@@ -1,0 +1,86 @@
+{
+ "courses/4yLgkaFok0LUvNlupIBf": {
+  "hash": "288b65fab5ce",
+  "w": 1200,
+  "h": 668,
+  "fromKB": 1331,
+  "toKB": 51
+ },
+ "courses/OP0pkdjuaBl2hE9AhZNG": {
+  "hash": "5875dd110b25",
+  "w": 1200,
+  "h": 668,
+  "fromKB": 997,
+  "toKB": 24
+ },
+ "courses/ZxzNfCmOOXnEQUOWJDaI": {
+  "hash": "287bf155ca96",
+  "w": 1200,
+  "h": 668,
+  "fromKB": 1053,
+  "toKB": 39
+ },
+ "courses/ppgf4S766bSU8H1BO85r": {
+  "hash": "9374616797e6",
+  "w": 1200,
+  "h": 668,
+  "fromKB": 1216,
+  "toKB": 48
+ },
+ "projects/1hBkXtJAJg71IsEaaNwJ": {
+  "hash": "87c1e6eb28a0",
+  "w": 1200,
+  "h": 675,
+  "fromKB": 1855,
+  "toKB": 111
+ },
+ "projects/ABaMSMO49TXKwWE8GaMk": {
+  "hash": "e6421c5997da",
+  "w": 1200,
+  "h": 675,
+  "fromKB": 1856,
+  "toKB": 106
+ },
+ "products/5L1Rn98iIMEk02s1E7jf": {
+  "hash": "cd02d4d403f8",
+  "w": 1200,
+  "h": 668,
+  "fromKB": 1173,
+  "toKB": 38
+ },
+ "products/AX88UPXucTD67WRfMkRY": {
+  "hash": "5581304d981f",
+  "w": 1200,
+  "h": 641,
+  "fromKB": 495,
+  "toKB": 38
+ },
+ "books/5une4cJcU7ptPWtngK03": {
+  "hash": "1eecdd42811e",
+  "w": 1024,
+  "h": 1536,
+  "fromKB": 2971,
+  "toKB": 231
+ },
+ "books/LmDlB5k426QbOfGYcCRa": {
+  "hash": "b3be023a78a0",
+  "w": 1055,
+  "h": 1491,
+  "fromKB": 1482,
+  "toKB": 76
+ },
+ "books/mogzmyFFsPVGdkPyC58u": {
+  "hash": "c8f1cf24ade5",
+  "w": 552,
+  "h": 796,
+  "fromKB": 404,
+  "toKB": 36
+ },
+ "books/sa5okrynddbXTNsxsGrS": {
+  "hash": "67a4ae725ca5",
+  "w": 1054,
+  "h": 1492,
+  "fromKB": 1406,
+  "toKB": 82
+ }
+}

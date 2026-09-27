@@ -11,6 +11,8 @@
  *    - صفحة فهرس لكل قسم  (/courses/ , /projects/ ...)
  *    - sitemap.xml  كامل
  *    - llms.txt     (للظهور في ChatGPT / Perplexity / Gemini)
+ *    - صور WebP مضغوطة لكل عنصر في /img/  (يحتاج مكتبة sharp — اختيارية)
+ *    - صفحات تصنيف حسب التقنية/المجال في /topics/
  *    - محتوى ثابت داخل index.html (روابط العناصر + الأرقام + الآراء)
  *      بين علامات <!--SSR:xxx--> … <!--/SSR:xxx--> — عشان جوجل والـ AI يشوفوه بدون JavaScript
  *    - (اختياري) إرسال الروابط الجديدة لـ Bing عبر IndexNow
@@ -27,6 +29,7 @@
 
 import fs from "node:fs/promises";
 import path from "node:path";
+import crypto from "node:crypto";
 
 // ---------------- الإعدادات ----------------
 const SITE = "https://www.3engs.com";
@@ -42,7 +45,7 @@ const BRAND_AR = "المهندسون الثلاثة";
 const EXTRA_URLS = [
   { loc: "/privacy.html", priority: 0.3 },
 ];
-const OG_DEFAULT = `${SITE}/og-image.png`;
+const OG_DEFAULT = `${SITE}/og-image.jpg`;
 
 // الأقسام: اسم الـ collection بـ Firestore ← إعدادات الصفحة
 const SECTIONS = [
@@ -222,7 +225,16 @@ h1{font-size:1.75rem;line-height:1.5;margin-bottom:10px}
 .sec-title{font-size:1.3rem;margin:30px 0 14px}
 footer{border-top:1px solid var(--line);margin-top:40px;padding:26px 0;color:var(--mut);font-size:.85rem;text-align:center}
 footer nav{display:flex;justify-content:center;flex-wrap:wrap;gap:16px;margin-bottom:10px}
-@media(max-width:820px){.hero,.grid2{grid-template-columns:1fr}.nav{display:none}h1{font-size:1.4rem}}
+.facts{width:100%;border-collapse:collapse;font-size:.92rem}
+.facts th,.facts td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}
+.facts th{color:var(--mut);font-weight:700;width:34%;white-space:nowrap}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-block;border:1px solid var(--acc);color:var(--acc2);border-radius:999px;padding:1px 12px;font-size:.82rem}
+.faq details{border:1px solid var(--line);border-radius:12px;margin-bottom:8px;padding:0 14px}
+.faq summary{cursor:pointer;padding:12px 0;font-weight:700}
+.faq p{padding-bottom:12px;color:#d3d9ea}
+.card .k{font-size:.72rem;color:var(--mut)}
+@media(max-width:820px){.hero,.grid2{grid-template-columns:1fr}.nav{display:none}h1{font-size:1.4rem}.facts th{white-space:normal}}
 `;
 
 function layout({ title, description, canonical, image, schemas, body, ogType = "website" }) {
@@ -261,13 +273,13 @@ ${schemas.map(jsonLd).join("\n")}
 <body>
 <header class="top"><div class="wrap">
   <a class="logo" href="/"><img src="/logo.jpg" alt="شعار 3ENG.s" width="36" height="36">${BRAND}</a>
-  <nav class="nav">${SECTIONS.map((s) => `<a href="/${s.dir}/">${s.label}</a>`).join("")}</nav>
+  <nav class="nav">${SECTIONS.map((s) => `<a href="/${s.dir}/">${s.label}</a>`).join("")}<a href="/topics/">التصنيفات</a></nav>
 </div></header>
 <main class="wrap">
 ${body}
 </main>
 <footer><div class="wrap">
-  <nav><a href="/">الرئيسية</a>${SECTIONS.map((s) => `<a href="/${s.dir}/">${s.label}</a>`).join("")}<a href="/#about">من نحن</a><a href="/#faq">الأسئلة الشائعة</a><a href="/privacy.html">سياسة الخصوصية</a></nav>
+  <nav><a href="/">الرئيسية</a>${SECTIONS.map((s) => `<a href="/${s.dir}/">${s.label}</a>`).join("")}<a href="/topics/">التصنيفات</a><a href="/#about">من نحن</a><a href="/#faq">الأسئلة الشائعة</a><a href="/privacy.html">سياسة الخصوصية</a></nav>
   © ${new Date().getFullYear()} ${BRAND} — ${BRAND_AR} • منصة تعليم الهندسة الكهربائية والأنظمة المدمجة
 </div></footer>
 </body>
@@ -287,24 +299,120 @@ function crumbs(items) {
 
 const ORG = { "@type": "EducationalOrganization", name: BRAND, alternateName: BRAND_AR, url: SITE, logo: `${SITE}/logo.jpg` };
 
+// ---------------- ضغط الصور (WebP) ----------------
+// لكل عنصر: /img/{col}/{id}.webp (1200px) و {id}-480.webp للبطاقات
+// ما بيعيد الضغط إلا إذا تغيّر رابط الصورة الأصلية. بدون sharp ← بيستخدم الصورة الأصلية
+let sharp = null;
+try { sharp = (await import("sharp")).default; } catch { console.warn("ℹ️  sharp غير مثبّت — الصور بدون ضغط"); }
+
+async function optimizeImages(data) {
+  const manifestPath = path.join(OUT_DIR, "img", "manifest.json");
+  let manifest = {};
+  try { manifest = JSON.parse(await fs.readFile(manifestPath, "utf8")); } catch {}
+  const keep = new Set();
+  let done = 0, reused = 0;
+  for (const sec of SECTIONS) {
+    for (const it of data[sec.col] || []) {
+      const src = it.imageUrl || it.coverUrl || it.image;
+      if (!src || !/^https?:\/\//.test(src)) continue;
+      const key = `${sec.col}/${it.id}`;
+      const hash = crypto.createHash("sha1").update(src).digest("hex").slice(0, 12);
+      const big = `img/${key}.webp`, small = `img/${key}-480.webp`;
+      const prev = manifest[key];
+      let exists = false;
+      try { await fs.access(path.join(OUT_DIR, big)); await fs.access(path.join(OUT_DIR, small)); exists = true; } catch {}
+      if (prev && prev.hash === hash && exists) {
+        Object.assign(it, { _img: "/" + big, _thumb: "/" + small, _w: prev.w, _h: prev.h });
+        keep.add(key); reused++; continue;
+      }
+      if (!sharp) continue;
+      try {
+        const r = await fetch(src);
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        const buf = Buffer.from(await r.arrayBuffer());
+        await fs.mkdir(path.dirname(path.join(OUT_DIR, big)), { recursive: true });
+        const out = await sharp(buf).rotate().resize({ width: 1200, withoutEnlargement: true }).webp({ quality: 78 }).toBuffer({ resolveWithObject: true });
+        await fs.writeFile(path.join(OUT_DIR, big), out.data);
+        await fs.writeFile(path.join(OUT_DIR, small), await sharp(buf).rotate().resize({ width: 480, withoutEnlargement: true }).webp({ quality: 72 }).toBuffer());
+        manifest[key] = { hash, w: out.info.width, h: out.info.height, fromKB: Math.round(buf.length / 1024), toKB: Math.round(out.data.length / 1024) };
+        Object.assign(it, { _img: "/" + big, _thumb: "/" + small, _w: out.info.width, _h: out.info.height });
+        keep.add(key); done++;
+      } catch (e) {
+        console.warn(`⚠️  صورة ${key}: ${e.message}`);
+      }
+    }
+  }
+  // حذف صور العناصر المحذوفة
+  for (const key of Object.keys(manifest)) {
+    if (keep.has(key)) continue;
+    delete manifest[key];
+    for (const f of [`img/${key}.webp`, `img/${key}-480.webp`]) await fs.rm(path.join(OUT_DIR, f), { force: true });
+  }
+  if (Object.keys(manifest).length || done) await writeFile("img/manifest.json", JSON.stringify(manifest, null, 1) + "\n");
+  console.log(`🖼️  الصور: ${done} مضغوطة جديدة، ${reused} بدون تغيير`);
+}
+const absUrl = (u) => (u && u.startsWith("/") ? SITE + u : u);
+
+// ---------------- التصنيفات (التقنيات والمجالات) ----------------
+// الاسم اللي بتكتبه في لوحة التحكم ← صفحة /topics/{slug}/
+const TAXONOMY = [
+  { slug: "arduino",       names: ["arduino", "اردوينو", "أردوينو"],                    ar: "أردوينو Arduino",            about: "لوحات Arduino هي أشهر منصة لتعلّم برمجة المتحكمات والإلكترونيات، ومناسبة للمبتدئين ومشاريع الروبوتات والأتمتة." },
+  { slug: "esp32",         names: ["esp32"],                                             ar: "ESP32",                       about: "ESP32 متحكم قوي منخفض التكلفة يدعم Wi-Fi و Bluetooth، ويُستخدم بكثرة في مشاريع إنترنت الأشياء والأنظمة الذكية." },
+  { slug: "esp8266",       names: ["esp8266", "nodemcu"],                                ar: "ESP8266 / NodeMCU",           about: "ESP8266 متحكم صغير مزوّد بـ Wi-Fi، مناسب لمشاريع إنترنت الأشياء البسيطة والتحكم عن بعد." },
+  { slug: "raspberry-pi",  names: ["raspberry pi", "raspberry", "راسبيري", "راسبيري باي"], ar: "راسبيري باي Raspberry Pi",   about: "Raspberry Pi حاسوب صغير بحجم الكف يعمل بنظام Linux، ويُستخدم في المشاريع الذكية ومعالجة الصور والذكاء الاصطناعي." },
+  { slug: "pic",           names: ["pic", "pic microcontroller"],                        ar: "متحكمات PIC",                 about: "متحكمات PIC من Microchip تُدرَّس في الجامعات وتُستخدم في الأنظمة الصناعية وأنظمة الحماية والتحكم." },
+  { slug: "stm32",         names: ["stm32"],                                             ar: "STM32",                       about: "متحكمات STM32 المبنية على ARM Cortex-M تُستخدم في التطبيقات الاحترافية والصناعية التي تحتاج أداءً عالياً." },
+  { slug: "python",        names: ["python", "بايثون"],                                  ar: "بايثون Python",               about: "Python لغة برمجة سهلة وقوية، وهي الأساس في الذكاء الاصطناعي وتحليل البيانات وبرمجة الأجهزة الذكية." },
+  { slug: "pcb-design",    names: ["pcb", "pcb design", "تصميم pcb", "تصميم اللوحات المطبوعة"], ar: "تصميم الدوائر المطبوعة PCB", about: "تصميم PCB هو تحويل الدائرة الإلكترونية إلى لوحة مطبوعة احترافية قابلة للتصنيع." },
+  { slug: "electronics",   names: ["electronics", "الكترونيات", "إلكترونيات", "الإلكترونيات"], ar: "الإلكترونيات",           about: "أساسيات الإلكترونيات: المقاومات والمكثفات والترانزستورات والدوائر، وهي نقطة البداية لكل مهندس ومبتكر." },
+  { slug: "iot",           names: ["iot", "انترنت الاشياء", "إنترنت الأشياء"],           ar: "إنترنت الأشياء (IoT)",        about: "إنترنت الأشياء يربط الحساسات والأجهزة بالإنترنت للمراقبة والتحكم عن بعد عبر الهاتف والمنصات السحابية." },
+  { slug: "embedded-systems", names: ["embedded", "embedded systems", "الانظمة المدمجة", "الأنظمة المدمجة"], ar: "الأنظمة المدمجة", about: "الأنظمة المدمجة هي أنظمة حاسوبية صغيرة مخصّصة لمهمة محددة داخل جهاز أكبر، مثل المتحكمات في الأجهزة الذكية." },
+  { slug: "automation",    names: ["automation", "اتمتة", "أتمتة", "التحكم", "control"], ar: "الأتمتة والتحكم",             about: "الأتمتة وأنظمة التحكم تجعل الأجهزة تعمل تلقائياً وبدقة، من التحكم المنزلي إلى خطوط الإنتاج الصناعية." },
+  { slug: "ai",            names: ["ai", "ذكاء اصطناعي", "الذكاء الاصطناعي"],            ar: "الذكاء الاصطناعي",            about: "الذكاء الاصطناعي يمكّن الأنظمة من التعلّم واتخاذ القرار، ويُدمج اليوم مع المتحكمات والحساسات في المشاريع الذكية." },
+  { slug: "robotics",      names: ["robotics", "روبوت", "روبوتات", "روبوتيكس"],          ar: "الروبوتات",                   about: "الروبوتات تجمع بين الميكانيك والإلكترونيات والبرمجة لبناء آلات تتحرك وتتفاعل مع محيطها." },
+  { slug: "renewable-energy", names: ["renewable energy", "solar", "طاقة متجددة", "الطاقة المتجددة", "طاقة شمسية"], ar: "الطاقة المتجددة", about: "الطاقة المتجددة تشمل أنظمة الطاقة الشمسية والرياح، وهي من أسرع مجالات الهندسة الكهربائية نمواً." },
+  { slug: "drivers-tools", names: ["driver", "drivers", "تعريفات", "أدوات"],             ar: "تعريفات وأدوات",              about: "تعريفات وأدوات يحتاجها كل من يعمل على لوحات Arduino و ESP لتتعرّف عليها أجهزة الكمبيوتر." },
+];
+function topicOf(tag) {
+  const t = clean(tag).toLowerCase();
+  return TAXONOMY.find((x) => x.names.includes(t) || x.slug === t) || null;
+}
+function itemTopics(it) {
+  const out = [];
+  for (const t of arr(it.tags)) { const x = topicOf(t); if (x && !out.includes(x)) out.push(x); }
+  return out;
+}
+
 // ---------------- صفحة العنصر ----------------
-function itemPage(sec, item, siblings) {
+function itemPage(sec, item, siblings, all) {
   const title = clean(item.title) || `${sec.one} من ${BRAND}`;
   const url = `/${sec.dir}/${item._slug}/`;
   const canonical = SITE + url;
   const desc = cut(item.shortDesc || item.desc || `${sec.one} ${title} من منصة ${BRAND}`, 155);
   const price = num(item.price) ?? 0;
+  const free = isFree(item);
   const oldPrice = num(item.oldPrice);
-  const img = item.imageUrl || item.coverUrl || item.image || "";
+  const orig = item.imageUrl || item.coverUrl || item.image || "";
+  const img = item._img || orig;
+  const imgAbs = absUrl(img);
   const yt = youtubeId(item.videoUrl);
   const updated = isoDate(item._updated);
+  const topics = itemTopics(item);
+  const audience = arr(item.audience).map(clean);
+  const faqs = (Array.isArray(item.faqs) ? item.faqs : []).filter((f) => f && clean(f.q) && clean(f.a));
   const offer = {
     "@type": "Offer",
-    price: String(price),
+    price: String(free ? 0 : price),
     priceCurrency: CURRENCY,
     availability: "https://schema.org/InStock",
     url: canonical,
-    ...(sec.type === "Course" ? { category: price > 0 ? "Paid" : "Free" } : {}),
+    ...(sec.type === "Course" ? { category: free ? "Free" : "Paid" } : {}),
+  };
+  const extra = {
+    ...(topics.length || arr(item.tags).length ? { keywords: [...new Set([...topics.map((t) => t.ar), ...arr(item.tags).map(clean)])].join("، ") } : {}),
+    ...(audience.length ? { audience: { "@type": "Audience", audienceType: audience.join("، ") } } : {}),
+    isAccessibleForFree: free,
+    inLanguage: "ar",
   };
 
   let main;
@@ -316,19 +424,20 @@ function itemPage(sec, item, siblings) {
       name: title,
       description: cut(item.desc || item.shortDesc || desc, 500),
       url: canonical,
-      inLanguage: "ar",
-      ...(img ? { image: img } : {}),
+      ...(imgAbs ? { image: imgAbs } : {}),
       provider: ORG,
       offers: offer,
       ...(item.level ? { educationalLevel: item.level } : {}),
       ...(arr(item.learns).length ? { teaches: arr(item.learns).map(clean) } : {}),
+      ...(arr(item.requirements).length ? { coursePrerequisites: arr(item.requirements).map(clean) } : {}),
       ...(arr(item.topics).length ? { syllabusSections: arr(item.topics).slice(0, 30).map((t) => ({ "@type": "Syllabus", name: clean(t) })) } : {}),
       hasCourseInstance: {
         "@type": "CourseInstance",
-        courseMode: item.mode || "Blended",
+        courseMode: item.mode || "Online",
         ...(workload ? { courseWorkload: workload } : {}),
         inLanguage: "ar",
       },
+      ...extra,
     };
   } else {
     main = {
@@ -338,19 +447,29 @@ function itemPage(sec, item, siblings) {
       description: cut(item.desc || item.shortDesc || desc, 500),
       url: canonical,
       sku: item.id,
-      ...(img ? { image: img } : { image: `${SITE}/logo.jpg` }),
+      image: imgAbs || `${SITE}/logo.jpg`,
       brand: { "@type": "Brand", name: BRAND },
-      category: item.category || sec.one,
+      category: (item.category && isNaN(item.category) ? item.category : "") || sec.one,
+      ...(item.author ? { author: { "@type": "Person", name: clean(item.author) } } : {}),
       offers: offer,
+      ...extra,
     };
   }
   if (updated) main.dateModified = updated;
+
+  const schemas = [main];
+  if (faqs.length) schemas.push({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({ "@type": "Question", name: clean(f.q), acceptedAnswer: { "@type": "Answer", text: clean(f.a) } })),
+  });
 
   const bc = crumbs([
     { name: "الرئيسية", url: "/" },
     { name: sec.label, url: `/${sec.dir}/` },
     { name: cut(title, 60), url },
   ]);
+  schemas.push(bc.schema);
 
   const tags = [
     item.category && isNaN(item.category) ? `📂 ${item.category}` : "",
@@ -361,14 +480,51 @@ function itemPage(sec, item, siblings) {
     item.pages && `📄 ${item.pages} صفحة`,
   ].filter(Boolean);
 
+  // ملخص سريع — معلومات واضحة وسهلة الاستخراج لجوجل والـ AI
+  const howGet = free
+    ? (item.fileUrl ? "تحميل مباشر ومجاني — بدون دفع أو تسجيل" : "مجاني — تواصل معنا للحصول عليه")
+    : sec.type === "Course"
+      ? "بعد الاشتراك نتواصل معك بتفاصيل الوصول (أونلاين مباشر أو مسجّلة حسب الدورة)"
+      : "تحميل فوري بعد تأكيد الدفع من صفحة «مشترياتي» في حسابك";
+  const facts = [
+    ["النوع", sec.one],
+    topics.length ? ["التقنيات والمجالات", `<span class="chips">${topics.map((t) => `<a class="chip" href="/topics/${t.slug}/">${esc(t.ar)}</a>`).join("")}</span>`, true] : null,
+    item.level ? ["المستوى", item.level] : null,
+    item.duration ? ["المدة", item.duration] : null,
+    item.lessons ? ["عدد الدروس", item.lessons] : null,
+    item.author ? ["المؤلف", item.author] : null,
+    ["اللغة", "العربية"],
+    ["السعر", free ? "مجاني" : `$${price} ${CURRENCY}`],
+    ["طريقة الحصول عليه", howGet],
+    sec.type === "Course" ? ["الشهادة", "شهادة معتمدة لكل من يُنجز الدورة"] : null,
+    updated ? ["آخر تحديث", updated.slice(0, 10)] : null,
+  ].filter(Boolean);
+  const factsHtml = `<section class="box"><h2>⚡ ملخص سريع</h2><table class="facts">${facts.map(([k, v, raw]) => `<tr><th>${k}</th><td>${raw ? v : esc(v)}</td></tr>`).join("")}</table></section>`;
+
+  const license = free
+    ? ""
+    : `<section class="box"><h2>📥 الاستلام والترخيص</h2><p>${sec.type === "Course"
+        ? "بعد إتمام الاشتراك يتواصل معك فريقنا بتفاصيل الوصول إلى الدورة ومواعيدها أو روابط الدروس المسجّلة."
+        : "بعد تأكيد الدفع تظهر ملفات المنتج فوراً في صفحة «📦 مشترياتي» داخل حسابك، ويمكنك تحميلها في أي وقت."}
+ تحصل على رخصة استخدام شخصي، ويُمنع إعادة بيع المحتوى أو نشره. التفاصيل في <a href="/privacy.html#terms" style="color:var(--acc)">شروط الاستخدام</a> و<a href="/privacy.html#refund" style="color:var(--acc)">سياسة الإرجاع</a>.</p></section>`;
+
   const off = oldPrice && oldPrice > price ? Math.round((1 - price / oldPrice) * 100) : 0;
   const waMsg = encodeURIComponent(`مرحباً 3ENG.s، أرغب في طلب: ${title}\n${canonical}`);
   const cover = img
-    ? `<img src="${esc(img)}" alt="${esc(title)}" width="800" height="450" fetchpriority="high">`
+    ? `<img src="${esc(img)}" alt="${esc(title)}" width="${item._w || 800}" height="${item._h || 450}" fetchpriority="high" decoding="async">`
     : `<div class="emoji-cover">${item.emoji || sec.emoji}</div>`;
 
   const learnTitle = sec.type === "Course" ? "🎯 ماذا ستتعلم" : "🎁 ماذا ستحصل عليه";
-  const related = siblings.filter((s) => s.id !== item.id).slice(0, 3);
+
+  // عناصر مرتبطة: نفس التقنية أولاً (من كل الأقسام)، ثم نفس القسم
+  const score = (o) => itemTopics(o).filter((t) => topics.includes(t)).length;
+  const related = all
+    .filter((o) => !(o._sec === sec && o.id === item.id))
+    .map((o) => [o, score(o) * 10 + (o._sec === sec ? 1 : 0)])
+    .filter(([, sc]) => sc > 0)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
+    .map(([o]) => o);
 
   const body = `
 ${bc.html}
@@ -378,9 +534,9 @@ ${bc.html}
     <h1>${esc(title)}</h1>
     ${item.shortDesc ? `<p class="lead">${esc(clean(item.shortDesc))}</p>` : ""}
     <div class="tags">${tags.map((t) => `<span class="tag">${esc(t)}</span>`).join("")}</div>
-    <div class="price">${price > 0 ? `<b>$${price}</b>` : `<b>مجاني</b>`}${oldPrice && oldPrice > price ? `<s>$${oldPrice}</s><span class="off">وفّر ${off}%</span>` : ""}</div>
+    <div class="price">${!free ? `<b>$${price}</b>` : `<b>مجاني</b>`}${!free && oldPrice && oldPrice > price ? `<s>$${oldPrice}</s><span class="off">وفّر ${off}%</span>` : ""}</div>
     <div class="cta">
-      ${price > 0
+      ${!free
         ? `<a class="btn main" href="/?open=${sec.col}:${item.id}">🛒 اطلب الآن</a>`
         : item.fileUrl
           ? `<a class="btn main" href="${esc(item.fileUrl)}" target="_blank" rel="nofollow noopener">📥 تحميل مجاني</a>`
@@ -390,37 +546,83 @@ ${bc.html}
   </div>
 </section>
 
+${factsHtml}
 ${item.desc ? `<section class="box"><h2>📖 التفاصيل</h2>${paragraphs(item.desc)}</section>` : ""}
 <div class="grid2">
+  ${list("👥 لمن هذا؟", audience, "•")}
   ${list(learnTitle, item.learns)}
   ${list("🔧 المكونات المستخدمة", item.components, "•")}
   ${list("📝 المتطلبات المسبقة", item.requirements, "•")}
 </div>
 ${list("📚 محاور الدورة", item.topics, "▸")}
 ${yt ? `<section class="box"><h2>🎬 فيديو ${esc(sec.one)}</h2><div class="video"><iframe src="https://www.youtube-nocookie.com/embed/${yt}" title="${esc(title)}" loading="lazy" allowfullscreen></iframe></div></section>` : ""}
+${faqs.length ? `<section class="box faq"><h2>❓ أسئلة عن ${esc(sec.one)}</h2>${faqs.map((f) => `<details><summary>${esc(clean(f.q))}</summary><p>${esc(clean(f.a))}</p></details>`).join("")}</section>` : ""}
+${license}
 
 <section class="box"><h2>👷 عن ${BRAND}</h2><p>${BRAND} (${BRAND_AR}) منصة عربية من فلسطين يديرها مهندسون كهربائيون ومدربون جامعيون، تقدّم دورات ومشاريع جاهزة وكتباً في الهندسة الكهربائية والأنظمة المدمجة وإنترنت الأشياء. <a href="/#about" style="color:var(--acc)">تعرّف على الفريق</a> • <a href="/#faq" style="color:var(--acc)">الأسئلة الشائعة</a> • <a href="/privacy.html#refund" style="color:var(--acc)">سياسة الإرجاع</a></p></section>
 
-${related.length ? `<h2 class="sec-title">${sec.emoji} ${esc(sec.label)} أخرى قد تهمك</h2><div class="cards">${related.map((r) => card(sec, r)).join("")}</div>` : ""}
+${related.length ? `<h2 class="sec-title">🔗 قد يهمك أيضاً</h2><div class="cards">${related.map((r) => card(r._sec, r)).join("")}</div>` : ""}
 `;
 
   return layout({
     title: `${cut(title, 55)} | ${BRAND}`,
     description: desc,
     canonical,
-    image: img,
+    image: imgAbs,
     ogType: "product",
-    schemas: [main, bc.schema],
+    schemas,
     body,
   });
 }
 
-function card(sec, it) {
-  const img = it.imageUrl || it.coverUrl || it.image;
+function card(sec, it, showType = false) {
+  const img = it._thumb || it.imageUrl || it.coverUrl || it.image;
   const price = num(it.price) ?? 0;
+  const h = it._w && it._h ? Math.round((480 * it._h) / it._w) : 225;
   return `<a class="card" href="/${sec.dir}/${it._slug}/">${img
-    ? `<img src="${esc(img)}" alt="${esc(clean(it.title))}" loading="lazy" width="400" height="225">`
-    : `<div class="ph">${it.emoji || sec.emoji}</div>`}<div class="b"><h3>${esc(cut(it.title, 70))}</h3><div class="p">${price > 0 ? "$" + price : "مجاني"}</div></div></a>`;
+    ? `<img src="${esc(img)}" alt="${esc(clean(it.title))}" loading="lazy" decoding="async" width="480" height="${h}">`
+    : `<div class="ph">${it.emoji || sec.emoji}</div>`}<div class="b">${showType ? `<div class="k">${sec.emoji} ${esc(sec.one)}</div>` : ""}<h3>${esc(cut(it.title, 70))}</h3><div class="p">${price > 0 && !isFree(it) ? "$" + price : "مجاني"}</div></div></a>`;
+}
+
+// ---------------- صفحات التصنيف /topics/ ----------------
+function topicPage(t, items) {
+  const url = `/topics/${t.slug}/`;
+  const bc = crumbs([{ name: "الرئيسية", url: "/" }, { name: "التصنيفات", url: "/topics/" }, { name: t.ar, url }]);
+  const listSchema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: `${t.ar} — ${BRAND}`,
+    url: SITE + url,
+    about: t.ar,
+    mainEntity: { "@type": "ItemList", itemListElement: items.map((it, i) => ({ "@type": "ListItem", position: i + 1, url: `${SITE}/${it._sec.dir}/${it._slug}/`, name: clean(it.title) })) },
+  };
+  const groups = SECTIONS.map((sec) => [sec, items.filter((i) => i._sec === sec)]).filter(([, g]) => g.length);
+  const body = `${bc.html}
+<h1>${esc(t.ar)}: دورات ومشاريع وكتب</h1>
+<p class="lead">${esc(t.about)} على منصة ${BRAND} تجد ${items.length} ${items.length > 2 && items.length < 11 ? "عناصر" : "عنصراً"} في هذا المجال باللغة العربية.</p>
+${groups.map(([sec, g]) => `<h2 class="sec-title">${sec.emoji} ${esc(sec.label)}</h2><div class="cards">${g.map((it) => card(sec, it)).join("")}</div>`).join("\n")}`;
+  return layout({
+    title: `${t.ar} | دورات ومشاريع وكتب — ${BRAND}`,
+    description: cut(`${t.about} تصفّح ${items.map((i) => clean(i.title)).slice(0, 3).join("، ")} على ${BRAND}.`, 155),
+    canonical: SITE + url,
+    schemas: [listSchema, bc.schema],
+    body,
+  });
+}
+function topicsHub(list) {
+  const url = "/topics/";
+  const bc = crumbs([{ name: "الرئيسية", url: "/" }, { name: "التصنيفات", url }]);
+  const body = `${bc.html}
+<h1>🏷️ تصفّح حسب التقنية والمجال</h1>
+<p class="lead">كل محتوى ${BRAND} مصنّف حسب التقنية (Arduino، ESP32، Raspberry Pi…) والمجال (إنترنت الأشياء، الأنظمة المدمجة، الذكاء الاصطناعي…).</p>
+<div class="cards">${list.map(([t, items]) => `<a class="card" href="/topics/${t.slug}/"><div class="b"><h3>${esc(t.ar)}</h3><div class="k">${items.length} عنصر</div></div></a>`).join("")}</div>`;
+  return layout({
+    title: `التصنيفات | ${BRAND} ${BRAND_AR}`,
+    description: `تصفّح دورات ومشاريع وكتب ${BRAND} حسب التقنية والمجال: ${list.map(([t]) => t.ar).slice(0, 6).join("، ")}.`,
+    canonical: SITE + url,
+    schemas: [bc.schema],
+    body,
+  });
 }
 
 function redirectPage(to) {
@@ -535,7 +737,8 @@ function llms(data) {
     t += `\n## ${sec.label}\n`;
     for (const it of items) {
       const price = num(it.price) ?? 0;
-      t += `- [${clean(it.title)}](${SITE}/${sec.dir}/${it._slug}/): ${cut(it.shortDesc || it.desc || "", 140)} (${price > 0 && !isFree(it) ? "$" + price : "مجاني"})\n`;
+      const tp = itemTopics(it).map((x) => x.ar);
+      t += `- [${clean(it.title)}](${SITE}/${sec.dir}/${it._slug}/): ${cut(it.shortDesc || it.desc || "", 140)} (${price > 0 && !isFree(it) ? "$" + price : "مجاني"}${tp.length ? " — " + tp.join("، ") : ""})\n`;
     }
   }
   return t;
@@ -575,44 +778,77 @@ async function main() {
   const changed = [];
   let total = 0;
 
+  // 1) تجهيز العناصر والـ slugs لكل الأقسام
+  const redirectsBy = {}, seenBy = {}, all = [];
   for (const sec of SECTIONS) {
     const items = (data[sec.col] || []).filter((i) => clean(i.title) && i.hidden !== true && i.published !== false);
-    // slugs فريدة
     const seen = new Set();
     const redirects = [];
     for (const it of items) {
       it._updated ??= it.updatedAt;
-      let s = slugify(it);
-      while (seen.has(s)) s += "-" + it.id.slice(0, 4).toLowerCase();
-      seen.add(s);
-      it._slug = s;
+      it._sec = sec;
+      let sl = slugify(it);
+      while (seen.has(sl)) sl += "-" + it.id.slice(0, 4).toLowerCase();
+      seen.add(sl);
+      it._slug = sl;
       // غيّرت الرابط من لوحة التحكم؟ الرابط القديم يحوّل للجديد بدل ما يعطي 404
       const old = autoSlug(it);
-      if (old !== s) redirects.push([old, s]);
+      if (old !== sl) redirects.push([old, sl]);
     }
     for (const [old] of redirects) seen.add(old);
     data[sec.col] = items;
+    redirectsBy[sec.col] = redirects;
+    seenBy[sec.col] = seen;
+    all.push(...items);
+  }
+
+  // 2) ضغط الصور
+  await optimizeImages(data);
+
+  // 3) الصفحات
+  for (const sec of SECTIONS) {
+    const items = data[sec.col];
     if (!items.length) continue;
 
     // مسح الصفحات القديمة لعناصر انحذفت
     const dir = path.join(OUT_DIR, sec.dir);
     try {
       for (const d of await fs.readdir(dir, { withFileTypes: true }))
-        if (d.isDirectory() && !seen.has(d.name)) await fs.rm(path.join(dir, d.name), { recursive: true });
+        if (d.isDirectory() && !seenBy[sec.col].has(d.name)) await fs.rm(path.join(dir, d.name), { recursive: true });
     } catch {}
 
     if (await writeFile(`${sec.dir}/index.html`, hubPage(sec, items))) changed.push(`${SITE}/${sec.dir}/`);
     entries.push({ loc: `/${sec.dir}/`, priority: 0.9 });
 
-    for (const [old, to] of redirects) await writeFile(`${sec.dir}/${old}/index.html`, redirectPage(`${SITE}/${sec.dir}/${to}/`));
+    for (const [old, to] of redirectsBy[sec.col]) await writeFile(`${sec.dir}/${old}/index.html`, redirectPage(`${SITE}/${sec.dir}/${to}/`));
 
     for (const it of items) {
       const rel = `${sec.dir}/${it._slug}/index.html`;
-      if (await writeFile(rel, itemPage(sec, it, items))) changed.push(`${SITE}/${sec.dir}/${it._slug}/`);
-      entries.push({ loc: `/${sec.dir}/${it._slug}/`, priority: 0.8, lastmod: isoDate(it._updated), image: it.imageUrl, title: clean(it.title) });
+      if (await writeFile(rel, itemPage(sec, it, items, all))) changed.push(`${SITE}/${sec.dir}/${it._slug}/`);
+      entries.push({ loc: `/${sec.dir}/${it._slug}/`, priority: 0.8, lastmod: isoDate(it._updated), image: absUrl(it._img || it.imageUrl), title: clean(it.title) });
       total++;
     }
     console.log(`✅ ${sec.label}: ${items.length}`);
+  }
+
+  // 4) صفحات التصنيف — فقط للتصنيفات اللي فيها عنصرين أو أكثر (بلا صفحات ضعيفة)
+  const topicList = TAXONOMY.map((t) => [t, all.filter((it) => itemTopics(it).includes(t))]).filter(([, items]) => items.length >= 2);
+  const keepTopics = new Set(topicList.map(([t]) => t.slug));
+  try {
+    for (const d of await fs.readdir(path.join(OUT_DIR, "topics"), { withFileTypes: true }))
+      if (d.isDirectory() && !keepTopics.has(d.name)) await fs.rm(path.join(OUT_DIR, "topics", d.name), { recursive: true });
+  } catch {}
+  if (topicList.length) {
+    if (await writeFile("topics/index.html", topicsHub(topicList))) changed.push(`${SITE}/topics/`);
+    entries.push({ loc: "/topics/", priority: 0.7 });
+    for (const [t, items] of topicList) {
+      if (await writeFile(`topics/${t.slug}/index.html`, topicPage(t, items))) changed.push(`${SITE}/topics/${t.slug}/`);
+      entries.push({ loc: `/topics/${t.slug}/`, priority: 0.7 });
+    }
+    console.log(`🏷️  التصنيفات: ${topicList.map(([t, i]) => `${t.slug}(${i.length})`).join(" ")}`);
+  } else {
+    await fs.rm(path.join(OUT_DIR, "topics"), { recursive: true, force: true });
+    console.log("🏷️  التصنيفات: لا يوجد تصنيف فيه عنصرين أو أكثر بعد — أضف «التقنيات» للعناصر من لوحة التحكم");
   }
 
   for (const e of EXTRA_URLS) entries.push({ priority: 0.3, ...e });
@@ -621,7 +857,7 @@ async function main() {
   if (await updateHome(data)) { changed.push(`${SITE}/`); console.log("✅ الصفحة الرئيسية: محتوى ثابت محدّث"); }
   await indexNow(changed);
 
-  console.log(`\n🎉 تم توليد ${total} صفحة + ${SECTIONS.length} فهارس + sitemap.xml + llms.txt`);
+  console.log(`\n🎉 تم توليد ${total} صفحة + ${SECTIONS.length} فهارس + ${topicList.length} تصنيف + sitemap.xml + llms.txt`);
   console.log(`📝 صفحات تغيّرت: ${changed.length}`);
 }
 

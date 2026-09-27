@@ -18,6 +18,10 @@ jobs:
         with:
           node-version: 22
 
+      # مكتبة ضغط الصور (WebP) — node_modules مستثناة بـ .gitignore
+      - name: Install image optimizer
+        run: npm install --no-save --no-package-lock --no-audit --no-fund sharp@0.34
+
       - name: Generate pages
         env:
           INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
