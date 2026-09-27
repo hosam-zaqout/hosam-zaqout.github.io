@@ -530,7 +530,11 @@ function metaDescription(sec, item) {
     return fitMeta(`دورة ${title}`, [facts, what].filter(Boolean).join(" — "), free ? "سجّل مجاناً مع شهادة معتمدة." : `اشترك الآن بـ${price}$ مع شهادة معتمدة.`);
   }
   if (sec.type === "Article") {
-    return fitMeta(title, item.desc || md.plain(item.body), `اقرأ المقال على ${BRAND}.`);
+    // المقال: الملخص نفسه هو الوصف (العنوان موجود أصلاً بعنوان الصفحة)
+    const cta = ` اقرأ المقال على ${BRAND}.`;
+    let body = clean(item.desc || md.plain(item.body)).replace(/[.،\s]+$/, "");
+    if (body.length + 1 + cta.length > 155) body = body.slice(0, 155 - cta.length - 2).replace(/\s+\S*$/, "") + "…";
+    return `${body}${body.endsWith("…") ? "" : "."}${cta}`;
   }
   const cta = free ? "حمّله مجاناً الآن." : `اطلبه الآن بـ${price}$.`;
   if (sec.col === "books") return fitMeta(`كتاب ${title}${item.author ? " — " + clean(item.author) : ""}`, first(item.desc), cta);
@@ -1147,7 +1151,8 @@ async function main() {
   const redirectsBy = {}, seenBy = {}, all = [];
   for (const g of groups) {
     const { sec } = g;
-    g.items = g.items.filter((i) => clean(i.title) && i.hidden !== true && i.published !== false);
+    // INCLUDE_DRAFTS=1 ← معاينة محلية للمسودات (ما بتستخدم بالنشر)
+    g.items = g.items.filter((i) => clean(i.title) && (process.env.INCLUDE_DRAFTS || (i.hidden !== true && i.published !== false)));
     const seen = new Set();
     const redirects = [];
     for (const it of g.items) {
