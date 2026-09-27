@@ -340,12 +340,16 @@ exports.getUserOrders = onRequest(
     if (!user) { res.status(401).json({ error: "Unauthorized" }); return; }
 
     const admin = isAdmin(user) && req.body?.all === true;
+    // طلبات المستخدم تُرتّب هنا بدل orderBy — عشان ما نحتاج composite index
     const q = admin
       ? db.collection("orders").orderBy("createdAt", "desc").limit(200)
-      : db.collection("orders").where("userId", "==", user.uid).orderBy("createdAt", "desc").limit(50);
+      : db.collection("orders").where("userId", "==", user.uid).limit(100);
 
     const snap = await q.get();
-    const orders = await Promise.all(snap.docs.map(async (doc) => {
+    const docs = admin ? snap.docs : [...snap.docs]
+      .filter((d) => d.data().status !== "pending")
+      .sort((a, b) => (b.data().createdAt?.toMillis?.() || 0) - (a.data().createdAt?.toMillis?.() || 0));
+    const orders = await Promise.all(docs.map(async (doc) => {
       const o = doc.data();
       if (admin) {
         return {
@@ -355,6 +359,7 @@ exports.getUserOrders = onRequest(
           method:        o.method || "",
           transactionId: o.transactionId || "",
           verification:  o.verification || "",
+          note:          o.note || "",
         };
       }
       const links = o.status === "paid" ? await resolveDownloads(o) : [];
@@ -394,5 +399,90 @@ exports.adminUpdateOrder = onRequest(
 
     logger.info("Order updated by admin", { invoiceId, action, by: user.email });
     res.status(200).json({ success: true, invoiceId, status: update.status });
+  }
+);
+
+// ─────────────────────────────────────────────
+// 6. adminCreateOrder — طلب يدوي (دفع عبر واتساب / PayPal / تحويل)
+// الأدمن يختار الزبون (لازم يكون مسجّل بالموقع) والعناصر،
+// والطلب ينحفظ "مدفوع" فوراً — والزبون يلاقي ملفاته في "مشترياتي"
+// Body: { email, items: [{col,id}], method, amountPaid?, note? }
+// ─────────────────────────────────────────────
+const MANUAL_METHODS = ["whatsapp", "paypal", "transfer", "cash", "other"];
+
+exports.adminCreateOrder = onRequest(
+  { region: "us-central1" },
+  async (req, res) => {
+    setCORS(req, res);
+    if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+
+    const admin = await verifyToken(req);
+    if (!isAdmin(admin)) { res.status(403).json({ error: "للأدمن فقط" }); return; }
+
+    const { email, items: refs, method, amountPaid, note } = req.body || {};
+    const cleanEmail = String(email || "").trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      res.status(400).json({ error: "بريد الزبون غير صحيح" }); return;
+    }
+    if (!Array.isArray(refs) || !refs.length || refs.length > 30) {
+      res.status(400).json({ error: "اختر عنصراً واحداً على الأقل" }); return;
+    }
+
+    let buyer;
+    try {
+      buyer = await getAuth().getUserByEmail(cleanEmail);
+    } catch (e) {
+      res.status(404).json({ error: "هذا البريد غير مسجّل بالموقع — اطلب من الزبون يعمل حساب أولاً" });
+      return;
+    }
+
+    const seen = new Set();
+    const items = [];
+    for (const r of refs) {
+      const col = String(r?.col || "");
+      const id  = String(r?.id || "");
+      const key = col + "/" + id;
+      if (!SELLABLE.includes(col) || !/^[A-Za-z0-9_-]{1,64}$/.test(id) || seen.has(key)) continue;
+      seen.add(key);
+      const snap = await db.collection(col).doc(id).get();
+      if (!snap.exists) continue;
+      const d = snap.data();
+      items.push({
+        col, id,
+        name:  String(d.title || d.name || "منتج").substring(0, 100),
+        price: isFreeItem(d) ? 0 : Math.round(Number(d.price) * 100) / 100,
+        emoji: String(d.emoji || ""),
+      });
+    }
+    if (!items.length) { res.status(400).json({ error: "العناصر غير موجودة" }); return; }
+
+    const listTotal = Math.round(items.reduce((s, i) => s + i.price, 0) * 100) / 100;
+    const paid = Number(amountPaid);
+    const total = Number.isFinite(paid) && paid >= 0 ? Math.round(paid * 100) / 100 : listTotal;
+    const m = MANUAL_METHODS.includes(method) ? method : "other";
+    const invoiceId =
+      "3ENGS-M-" + Date.now() + "-" +
+      Math.random().toString(36).substring(2, 8).toUpperCase();
+
+    await db.collection("orders").doc(invoiceId).set({
+      invoiceId,
+      userId:       buyer.uid,
+      userEmail:    buyer.email || cleanEmail,
+      userMobile:   "",
+      items,
+      total,
+      listTotal,
+      currency:     CURRENCY,
+      status:       "paid",
+      method:       "manual-" + m,
+      verification: "manual",
+      note:         String(note || "").substring(0, 300),
+      approvedBy:   admin.email,
+      createdAt:    FieldValue.serverTimestamp(),
+      paidAt:       FieldValue.serverTimestamp(),
+    });
+
+    logger.info("Manual order created", { invoiceId, by: admin.email, buyer: buyer.email, total });
+    res.status(200).json({ success: true, invoiceId, buyer: buyer.email, items: items.length, total });
   }
 );

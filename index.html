@@ -419,6 +419,13 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
 .lr-box h3{font-size:1.05rem;font-weight:800;margin-bottom:8px;}
 .lr-box p{font-size:.85rem;color:var(--mt);line-height:1.7;margin-bottom:22px;}
 .lr-btns{display:flex;gap:10px;justify-content:center;}
+.mo-box{max-width:560px;text-align:right;max-height:86vh;overflow:auto;padding:26px}
+.mo-order{border:1px solid var(--b2);border-radius:12px;padding:14px;margin-bottom:12px;background:rgba(255,255,255,.02)}
+.mo-head{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.76rem;color:var(--mt);margin-bottom:10px;flex-wrap:wrap}
+.mo-st{font-weight:800;border-radius:999px;padding:2px 10px;font-size:.72rem}
+.mo-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-top:1px dashed var(--b2);font-size:.86rem}
+.mo-dl{background:var(--p);color:#0F172A;border-radius:8px;padding:6px 14px;font-weight:800;font-size:.8rem;text-decoration:none;white-space:nowrap}
+.mo-soon{color:var(--mt);font-size:.74rem;white-space:nowrap}
 .lr-login{background:var(--p);color:#0F172A;border:none;padding:12px 26px;border-radius:9px;font-family:'Cairo',sans-serif;font-size:.92rem;font-weight:800;cursor:pointer;text-decoration:none;display:inline-block;}
 .lr-cancel{background:rgba(255,255,255,.07);border:1px solid var(--b2);color:var(--mt);padding:12px 20px;border-radius:9px;font-family:'Cairo',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;}
 
@@ -590,6 +597,16 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
 </div>
 
 <!-- Login required modal -->
+<div class="login-req-modal" id="myOrdersModal" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="lr-box mo-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <h3 style="margin:0">📦 مشترياتي</h3>
+      <button class="lr-cancel" style="padding:6px 12px" onclick="document.getElementById('myOrdersModal').classList.remove('show')">✕</button>
+    </div>
+    <div id="myOrdersList"></div>
+  </div>
+</div>
+
 <div class="login-req-modal" id="loginReqModal">
   <div class="lr-box">
     <div class="lr-icon">🔐</div>
@@ -623,6 +640,7 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
       <div class="nav-dd" id="userDD">
         <a class="ddi" href="admin.html" id="adminLnk" style="display:none">🛡️ لوحة الأدمن</a>
         <div class="ddi-sep" id="adminSep" style="display:none"></div>
+        <a class="ddi" onclick="openMyOrders();closeUserMenu()">📦 مشترياتي</a>
         <a class="ddi" onclick="openCart();closeUserMenu()">🛒 سلتي (<span id="ddCartCount">0</span>)</a>
         <div class="ddi-sep"></div>
         <button class="ddi red" onclick="doLogout()">🚪 تسجيل الخروج</button>
@@ -904,6 +922,31 @@ onAuthStateChanged(auth,user=>{
     if(ADMINS.includes(user.email)){document.getElementById('adminLnk').style.display='block';document.getElementById('adminSep').style.display='block';}
   }else{uw.style.display='none';lb.style.display='block';}
 });
+// مشترياتي — كل الطلبات المدفوعة مع روابط التحميل (من السيرفر)
+window.openMyOrders=async()=>{
+  const box=document.getElementById('myOrdersList');
+  document.getElementById('myOrdersModal').classList.add('show');
+  if(!auth.currentUser){box.innerHTML='<p style="text-align:center;color:var(--mt)">سجّل الدخول لرؤية مشترياتك</p><div class="lr-btns"><a class="lr-login" href="auth.html">تسجيل الدخول</a></div>';return;}
+  box.innerHTML='<p style="text-align:center;color:var(--mt);padding:20px">⏳ جاري التحميل...</p>';
+  try{
+    const {orders=[]}=await callFn('getUserOrders',{});
+    if(!orders.length){box.innerHTML='<p style="text-align:center;color:var(--mt);padding:20px">لا توجد مشتريات بعد.<br>إذا دفعت عبر واتساب أو PayPal، سيظهر طلبك هنا بعد تأكيده من فريقنا.</p>';return;}
+    const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const ST={paid:['✅ مدفوع','rgba(16,185,129,.15)','#10B981'],awaiting_approval:['⏳ قيد المراجعة','rgba(245,158,11,.15)','#F59E0B'],failed:['❌ لم يكتمل','rgba(239,68,68,.12)','#EF4444'],revoked:['🚫 ملغى','rgba(239,68,68,.12)','#EF4444']};
+    box.innerHTML=orders.map(o=>{
+      const st=ST[o.status]||[o.status,'transparent','var(--mt)'];
+      const dt=o.createdAt?new Date(o.createdAt).toLocaleDateString('ar'):'';
+      const links=o.downloadLinks||[];
+      const rows=(o.items||[]).map((it,i)=>{
+        const l=links[i];const url=l&&/^https?:\/\//i.test(l.fileUrl||'')?l.fileUrl:'';
+        const act=o.status!=='paid'?'':url?`<a class="mo-dl" href="${esc(url)}" target="_blank" rel="noopener">📥 تحميل</a>`:'<span class="mo-soon">سنتواصل معك للتفاصيل</span>';
+        return `<div class="mo-item"><span>${esc(it.emoji||'📦')} ${esc(it.name)}</span>${act}</div>`;
+      }).join('');
+      return `<div class="mo-order"><div class="mo-head"><span dir="ltr">${esc(o.invoiceId)}</span><span>${dt}</span><span class="mo-st" style="background:${st[1]};color:${st[2]}">${st[0]}</span></div>${rows}</div>`;
+    }).join('');
+  }catch(e){box.innerHTML='<p style="text-align:center;color:var(--er,#EF4444);padding:20px">⚠️ تعذر تحميل المشتريات، حاول لاحقاً</p>';console.error(e);}
+};
+
 window.doLogout=async()=>{closeUserMenu();await signOut(auth);window.location.reload();};
 
 // CONFIG

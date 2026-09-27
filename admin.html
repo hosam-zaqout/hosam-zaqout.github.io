@@ -159,7 +159,7 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
   <div class="ni" onclick="showP('testimonials',this)"><span class="ic">⭐</span> آراء الطلاب</div>
   <div class="ni" onclick="showP('sections',this)"><span class="ic">➕</span> أقسام مخصصة</div>
   <div class="ns">إدارة الموقع</div>
-  <div class="ni" onclick="showP('orders',this);loadOrders()"><span class="ic">🧾</span> الطلبات <span class="nb" id="oc">0</span></div>
+  <div class="ni" onclick="showP('orders',this);loadOrders();moRenderItems();moFillUsers()"><span class="ic">🧾</span> الطلبات <span class="nb" id="oc">0</span></div>
   <div class="ni" onclick="showP('users',this)"><span class="ic">👥</span> المستخدمون <span class="nb" id="uc">0</span></div>
   <div class="ni" onclick="showP('messages',this)"><span class="ic">💬</span> الرسائل <span class="nb" id="mc">0</span></div>
   <div class="ni" onclick="showP('newsletter',this)"><span class="ic">📧</span> النشرة البريدية</div>
@@ -278,6 +278,26 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
 
     <!-- ORDERS -->
     <div class="panel" id="p-orders">
+      <div class="pc" id="manualOrderCard">
+        <h3>➕ طلب يدوي (دفع عبر واتساب / PayPal / تحويل)</h3>
+        <p style="font-size:.8rem;color:var(--mt);margin-bottom:14px">بعد ما يدفعلك الزبون، سجّل الطلب هون — والملفات بتظهرله فوراً في صفحة <b>"📦 مشترياتي"</b> بالموقع. لازم يكون الزبون عامل حساب بالموقع بنفس البريد.</p>
+        <div class="g2">
+          <div class="cg"><label>بريد الزبون *</label><input class="ci" id="mo-email" list="mo-users" placeholder="customer@gmail.com" dir="ltr" autocomplete="off" oninput="moCheckUser()"><datalist id="mo-users"></datalist><div id="mo-user-hint" style="font-size:.74rem;margin-top:4px"></div></div>
+          <div class="cg"><label>طريقة الدفع</label><select class="cs" id="mo-method"><option value="whatsapp">💬 واتساب</option><option value="paypal">🅿️ PayPal</option><option value="transfer">🏦 تحويل بنكي / محفظة</option><option value="cash">💵 نقداً</option><option value="other">أخرى</option></select></div>
+        </div>
+        <div class="cg"><label>العناصر اللي اشتراها *</label>
+          <input class="ci" id="mo-search" placeholder="🔍 ابحث عن عنصر..." oninput="moRenderItems()" style="margin-bottom:8px">
+          <div id="mo-items" style="max-height:240px;overflow:auto;border:1px solid var(--b2,rgba(255,255,255,.08));border-radius:10px;padding:6px"></div>
+        </div>
+        <div class="g2">
+          <div class="cg"><label>المبلغ المدفوع فعلياً ($)</label><input class="ci" id="mo-amount" type="number" min="0" step="0.01" placeholder="اتركه فارغاً = مجموع الأسعار"></div>
+          <div class="cg"><label>ملاحظة (اختياري)</label><input class="ci" id="mo-note" placeholder="مثلاً: رقم الحوالة أو اسم المحفظة"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+          <div style="font-size:.86rem">المجموع حسب الأسعار: <b id="mo-total" style="color:var(--p)">$0.00</b></div>
+          <button class="btn-add" id="mo-submit" onclick="createManualOrder()">✅ تسجيل الطلب وفتح التحميل للزبون</button>
+        </div>
+      </div>
       <div class="pc"><h3>🧾 الطلبات</h3>
         <p style="font-size:.8rem;color:var(--mt);margin-bottom:12px">قارن الطلبات المدفوعة مع لوحة Crosspay. "بانتظار الموافقة" يظهر فقط إذا فعّلت المراجعة اليدوية من إعدادات الدفع.</p>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
@@ -1138,6 +1158,7 @@ async function callFn(name,body){
 const O_STATUS={paid:['✅ مدفوع','var(--ok)'],awaiting_approval:['⏳ بانتظار الموافقة','var(--p)'],pending:['🕓 لم يكتمل','var(--mt)'],failed:['❌ فشل','var(--er)'],revoked:['🚫 ملغى','var(--er)']};
 function escH(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 window._orders=[];
+window.moFillUsers=moFillUsers;
 window.loadOrders=async()=>{
   const tb=document.getElementById('oTable');
   tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--mt);padding:30px">جاري التحميل...</td></tr>';
@@ -1160,7 +1181,7 @@ window.renderOrders=()=>{
     if(o.status!=='paid')acts.push(`<button class="btn-edit" style="font-size:.72rem" onclick="orderAction('${escH(o.invoiceId)}','approve')">✅ موافقة</button>`);
     if(o.status==='paid'||o.status==='awaiting_approval')acts.push(`<button class="btn-del" style="font-size:.72rem" onclick="orderAction('${escH(o.invoiceId)}','revoke')">🚫 إلغاء</button>`);
     return `<tr><td dir="ltr" style="font-size:.7rem">${escH(o.invoiceId)}${o.transactionId?'<br><span style="color:var(--mt)">tx: '+escH(o.transactionId)+'</span>':''}</td>
-      <td dir="ltr" style="font-size:.74rem">${escH(o.userEmail)}<br><span style="color:var(--mt)">${escH(o.userMobile)}</span></td>
+      <td dir="ltr" style="font-size:.74rem">${escH(o.userEmail)}<br><span style="color:var(--mt)">${escH(o.userMobile)}</span>${o.method?'<br><span style="color:var(--ac)">'+escH(METHOD_LBL[o.method]||o.method)+'</span>':''}${o.note?'<br><span style="color:var(--mt)" dir="rtl">📝 '+escH(o.note)+'</span>':''}</td>
       <td style="font-size:.76rem">${(o.items||[]).map(i=>escH((i.emoji||'')+' '+i.name)).join('<br>')}</td>
       <td style="font-weight:800">$${Number(o.total||0).toFixed(2)}</td>
       <td style="color:${st[1]};font-size:.78rem;font-weight:700">${st[0]}</td>
@@ -1168,6 +1189,55 @@ window.renderOrders=()=>{
       <td>${acts.join(' ')}</td></tr>`;
   }).join('');
 };
+const METHOD_LBL={paysky:'💳 PaySky','crosspay-paypal':'🅿️ PayPal (Crosspay)','manual-whatsapp':'✋ يدوي — واتساب','manual-paypal':'✋ يدوي — PayPal','manual-transfer':'✋ يدوي — تحويل','manual-cash':'✋ يدوي — نقداً','manual-other':'✋ يدوي'};
+
+// ─── الطلب اليدوي ───
+const MO_COLS=[['_courses','courses','🎓'],['_projects','projects','🔧'],['_prods','products','📦'],['_books','books','📚']];
+window._moSel=new Set();
+function moAllItems(){
+  const out=[];
+  for(const [arr,col,em] of MO_COLS)for(const it of (window[arr]||[]))out.push({col,id:it.id,title:it.title||'',price:isFreeItem(it)?0:(parseFloat(it.price)||0),emoji:it.emoji||em});
+  return out;
+}
+window.moRenderItems=()=>{
+  const q=(document.getElementById('mo-search')?.value||'').trim().toLowerCase();
+  const list=moAllItems().filter(i=>!q||i.title.toLowerCase().includes(q));
+  const box=document.getElementById('mo-items');if(!box)return;
+  box.innerHTML=list.length?list.map(i=>{const k=i.col+'/'+i.id;return `<label style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:.84rem${window._moSel.has(k)?';background:rgba(245,158,11,.12)':''}"><input type="checkbox" ${window._moSel.has(k)?'checked':''} onchange="moToggle('${k}',this.checked)" style="accent-color:var(--p);width:16px;height:16px"><span>${escH(i.emoji)}</span><span style="flex:1">${escH(i.title)}</span><b style="color:var(--p)">${i.price>0?'$'+i.price:'مجاني'}</b></label>`;}).join(''):'<p style="color:var(--mt);text-align:center;padding:14px;font-size:.8rem">لا توجد عناصر</p>';
+  const total=moAllItems().filter(i=>window._moSel.has(i.col+'/'+i.id)).reduce((s,i)=>s+i.price,0);
+  document.getElementById('mo-total').textContent='$'+total.toFixed(2);
+};
+window.moToggle=(k,on)=>{on?window._moSel.add(k):window._moSel.delete(k);moRenderItems();};
+window.moCheckUser=()=>{
+  const e=document.getElementById('mo-email').value.trim().toLowerCase();
+  const hint=document.getElementById('mo-user-hint');
+  if(!e){hint.textContent='';return;}
+  const u=(window._users||[]).find(x=>(x.email||'').toLowerCase()===e);
+  hint.innerHTML=u?`<span style="color:var(--ok)">✅ ${escH(u.displayName||'مستخدم مسجّل')}</span>`:'<span style="color:var(--mt)">لم يُعثر عليه بالقائمة — تأكد إنه مسجّل بالموقع</span>';
+};
+function moFillUsers(){
+  const dl=document.getElementById('mo-users');if(!dl)return;
+  dl.innerHTML=(window._users||[]).filter(u=>u.email).map(u=>`<option value="${escH(u.email)}">${escH(u.displayName||'')}</option>`).join('');
+}
+window.createManualOrder=async()=>{
+  const email=document.getElementById('mo-email').value.trim();
+  const items=[...window._moSel].map(k=>{const [col,id]=k.split('/');return {col,id};});
+  if(!email){toast('⚠️ أدخل بريد الزبون','err');return;}
+  if(!items.length){toast('⚠️ اختر عنصراً واحداً على الأقل','err');return;}
+  const amt=document.getElementById('mo-amount').value;
+  const body={email,items,method:document.getElementById('mo-method').value,note:document.getElementById('mo-note').value.trim()};
+  if(amt!=='')body.amountPaid=parseFloat(amt);
+  if(!confirm(`تسجيل طلب مدفوع لـ ${email} (${items.length} عنصر)؟\nسيتمكن الزبون من تحميل الملفات فوراً.`))return;
+  const btn=document.getElementById('mo-submit');btn.disabled=true;btn.textContent='⏳ جاري التسجيل...';
+  try{
+    const r=await callFn('adminCreateOrder',body);
+    toast(`✅ تم! الطلب ${r.invoiceId} — الزبون يلاقي ملفاته في "مشترياتي"`);
+    window._moSel.clear();['mo-email','mo-amount','mo-note','mo-search'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('mo-user-hint').textContent='';moRenderItems();loadOrders();
+  }catch(e){toast('⚠️ '+e.message,'err');}
+  btn.disabled=false;btn.textContent='✅ تسجيل الطلب وفتح التحميل للزبون';
+};
+
 window.orderAction=async(invoiceId,action)=>{
   if(!confirm(action==='approve'?'تأكيد الموافقة؟ سيتمكن العميل من تحميل الملفات.':'إلغاء هذا الطلب؟ سيفقد العميل روابط التحميل.'))return;
   try{await callFn('adminUpdateOrder',{invoiceId,action});toast('✅ تم التحديث');loadOrders();}
