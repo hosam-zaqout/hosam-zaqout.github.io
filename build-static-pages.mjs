@@ -293,7 +293,7 @@ function layout({ title, description, canonical, image, schemas, body, ogType = 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
-<style>${CSS}</style>
+<style>${CSS.replace(/\s*\n\s*/g, "").replace(/\s*([{}:;,])\s*/g, "$1").replace(/;}/g, "}")}</style>
 ${schemas.map(jsonLd).join("\n")}
 <!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-GZJCYL5YM8"></script>
@@ -476,6 +476,45 @@ function itemTopics(it) {
   return out;
 }
 
+// أول جملة من نص: بدون رموز Markdown، و«م.» (مهندس) ما بتنهي الجملة
+function firstSent(t) {
+  // ⁠ (word joiner) مش مسافة — فالتقسيم ما بيوقف عند «م.»
+  const p = md.plain(t).replace(/(^|\s)م\.\s/g, "$1م.⁠");
+  return (p.split(/(?<=[.!؟?])\s/)[0] || "").replace(/⁠/g, " ");
+}
+
+// ---------------- وصف نتائج البحث (Meta Description) ----------------
+function fitMeta(head, middle, cta, max = 155) {
+  const fixed = `${head}${middle ? ": " : ""}`;
+  const tail = ` ${cta}`;
+  let mid = clean(middle).replace(/[.،,:؛\s]+$/, "");
+  const room = max - fixed.length - tail.length - 1;
+  if (mid.length > room) mid = mid.slice(0, Math.max(0, room - 1)).replace(/\s+\S*$/, "") + "…";
+  let out = `${fixed}${mid}${mid && !mid.endsWith("…") ? "." : ""}${tail}`;
+  // قصير كثير؟ نضيف اسم المنصة
+  if (out.length < 120) out += ` — منصة ${BRAND} ${BRAND_AR}`;
+  return cut(out, max);
+}
+function metaDescription(sec, item) {
+  const title = cut(clean(item.title).split("|")[0].trim(), 60);
+  const free = isFree(item);
+  const price = num(item.price) ?? 0;
+  const L = arr(item.learns).map(clean).filter((x) => x.length < 70);
+  const first = firstSent;
+  if (sec.type === "Course") {
+    const facts = [item.level, item.duration].filter(Boolean).join("، ");
+    const what = L.length ? "تعلّم " + L.slice(0, 2).join(" و") : first(item.desc);
+    return fitMeta(`دورة ${title}`, [facts, what].filter(Boolean).join(" — "), free ? "سجّل مجاناً مع شهادة معتمدة." : `اشترك الآن بـ${price}$ مع شهادة معتمدة.`);
+  }
+  if (sec.type === "Article") {
+    return fitMeta(title, item.desc || md.plain(item.body), `اقرأ المقال على ${BRAND}.`);
+  }
+  const cta = free ? "حمّله مجاناً الآن." : `اطلبه الآن بـ${price}$.`;
+  if (sec.col === "books") return fitMeta(`كتاب ${title}${item.author ? " — " + clean(item.author) : ""}`, first(item.desc), cta);
+  if (sec.col === "projects") return fitMeta(`مشروع ${title}`, item.shortDesc || first(item.desc), free ? "حمّل الكود والمخطط مجاناً." : `اطلبه الآن بـ${price}$ مع الكود الكامل.`);
+  return fitMeta(title, item.shortDesc || first(item.desc), cta);
+}
+
 // ---------------- صفحة العنصر ----------------
 function itemPage(sec, item, siblings, all) {
   const title = clean(item.title) || `${sec.one} من ${BRAND}`;
@@ -615,7 +654,7 @@ function itemPage(sec, item, siblings, all) {
 
   // ✅ باختصار: جواب مباشر يقدر جوجل والذكاء الاصطناعي يقتبسه كما هو
   const instr = instructorOf(item);
-  const firstSentence = (t) => cut((clean(t).split(/(?<=[.!؟?])\s/)[0] || ""), 160);
+  const firstSentence = (t) => cut(firstSent(t), 160);
   const L = arr(item.learns).map(clean).filter((x) => x.length < 90);
   const topicNames = topics.map((t) => t.ar);
   const priceTxt = free ? "وهو مجاني بالكامل" : `وسعره ${price}$`;
@@ -687,7 +726,7 @@ ${related.length ? `<h2 class="sec-title">🔗 قد يهمك أيضاً</h2><div
 
   return layout({
     title: `${cut(title, 55)} | ${BRAND}`,
-    description: desc,
+    description: metaDescription(sec, item),
     canonical,
     image: imgAbs,
     ogType: "product",
@@ -778,7 +817,7 @@ ${bc.html}
 </article>
 ${related.length ? `<h2 class="sec-title">🔗 قد يهمك أيضاً</h2><div class="cards">${related.map((r) => card(r._sec, r, r._sec !== sec)).join("")}</div>` : ""}
 `;
-  return layout({ title: `${cut(title, 55)} | ${BRAND}`, description: desc, canonical, image: imgAbs, ogType: "article", schemas, body, itemId: item.id });
+  return layout({ title: `${cut(title, 55)} | ${BRAND}`, description: metaDescription(sec, item), canonical, image: imgAbs, ogType: "article", schemas, body, itemId: item.id });
 }
 
 // ---------------- صفحات الفريق /team/ ----------------
