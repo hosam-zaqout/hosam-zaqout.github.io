@@ -156,6 +156,7 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
   <div class="ni" onclick="showP('courses',this)"><span class="ic">🎓</span> الدورات <span class="nb" id="cc">0</span></div>
   <div class="ni" onclick="showP('books',this)"><span class="ic">📚</span> الكتب <span class="nb" id="bc">0</span></div>
   <div class="ni" onclick="showP('projects',this)"><span class="ic">🔧</span> المشاريع <span class="nb" id="prc">0</span></div>
+  <div class="ni" onclick="showP('articles',this);loadArticles()"><span class="ic">📝</span> المقالات <span class="nb" id="artc">0</span></div>
   <div class="ni" onclick="showP('testimonials',this)"><span class="ic">⭐</span> آراء الطلاب</div>
   <div class="ni" onclick="showP('sections',this)"><span class="ic">➕</span> أقسام مخصصة</div>
   <div class="ns">إدارة الموقع</div>
@@ -250,6 +251,16 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
         <p style="font-size:.8rem;color:var(--mt);margin-bottom:12px">المشاريع تعرض على الموقع مع صورة، تفاصيل، وعند الشراء يتم تحميل ملف ZIP. يمكن إضافة فيديو يوتيوب اختياري.</p>
         <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn-add" onclick="openModal('project')">➕ إضافة مشروع</button></div>
         <div id="projList"><div style="color:var(--mt);text-align:center;padding:30px">جاري التحميل...</div></div>
+      </div>
+    </div>
+
+    <!-- ARTICLES -->
+    <div class="panel" id="p-articles">
+      <div class="pc"><h3>📝 المقالات</h3>
+        <p style="font-size:.8rem;color:var(--mt);margin-bottom:12px">المقالات أقوى طريقة للظهور بجوجل والذكاء الاصطناعي. اكتب عن الأسئلة اللي بيسألها طلابك. <b>المسودة</b> ما بتظهر بالموقع لحد ما تضغط <b>📢 نشر</b>.</p>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px"><button class="btn-add" onclick="newArticle()">✍️ مقال جديد</button></div>
+        <div id="artList"><div style="color:var(--mt);text-align:center;padding:30px">جاري التحميل...</div></div>
+        <div class="note-info" style="margin-top:14px">⏱ بعد النشر، صفحة المقال الكاملة بتجهز خلال ساعة تقريباً (أو فوراً من GitHub ← Actions ← Run workflow)، وبتظهر بالصفحة الرئيسية فوراً.</div>
       </div>
     </div>
 
@@ -501,7 +512,7 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
 
 <div class="toast" id="toast"></div>
 
-<script src="/assets/md.js"></script>
+<script src="/assets/md.js?v=3"></script>
 <style>
 .md-bar{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
 .md-bar button{background:rgba(255,255,255,.06);border:1px solid var(--b2,rgba(255,255,255,.1));color:var(--tx,#fff);border-radius:7px;padding:4px 10px;font-family:inherit;font-size:.8rem;cursor:pointer}
@@ -582,10 +593,61 @@ window.handleUpload=async function(input, folder, urlInputId, progWrapId, progBa
   );
 };
 
+// ─── المقالات ───
+// المقالات محفوظة في أول قسم مخصص نوعه "مقالات" (يُنشأ تلقائياً إذا ما في)
+function articlesSection(){return (window._sections||[]).find(s=>s.type==='articles');}
+async function ensureArticlesSection(){
+  let s=articlesSection();
+  if(s)return s;
+  const ref=await addDoc(collection(db,'custom_sections'),{name:'مقالات هندسية',tagline:'شروحات ومقارنات عملية في الإلكترونيات والأنظمة المدمجة وإنترنت الأشياء',emoji:'📝',type:'articles',slug:'articles',order:1,active:true,color:'#F59E0B',createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
+  await loadCustomSections();
+  return (window._sections||[]).find(x=>x.id===ref.id);
+}
+window.loadArticles=async function(){
+  const el=document.getElementById('artList');if(!el)return;
+  const s=articlesSection();
+  if(!s){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد مقالات بعد — اضغط "✍️ مقال جديد"</p>';document.getElementById('artc').textContent=0;return;}
+  const snap=await getDocs(query(collection(db,'section_items'),where('sectionId','==',s.id)));
+  const items=[];snap.forEach(d=>items.push({id:d.id,...d.data()}));
+  items.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+  window._articles=items;window._artSection=s;
+  document.getElementById('artc').textContent=items.length;
+  if(!items.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد مقالات بعد — اضغط "✍️ مقال جديد"</p>';return;}
+  const secSlug=(s.slug||s.id).toLowerCase();
+  const artSlug=i=>(i.slug||'').toLowerCase()||((String(i.title||'').toLowerCase().match(/[a-z0-9]+/g)||[]).slice(0,5).join('-')+'-'+i.id.slice(0,6).toLowerCase());
+  el.innerHTML=items.map(i=>{
+    const pub=!i.hidden;
+    const d=i.createdAt?.toDate?.()?.toLocaleDateString('ar')||'';
+    const mins=window.md3?md3.readingMinutes(i.body):1;
+    const url=`/sections/${secSlug}/${artSlug(i)}/`;
+    return `<div class="irow"><div class="iemoji">📝</div><div class="iinfo"><div class="ititle">${(i.title||'').replace(/[<>&]/g,'')}</div>
+      <div class="imeta">${pub?'<span style="color:var(--ok);font-weight:700">✅ منشور</span>':'<span style="color:var(--p);font-weight:700">📄 مسودة</span>'} • ${d} • ⏱ ${mins} د${i.author?' • ✍️ '+i.author.replace(/[<>&]/g,''):''}${i.imageUrl?'':' • <span style="color:var(--er)">بدون غلاف</span>'}</div></div>
+      <div class="iacts">
+        <button class="btn-edit" style="${pub?'':'background:var(--ok);color:#0F172A;font-weight:800'}" onclick="toggleArticle('${i.id}',${pub})">${pub?'📄 إخفاء':'📢 نشر'}</button>
+        ${pub?`<a class="btn-edit" href="${url}" target="_blank" style="text-decoration:none">👁️ عرض</a>`:''}
+        <button class="btn-edit" onclick="editArticle('${i.id}')">✏️</button>
+        <button class="btn-del" onclick="deleteArticle('${i.id}')">🗑️</button>
+      </div></div>`;
+  }).join('');
+};
+function useArticlesSection(s){window._curSectionId=s.id;window._curSectionItems=window._articles||[];}
+window.newArticle=async function(){const s=await ensureArticlesSection();useArticlesSection(s);openSectionItemModal(null);};
+window.editArticle=async function(id){const s=articlesSection();if(!s)return;useArticlesSection(s);openSectionItemModal(id);};
+window.toggleArticle=async function(id,isPublished){
+  if(!isPublished&&!confirm('نشر المقال على الموقع الآن؟'))return;
+  await updateDoc(doc(db,'section_items',id),{hidden:isPublished,updatedAt:serverTimestamp()});
+  toast(isPublished?'📄 تم إخفاء المقال':'📢 تم النشر! بيظهر بالرئيسية فوراً، وصفحته الكاملة خلال ساعة');
+  loadArticles();
+};
+window.deleteArticle=async function(id){
+  if(!confirm('حذف المقال نهائياً؟'))return;
+  await deleteDoc(doc(db,'section_items',id));toast('🗑️ تم الحذف','warn');loadArticles();
+};
+
 async function loadAll(){
   loadDashboard(); loadProducts(); loadCourses(); loadBooks();
   loadProjects(); loadTestimonials(); loadUsers(); loadMessages();
-  loadNewsletter(); loadConfig(); loadCustomSections();
+  loadNewsletter(); loadConfig(); loadCustomSections().then(()=>loadArticles());
 }
 
 // DASHBOARD
@@ -1281,7 +1343,7 @@ window.saveModal=async()=>{
   if(['product','course','book','project','sectionItem','articleItem'].includes(type)&&document.getElementById('m-tags')){data.tags=parseTags(g('m-tags'));data.audience=parseLines(g('m-audience'));data.faqs=parseFaqs(g('m-faqs'));}
   if(['product','course','book','project','sectionItem','articleItem'].includes(type))data.slug=g('m-slug').toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80);
   const colMap={product:'products',course:'courses',book:'books',project:'projects',testimonial:'testimonials',section:'custom_sections',sectionItem:'section_items',articleItem:'section_items'};
-  const reloads={product:loadProducts,course:loadCourses,book:loadBooks,project:loadProjects,testimonial:loadTestimonials,section:loadCustomSections,sectionItem:loadSectionItems,articleItem:loadSectionItems};
+  const reloads={product:loadProducts,course:loadCourses,book:loadBooks,project:loadProjects,testimonial:loadTestimonials,section:loadCustomSections,sectionItem:loadSectionItems,articleItem:()=>{loadSectionItems();loadArticles();}};
   const ref=id?doc(db,colMap[type],id):doc(collection(db,colMap[type]));
   if(!id)data.createdAt=serverTimestamp();
   try{
@@ -1439,7 +1501,7 @@ window.toast=toast;
 </script>
 
 <script>
-const panelTitles={dashboard:'🏠 الرئيسية',hero:'🎯 القسم الرئيسي',products:'📦 المنتجات',courses:'🎓 الدورات',books:'📚 الكتب',projects:'🔧 المشاريع',testimonials:'⭐ آراء الطلاب',sections:'➕ أقسام مخصصة',orders:'🧾 الطلبات',users:'👥 المستخدمون',messages:'💬 الرسائل',newsletter:'📧 النشرة',payment:'💳 إعدادات الدفع',design:'🎨 التصميم',seo:'🔍 SEO',brand:'💡 الهوية',social:'🔗 التواصل'};
+const panelTitles={articles:'📝 المقالات',dashboard:'🏠 الرئيسية',hero:'🎯 القسم الرئيسي',products:'📦 المنتجات',courses:'🎓 الدورات',books:'📚 الكتب',projects:'🔧 المشاريع',testimonials:'⭐ آراء الطلاب',sections:'➕ أقسام مخصصة',orders:'🧾 الطلبات',users:'👥 المستخدمون',messages:'💬 الرسائل',newsletter:'📧 النشرة',payment:'💳 إعدادات الدفع',design:'🎨 التصميم',seo:'🔍 SEO',brand:'💡 الهوية',social:'🔗 التواصل'};
 function showP(id,el){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
