@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://www.3engs.com/</loc>
-    <lastmod>2026-09-26</lastmod>
+    <lastmod>2026-09-27</lastmod>
     <priority>1.0</priority>
     <image:image><image:loc>https://www.3engs.com/og-image.png</image:loc><image:title>3ENG.s</image:title></image:image>
   </url>
@@ -71,8 +71,8 @@
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://www.3engs.com/books/simply-solsr-panel-book/</loc>
-    <lastmod>2026-09-24</lastmod>
+    <loc>https://www.3engs.com/books/simply-solar-panel-book/</loc>
+    <lastmod>2026-09-26</lastmod>
     <priority>0.8</priority>
     <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/engs-website.firebasestorage.app/o/book-covers%2F1776636386747_00j5am.png?alt=media&amp;token=3936a3fc-ba45-4381-9758-109092f6bb98</image:loc><image:title>معلومات عن تخصص هندسة الطاقة المتجددة</image:title></image:image>
   </url>
@@ -81,6 +81,12 @@
     <lastmod>2026-09-24</lastmod>
     <priority>0.8</priority>
     <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/engs-website.firebasestorage.app/o/book-covers%2F1777237855150_ChatGPT_Image_Apr_27__2026__12_10_30_AM.png?alt=media&amp;token=a577744c-1af0-42c0-b5ba-55cbbf157c6b</image:loc><image:title>اردوينو ببساطة</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/books/electronic-practical-book/</loc>
+    <lastmod>2026-09-26</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://firebasestorage.googleapis.com/v0/b/engs-website.firebasestorage.app/o/book-covers%2F1790461464126_Screenshot_2026_09_27_012343.png?alt=media&amp;token=281b7cee-47f5-4854-844e-3b1fde4f5b31</image:loc><image:title>الاكترونيات العملية المبسطة</image:title></image:image>
   </url>
   <url>
     <loc>https://www.3engs.com/books/raspberry-pi-book/</loc>
