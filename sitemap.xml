@@ -99,6 +99,21 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.3engs.com/sections/articles/pwm-vs-mppt-charge-controller/</loc>
+    <lastmod>2026-09-28</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/sections/articles/laptop-for-engineering-students/</loc>
+    <lastmod>2026-09-28</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/sections/articles/computer-vs-electrical-vs-mechatronics-engineering/</loc>
+    <lastmod>2026-09-28</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.3engs.com/sections/articles/esp32-vs-arduino/</loc>
     <lastmod>2026-09-27</lastmod>
     <priority>0.7</priority>
@@ -136,6 +151,10 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://www.3engs.com/topics/pcb-design/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.3engs.com/topics/electronics/</loc>
     <priority>0.7</priority>
   </url>
@@ -148,7 +167,19 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://www.3engs.com/topics/automation/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.3engs.com/topics/ai/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/topics/robotics/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/topics/renewable-energy/</loc>
     <priority>0.7</priority>
   </url>
   <url>
