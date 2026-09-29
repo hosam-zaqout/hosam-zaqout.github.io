@@ -174,8 +174,11 @@ async function syncTogoOrder(orderRef, order) {
     logger.warn("Togo status check failed", { invoiceId: order.invoiceId, msg: e.message, body: e.body && clip(e.body) });
     return order;
   }
+  // الرد الحقيقي: { data: { items: [ {id, status: "TO_PAY" | "CANCELLED" | ...} ], totalItems } }
   let data = json.data;
-  if (Array.isArray(data)) data = data.find((x) => String(pick(x, ["id", "_id", "order_id"])) === String(order.togoOrderId)) || data[0];
+  const list = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : null;
+  if (list) data = list.find((x) => String(pick(x, ["id", "_id", "order_id"])) === String(order.togoOrderId)) || null;
+  if (!data) { logger.warn("Togo order not found in status response", { invoiceId: order.invoiceId, body: clip(json) }); return order; }
   const state = togoState(data);
   const update = { togoLastStatus: clip(data || json), togoCheckedAt: FieldValue.serverTimestamp() };
   let status = order.status;
@@ -217,6 +220,8 @@ async function togoReceiver(user, mobile, name, city) {
     country_code: code,
     country_name: country,
     city: city || (code === "PS" ? "Gaza" : country),
+    // Togo بيطلب details حتى لطلبات الدفع فقط (مش مذكور بالتوثيق)
+    details: `${city || (code === "PS" ? "Gaza" : country)}, ${country} — 3ENG.s online order`,
     phone_connected_to_whats: false,
   });
   const id = pick(json, ["data.id", "data._id", "data.address_id", "data.receiver_address_id", "id"]);
@@ -401,6 +406,34 @@ exports.adminTogo = onRequest(
     if (req.method === "OPTIONS") { res.status(204).send(""); return; }
     const user = await verifyToken(req);
     if (!isAdmin(user)) { res.status(403).json({ error: "للأدمن فقط" }); return; }
+    // dryrun: عنوان تجريبي + طلب دفع $1 ثم إلغاؤه فوراً — لمعرفة شكل ردود Togo الحقيقية
+    if (req.body?.action === "dryrun") {
+      const steps = [];
+      const step = async (name, fn) => {
+        try { const r = await fn(); steps.push({ name, ok: true, res: r }); return r; }
+        catch (e) { steps.push({ name, ok: false, error: e.message, status: e.status || null, body: e.body || null }); return null; }
+      };
+      const rcv = await step("receiver", () => togo("POST", "/receivers-addresses", {
+        receiver_name: "3ENG.s Test", receiver_phone_number: "+972592753159", country_code: "PS", country_name: "Palestine",
+        city: "Gaza", details: "Gaza, Palestine — 3ENG.s gateway test", phone_connected_to_whats: false,
+      }));
+      const rcvId = rcv && pick(rcv, ["data.id", "data._id", "data.address_id", "data.receiver_address_id", "id"]);
+      const created = rcvId && await step("create", () => togo("POST", "/actions", {
+        event: "Create_Visa",
+        data: { type: "RFP", value: 1, currency: CURRENCY, receiver_address_id: String(rcvId), receiver_email: user.email,
+          source: "external_website", prevent_sms_link: true,
+          payment_success_redirect_link: RETURN_BASE + "?invoice_id=TEST", payment_cancel_redirect_link: RETURN_BASE + "?invoice_id=TEST&cancel=1" },
+      }));
+      const d = created?.data || {};
+      const oid = pick(d, ["id", "_id", "order_id", "order.id", "orderId"]) || (String(created?.message || "").match(/order\s+([A-Za-z0-9_-]+)/i) || [])[1];
+      if (oid) {
+        await step("status", () => togo("GET", `/orders?id=${encodeURIComponent(oid)}`));
+        await step("cancel", () => togo("POST", "/actions", { event: "Cancel", orderId: String(oid) }));
+        await step("statusAfterCancel", () => togo("GET", `/orders?id=${encodeURIComponent(oid)}`));
+      }
+      res.status(200).json({ receiverId: rcvId || null, orderId: oid || null, hashedId: pick(d, ["hashed_id", "hashedId", "hash_id", "order.hashed_id", "hash"]) || null, steps });
+      return;
+    }
     try {
       const json = await togo("GET", "/currency-exchange");
       res.status(200).json({ ok: true, rate: json.data ?? null });
