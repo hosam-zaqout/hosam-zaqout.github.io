@@ -61,7 +61,7 @@ body{font-family:'Cairo',sans-serif;background:var(--dk);color:var(--tx);min-hei
 <div class="bg"></div><div class="bg-grid"></div>
 <div class="spin-ov" id="ov"><div class="spin"></div><p id="ovMsg">جاري التحقق...</p></div>
 <div class="card">
-  <a href="index.html" class="back">← العودة للموقع</a>
+  <a href="/" class="back">← العودة للموقع</a>
   <div class="logo-wrap">
     <div class="logo-circle"><img src="logo.jpg" alt="3ENG.s" onerror="this.parentElement.innerHTML='<span style=font-size:2.2rem>💡</span>'"></div>
     <div class="lname">3ENG.s</div>
@@ -124,7 +124,7 @@ onAuthStateChanged(auth, async user => {
     const isAdmin = ADMINS.includes(user.email) && user.emailVerified;
     const back = new URLSearchParams(location.search).get('redirect') || '';
     const safeBack = back.startsWith('https://www.3engs.com/') ? back : '';
-    window.location.href = safeBack || (isAdmin ? 'admin.html' : 'index.html');
+    window.location.href = safeBack || (isAdmin ? 'admin.html' : '/');
   }
 });
 
