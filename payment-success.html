@@ -119,6 +119,18 @@ h1{font-size:1.5rem;font-weight:900;margin-bottom:8px;}
     </div>
   </div>
 
+  <!-- قيد التأكيد 🔄 -->
+  <div class="state" id="stPending">
+    <div style="font-size:3.2rem;margin-bottom:10px">🔄</div>
+    <h1 style="color:var(--p)">بانتظار تأكيد الدفع</h1>
+    <p class="sub" id="pendMsg">نتحقق من الدفع مع بوابة Togo…</p>
+    <div class="inv-box show" id="invPend"><div class="inv-label">رقم الطلب</div><div class="inv-num" id="invNumP">—</div></div>
+    <div class="btns">
+      <button class="btn-p" onclick="location.reload()" style="border:none;cursor:pointer;font-family:inherit">🔄 تحقق مرة أخرى</button>
+      <a id="waPend" href="https://wa.me/972592753159" target="_blank" class="btn-s">💬 تواصل معنا</a>
+    </div>
+  </div>
+
   <!-- فشل الدفع ❌ -->
   <div class="state" id="stFailed">
     <div class="fail-icon">✕</div>
@@ -182,12 +194,12 @@ async function callFn(name, body) {
   return res.json();
 }
 
-// ── استقبل parameters من Crosspay ──────────────────────
-// Crosspay يرسل: ?invoice_id=X&is_paid=1&transaction_id=Y
+// ── رقم الطلب من رابط الرجوع (Togo) ───────────────────────────────────────────
+// الرابط: ?invoice_id=X  (و &cancel=1 إذا ألغى الزبون)
 const urlParams     = new URLSearchParams(window.location.search);
 const invoiceId     = urlParams.get("invoice_id")     || "";
-const isPaid        = urlParams.get("is_paid")         || "";
-const transactionId = urlParams.get("transaction_id")  || "";
+// ملاحظة: ما منعتمد على أي حالة بالرابط — السيرفر بيسأل Togo مباشرة
+const cancelled     = urlParams.get("cancel") === "1";
 
 // ── عرض رقم الطلب في كل الـ states ──────────────────────
 if (invoiceId) {
@@ -293,7 +305,13 @@ onAuthStateChanged(auth, async (user) => {
 
   // 3. استدعي verifyPayment في السيرفر
   try {
-    const data = await callFn("verifyPayment", { invoiceId, isPaid, transactionId });
+    // Togo ممكن يتأخر ثواني بتحديث الحالة: نعيد المحاولة كم مرة
+    let data = await callFn("verifyPayment", { invoiceId });
+    for (let i = 0; i < 5 && data.status === "pending" && !cancelled; i++) {
+      showState("stPending");
+      await new Promise((r) => setTimeout(r, 4000));
+      data = await callFn("verifyPayment", { invoiceId });
+    }
 
     if (data.status === "paid") {
       // ✅ تم الدفع
@@ -303,6 +321,11 @@ onAuthStateChanged(auth, async (user) => {
 
       // امسح السلة بعد نجاح الدفع
       try { localStorage.removeItem("3engs_cart"); } catch(e) {}
+
+    } else if (data.status === "pending" && !cancelled) {
+      // 🔄 لسا ما وصل تأكيد — الفحص الدوري بيأكده تلقائياً
+      showState("stPending");
+      document.getElementById("pendMsg").innerHTML = "لم يصلنا تأكيد الدفع من البوابة بعد.<br>إذا أتممت الدفع، سيتأكد طلبك تلقائياً خلال 30 دقيقة ويظهر في <b>📦 مشترياتي</b>.";
 
     } else if (data.status === "awaiting_approval") {
       // ⏳ الدفع رجع ناجح — بانتظار موافقة الأدمن

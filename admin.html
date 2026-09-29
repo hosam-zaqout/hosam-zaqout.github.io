@@ -357,16 +357,20 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
       <div class="pc"><h3>💳 إعدادات الدفع</h3>
         <p style="font-size:.8rem;color:var(--mt);margin-bottom:16px">طرق الدفع المتاحة للمستخدمين عند الشراء</p>
 
-        <!-- CROSSPAY / PAYSKY -->
+        <!-- TOGO -->
         <div class="pay-card" style="background:rgba(99,102,241,.08);border-color:rgba(99,102,241,.3)">
           <div class="pc-head">
             <span style="font-size:1.3rem">💳</span>
-            <strong>Crosspay — الدفع بالبطاقة (PaySky)</strong>
-            <label class="pay-toggle"><input type="checkbox" id="pay-lz-active" checked> تفعيل</label>
+            <strong>Togo — الدفع بالبطاقة (Visa / MasterCard)</strong>
+            <label class="pay-toggle"><input type="checkbox" id="pay-togo-active"> تفعيل</label>
           </div>
-          <div class="note-info">🔒 مفتاح Crosspay محفوظ على السيرفر فقط (Firebase Secret Manager باسم CROSSPAY_API_KEY) — لا يُكتب هنا أبداً. لتغييره:<br><code dir="ltr">firebase functions:secrets:set CROSSPAY_API_KEY</code> ثم أعد نشر الـ Functions.</div>
+          <div class="note-info">🔒 مفتاح Togo محفوظ على السيرفر فقط (Firebase Secret Manager باسم <b>TOGO_API_KEY</b>) — لا يُكتب هنا أبداً. لتغييره:<br><code dir="ltr">firebase functions:secrets:set TOGO_API_KEY --project engs-website</code> ثم أعد نشر الـ Functions.</div>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap">
+            <button class="btn-sm" type="button" onclick="testTogo()">🔌 اختبار الاتصال بـ Togo</button>
+            <span id="togoTestRes" style="font-size:.8rem"></span>
+          </div>
+          <div class="note-info" style="margin-top:10px">✅ الدفع بيتأكد من سيرفر Togo مباشرة (مش من رابط الرجوع)، وفي فحص تلقائي كل 30 دقيقة للطلبات المعلّقة.</div>
           <div class="cg" style="display:flex;align-items:center;gap:8px;margin-top:12px"><input type="checkbox" id="pay-manual" style="accent-color:var(--p);width:16px;height:16px"><label for="pay-manual" style="cursor:pointer;font-size:.86rem">مراجعة يدوية: لا تُسلَّم الملفات حتى أوافق على الطلب من صفحة "الطلبات"</label></div>
-          <div class="cg" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="pay-cp-paypal" style="accent-color:var(--p);width:16px;height:16px"><label for="pay-cp-paypal" style="cursor:pointer;font-size:.86rem">إظهار زر PayPal عبر Crosspay (تأكد أنه مفعّل في حسابك لدى Crosspay)</label></div>
         </div>
 
         <!-- SECURE FILES -->
@@ -862,13 +866,8 @@ async function loadConfig(){
       ['title','desc','keywords','author','og-image','og-title','gsc','ga'].forEach(k=>{const el=document.getElementById('seo-'+k);if(el&&s[k.replace('-','_')])el.value=s[k.replace('-','_')];});
     }
     if(cfg.payment){const p=cfg.payment;
-      // PaySky / Lahza
-      if(p.lahza){
-        const lzActive=document.getElementById('pay-lz-active');
-        if(lzActive)lzActive.checked=!!p.lahza.active;
-      }
+      document.getElementById('pay-togo-active').checked=!!p.togo?.active;
       document.getElementById('pay-manual').checked=!!p.manualApproval;
-      document.getElementById('pay-cp-paypal').checked=!!p.crosspayPaypal?.active;
       // PayPal
       if(p.paypal){
         const ppActive=document.getElementById('pay-pp-active');
@@ -907,12 +906,10 @@ window.saveSec=async(sec)=>{
     const existingSnap = await getDoc(doc(db,'site_config','main'));
     const existing = existingSnap.exists() ? (existingSnap.data().payment || {}) : {};
     data.payment={
-      lahza:{
-        active:    gb('pay-lz-active'),
-        currency:  'USD',
-      },
+      togo:{ active: gb('pay-togo-active'), currency: 'USD' },
+      lahza:{ active: false },
+      crosspayPaypal: { active: false },
       manualApproval: gb('pay-manual'),
-      crosspayPaypal: { active: gb('pay-cp-paypal') },
       paypal:{
         ...( existing.paypal || {} ),
         active: gb('pay-pp-active'),
@@ -1411,6 +1408,13 @@ const O_STATUS={paid:['✅ مدفوع','var(--ok)'],awaiting_approval:['⏳ با
 function escH(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 window._orders=[];
 window.moFillUsers=moFillUsers;
+window.testTogo=async()=>{
+  const el=document.getElementById('togoTestRes');el.textContent='⏳ جاري الاختبار...';el.style.color='var(--mt)';
+  try{const r=await callFn('adminTogo',{});
+    if(r.ok){el.textContent='✅ متصل بـ Togo'+(r.rate?(' — سعر الصرف: '+JSON.stringify(r.rate).slice(0,60)):'');el.style.color='var(--ok)';}
+    else{el.textContent='❌ فشل: '+r.error+(r.status===401?' (المفتاح غير صحيح أو غير محفوظ)':'');el.style.color='var(--er)';}
+  }catch(e){el.textContent='❌ '+e.message;el.style.color='var(--er)';}
+};
 window.loadOrders=async()=>{
   const tb=document.getElementById('oTable');
   tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--mt);padding:30px">جاري التحميل...</td></tr>';
@@ -1430,6 +1434,7 @@ window.renderOrders=()=>{
     const st=O_STATUS[o.status]||[o.status,'var(--mt)'];
     const dt=o.createdAt?new Date(o.createdAt).toLocaleString('ar'):'—';
     const acts=[];
+    if(o.method==='togo'&&(o.status==='pending'||o.status==='failed'))acts.push(`<button class="btn-edit" style="font-size:.72rem" onclick="orderAction('${escH(o.invoiceId)}','recheck')" title="اسأل Togo عن حالة الدفع">🔄 تحقق</button>`);
     if(o.status!=='paid')acts.push(`<button class="btn-edit" style="font-size:.72rem" onclick="orderAction('${escH(o.invoiceId)}','approve')">✅ موافقة</button>`);
     if(o.status==='paid'||o.status==='awaiting_approval')acts.push(`<button class="btn-del" style="font-size:.72rem" onclick="orderAction('${escH(o.invoiceId)}','revoke')">🚫 إلغاء</button>`);
     return `<tr><td dir="ltr" style="font-size:.7rem">${escH(o.invoiceId)}${o.transactionId?'<br><span style="color:var(--mt)">tx: '+escH(o.transactionId)+'</span>':''}</td>
@@ -1441,7 +1446,7 @@ window.renderOrders=()=>{
       <td>${acts.join(' ')}</td></tr>`;
   }).join('');
 };
-const METHOD_LBL={paysky:'💳 PaySky','crosspay-paypal':'🅿️ PayPal (Crosspay)','manual-whatsapp':'✋ يدوي — واتساب','manual-paypal':'✋ يدوي — PayPal','manual-transfer':'✋ يدوي — تحويل','manual-cash':'✋ يدوي — نقداً','manual-other':'✋ يدوي'};
+const METHOD_LBL={togo:'💳 Togo',paysky:'💳 PaySky','crosspay-paypal':'🅿️ PayPal (Crosspay)','manual-whatsapp':'✋ يدوي — واتساب','manual-paypal':'✋ يدوي — PayPal','manual-transfer':'✋ يدوي — تحويل','manual-cash':'✋ يدوي — نقداً','manual-other':'✋ يدوي'};
 
 // ─── الطلب اليدوي ───
 const MO_COLS=[['_courses','courses','🎓'],['_projects','projects','🔧'],['_prods','products','📦'],['_books','books','📚']];
@@ -1491,6 +1496,11 @@ window.createManualOrder=async()=>{
 };
 
 window.orderAction=async(invoiceId,action)=>{
+  if(action==='recheck'){
+    try{const r=await callFn('adminUpdateOrder',{invoiceId,action});toast(r.status==='paid'?'✅ Togo أكّد الدفع — الملفات صارت متاحة للزبون':r.status==='failed'?'❌ Togo: الدفع ملغى أو فشل':'🕓 Togo: لسا ما انكمل الدفع');loadOrders();}
+    catch(e){toast('⚠️ '+e.message,'err');}
+    return;
+  }
   if(!confirm(action==='approve'?'تأكيد الموافقة؟ سيتمكن العميل من تحميل الملفات.':'إلغاء هذا الطلب؟ سيفقد العميل روابط التحميل.'))return;
   try{await callFn('adminUpdateOrder',{invoiceId,action});toast('✅ تم التحديث');loadOrders();}
   catch(e){toast('⚠️ '+e.message,'err');}

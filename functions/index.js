@@ -1,6 +1,7 @@
 "use strict";
 
 const { onRequest } = require("firebase-functions/v2/https");
+const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { defineSecret } = require("firebase-functions/params");
 const { initializeApp } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
@@ -10,18 +11,16 @@ const logger = require("firebase-functions/logger");
 initializeApp();
 const db = getFirestore();
 
-const CROSSPAY_API_KEY = defineSecret("CROSSPAY_API_KEY");
+// مفتاح بوابة Togo — محفوظ في Secret Manager:
+//   firebase functions:secrets:set TOGO_API_KEY --project engs-website
+const TOGO_API_KEY = defineSecret("TOGO_API_KEY");
+const TOGO_BASE    = "https://api.togo.ps/api/v1";
 
-const API_DATA    = "82e4b4fd3a16ad99229af9911ce8e6d2";
 const CURRENCY    = "USD";
 const SITE        = "https://www.3engs.com";
 const RETURN_BASE = SITE + "/payment-success.html";
 const ADMINS      = ["hosam2564491@gmail.com", "info@3engs.com"];
 
-const ENDPOINTS = {
-  card:   "https://crosspayonline.com/api/createInvoiceByAccountPaySky",
-  paypal: "https://crosspayonline.com/api/createInvoiceByAccountPaypal",
-};
 
 // المجموعات اللي فيها عناصر قابلة للبيع
 const SELLABLE = ["products", "books", "projects", "courses", "section_items"];
@@ -116,12 +115,123 @@ function errorPage(res, code, msg) {
 }
 
 // ─────────────────────────────────────────────
-// 1. createPayment — HTML form POST ← redirect 302 إلى Crosspay
-// Body: token, items=[{col,id}], mobile, name, provider=card|paypal
+// Togo — بوابة الدفع (https://api.togo.ps/docs)
+// ─────────────────────────────────────────────
+async function togo(method, path, body) {
+  const r = await fetch(TOGO_BASE + path, {
+    method,
+    headers: { "x-api-key": TOGO_API_KEY.value(), "Content-Type": "application/json", Accept: "application/json" },
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  });
+  const text = await r.text();
+  let json;
+  try { json = JSON.parse(text); } catch (e) { json = { raw: text.slice(0, 500) }; }
+  if (!r.ok || json.success === false || json.error === true) {
+    const err = new Error(json.message || `Togo HTTP ${r.status}`);
+    err.status = r.status; err.body = json;
+    throw err;
+  }
+  return json;
+}
+// أول قيمة موجودة من عدة أسماء محتملة (التوثيق ما بيحدد أسماء الحقول بالرد)
+function pick(o, keys) {
+  for (const k of keys) {
+    const v = k.split(".").reduce((a, p) => (a == null ? a : a[p]), o);
+    if (v !== undefined && v !== null && v !== "") return v;
+  }
+  return undefined;
+}
+const clip = (o) => JSON.stringify(o).slice(0, 1500);
+
+// حالة الدفع من رد Togo: paid | failed | pending
+// نعتبره مدفوعاً فقط بإشارة صريحة — أي شي غامض يضل pending
+function togoState(o) {
+  if (!o || typeof o !== "object") return "pending";
+  const flat = [];
+  (function walk(x, path, depth) {
+    if (depth > 3 || x == null) return;
+    if (typeof x !== "object") { flat.push([path.toLowerCase(), x]); return; }
+    for (const [k, v] of Object.entries(x)) walk(v, path ? path + "." + k : k, depth + 1);
+  })(o, "", 0);
+  // حقول الحالة فقط — بدون الروابط (payment_cancel_redirect_link فيها كلمة cancel)
+  const rel = flat.filter(([k, v]) => /status|state|paid|payment|visa/.test(k) && !/link|url|redirect|email|phone|name|method|type|currency/.test(k) && !(typeof v === "string" && /^https?:/i.test(v)));
+  const strs = rel.filter(([, v]) => typeof v === "string").map(([, v]) => v.toLowerCase().trim());
+  if (strs.some((v) => /cancel|fail|reject|declin|expire|refund/.test(v))) return "failed";
+  if (rel.some(([k, v]) => /(^|\.)(is_?paid|paid)$/.test(k) && (v === true || v === 1 || v === "1" || v === "true"))) return "paid";
+  if (strs.some((v) => /^(paid|success|succeeded|successful|completed?|captured|approved|done)$/.test(v) || (v.includes("paid") && !/un_?paid|not_?paid|unpaid/.test(v)))) return "paid";
+  if (rel.some(([k, v]) => /paid_?at|payment_?date/.test(k) && v)) return "paid";
+  return "pending";
+}
+
+// يسأل Togo عن حالة الطلب ويحدّث Firestore — المصدر الوحيد لتأكيد الدفع
+async function syncTogoOrder(orderRef, order) {
+  if (order.method !== "togo" || !order.togoOrderId) return order;
+  if (!["pending", "failed"].includes(order.status)) return order;
+  let json;
+  try {
+    json = await togo("GET", `/orders?id=${encodeURIComponent(order.togoOrderId)}`);
+  } catch (e) {
+    logger.warn("Togo status check failed", { invoiceId: order.invoiceId, msg: e.message, body: e.body && clip(e.body) });
+    return order;
+  }
+  let data = json.data;
+  if (Array.isArray(data)) data = data.find((x) => String(pick(x, ["id", "_id", "order_id"])) === String(order.togoOrderId)) || data[0];
+  const state = togoState(data);
+  const update = { togoLastStatus: clip(data || json), togoCheckedAt: FieldValue.serverTimestamp() };
+  let status = order.status;
+  if (state === "paid") {
+    // تأكد إنه المبلغ مطابق قبل ما نسلّم الملفات
+    const value = Number(pick(data, ["value", "amount", "total", "order_value"]));
+    const amountOk = !Number.isFinite(value) || value + 0.01 >= Number(order.total);
+    const payCfg = await getPaymentConfig();
+    status = !amountOk || payCfg.manualApproval ? "awaiting_approval" : "paid";
+    Object.assign(update, { status, verification: "togo_api", ...(status === "paid" ? { paidAt: FieldValue.serverTimestamp() } : {}), ...(amountOk ? {} : { note: "⚠️ مبلغ Togo أقل من قيمة الطلب" }) });
+  } else if (state === "failed") {
+    status = "failed";
+    update.status = "failed";
+  }
+  await orderRef.update(update);
+  logger.info("Togo status", { invoiceId: order.invoiceId, state, status });
+  return { ...order, ...update, status };
+}
+
+const COUNTRIES = {
+  "970": ["PS", "Palestine"], "972": ["PS", "Palestine"], "962": ["JO", "Jordan"], "966": ["SA", "Saudi Arabia"],
+  "20": ["EG", "Egypt"], "971": ["AE", "United Arab Emirates"], "974": ["QA", "Qatar"], "965": ["KW", "Kuwait"],
+  "90": ["TR", "Turkey"], "1": ["US", "United States"], "44": ["GB", "United Kingdom"], "49": ["DE", "Germany"],
+};
+function countryOf(mobile) {
+  for (const len of [3, 2, 1]) { const c = COUNTRIES[mobile.slice(0, len)]; if (c) return c; }
+  return ["PS", "Palestine"];
+}
+
+// عنوان المستلم عند Togo — بنعيد استخدامه لنفس الرقم
+async function togoReceiver(user, mobile, name, city) {
+  const userRef = db.collection("users").doc(user.uid);
+  const cached = (await userRef.get()).data()?.togoReceivers?.[mobile];
+  if (cached) return cached;
+  const [code, country] = countryOf(mobile);
+  const json = await togo("POST", "/receivers-addresses", {
+    receiver_name: name,
+    receiver_phone_number: "+" + mobile,
+    country_code: code,
+    country_name: country,
+    city: city || (code === "PS" ? "Gaza" : country),
+    phone_connected_to_whats: false,
+  });
+  const id = pick(json, ["data.id", "data._id", "data.address_id", "data.receiver_address_id", "id"]);
+  if (!id) { logger.error("Togo receiver: no id", { body: clip(json) }); throw new Error("Togo: receiver id missing"); }
+  await userRef.set({ togoReceivers: { [mobile]: String(id) } }, { merge: true });
+  return String(id);
+}
+
+// ─────────────────────────────────────────────
+// 1. createPayment — HTML form POST ← redirect 302 لصفحة الدفع في Togo
+// Body: token, items=[{col,id}], mobile, name, city
 // الأسعار تُقرأ من Firestore — لا نثق بأي سعر من المتصفح
 // ─────────────────────────────────────────────
 exports.createPayment = onRequest(
-  { secrets: [CROSSPAY_API_KEY], region: "us-central1" },
+  { secrets: [TOGO_API_KEY], region: "us-central1" },
   async (req, res) => {
     if (req.method === "OPTIONS") { setCORS(req, res); res.status(204).send(""); return; }
     if (req.method !== "POST") { errorPage(res, 405, "طريقة الطلب غير مسموحة"); return; }
@@ -129,6 +239,10 @@ exports.createPayment = onRequest(
     const q = req.body || {};
     const user = await verifyIdToken(String(q.token || ""));
     if (!user) { errorPage(res, 401, "انتهت الجلسة — سجّل الدخول وحاول مرة أخرى"); return; }
+    if (!user.email) { errorPage(res, 400, "حسابك بدون بريد إلكتروني — سجّل الدخول بحساب فيه بريد"); return; }
+
+    const payCfg = await getPaymentConfig();
+    if (!payCfg.togo?.active) { errorPage(res, 400, "الدفع الإلكتروني غير مفعّل حالياً — تواصل معنا عبر واتساب"); return; }
 
     let refs;
     try {
@@ -142,12 +256,7 @@ exports.createPayment = onRequest(
 
     const mobile = String(q.mobile || "").replace(/\D/g, "");
     if (!/^\d{8,15}$/.test(mobile)) { errorPage(res, 400, "رقم الجوال غير صحيح"); return; }
-
-    const payCfg = await getPaymentConfig();
-    const provider = q.provider === "paypal" ? "paypal" : "card";
-    if (provider === "paypal" && !payCfg.crosspayPaypal?.active) {
-      errorPage(res, 400, "الدفع عبر PayPal غير مفعّل حالياً"); return;
-    }
+    const city = String(q.city || "").trim().substring(0, 60);
 
     // اقرأ العناصر من Firestore (بدون تكرار)
     const seen = new Set();
@@ -176,36 +285,39 @@ exports.createPayment = onRequest(
     const invoiceId =
       "3ENGS-" + Date.now() + "-" +
       Math.random().toString(36).substring(2, 11).toUpperCase();
+    const back = RETURN_BASE + "?invoice_id=" + encodeURIComponent(invoiceId);
 
-    const invDetails = {
-      inv_items: items.map((i) => ({
-        name:       i.name,
-        quntity:    "1.00",
-        unitPrice:  i.price.toFixed(2),
-        totalPrice: i.price.toFixed(2),
-        currency:   CURRENCY,
-      })),
-      inv_info: [
-        { row_title: "Vat",       row_value: "0" },
-        { row_title: "Delevery",  row_value: "0" },
-        { row_title: "Discounts", row_value: "0" },
-      ],
-      user: { userName: customerName },
-    };
-
-    const params = new URLSearchParams({
-      api_data:    API_DATA,
-      invoice_id:  invoiceId,
-      apiKey:      CROSSPAY_API_KEY.value(),
-      total:       total.toFixed(2),
-      currency:    CURRENCY,
-      inv_details: JSON.stringify(invDetails),
-      return_url:  RETURN_BASE + "?invoice_id=" + encodeURIComponent(invoiceId),
-      email:       user.email || "",
-      mobile:      mobile,
-      mobail:      mobile, // Crosspay يستخدم الاسمين بحسب الـ endpoint
-      name:        customerName,
-    });
+    let togoOrderId, hashedId, created;
+    try {
+      const receiverId = await togoReceiver(user, mobile, customerName, city);
+      created = await togo("POST", "/actions", {
+        event: "Create_Visa",
+        data: {
+          type: "RFP",
+          value: total,
+          currency: CURRENCY,
+          receiver_address_id: receiverId,
+          receiver_email: user.email,
+          source: "external_website",
+          prevent_sms_link: true,
+          payment_success_redirect_link: back,
+          payment_cancel_redirect_link: back + "&cancel=1",
+        },
+      });
+      const d = created.data || {};
+      togoOrderId = pick(d, ["id", "_id", "order_id", "order.id", "orderId"]) ||
+        (String(created.message || "").match(/order\s+([A-Za-z0-9_-]+)/i) || [])[1];
+      hashedId = pick(d, ["hashed_id", "hashedId", "hash_id", "order.hashed_id", "hash"]);
+    } catch (e) {
+      logger.error("Togo create failed", { invoiceId, msg: e.message, body: e.body && clip(e.body) });
+      errorPage(res, 502, "تعذر الاتصال ببوابة الدفع حالياً. حاول بعد قليل أو تواصل معنا عبر واتساب.");
+      return;
+    }
+    if (!hashedId || !togoOrderId) {
+      logger.error("Togo create: missing ids", { invoiceId, body: clip(created) });
+      errorPage(res, 502, "تعذر تجهيز صفحة الدفع. تواصل معنا عبر واتساب مع رقم الطلب: " + invoiceId);
+      return;
+    }
 
     await db.collection("orders").doc(invoiceId).set({
       invoiceId,
@@ -216,27 +328,25 @@ exports.createPayment = onRequest(
       total,
       currency:      CURRENCY,
       status:        "pending",
-      method:        provider === "paypal" ? "crosspay-paypal" : "paysky",
+      method:        "togo",
+      togoOrderId:   String(togoOrderId),
+      togoHashedId:  String(hashedId),
+      togoCreate:    clip(created.data || created),
       createdAt:     FieldValue.serverTimestamp(),
     });
 
-    logger.info("Order created", { invoiceId, total, provider });
-    res.redirect(302, ENDPOINTS[provider] + "?" + params.toString());
+    logger.info("Order created (Togo)", { invoiceId, total, togoOrderId });
+    const payUrl = `https://api.togo.ps/api/v1/direct-pay?orderId=${encodeURIComponent(hashedId)}&receiverEmail=${encodeURIComponent(user.email)}`;
+    res.redirect(302, payUrl);
   }
 );
 
 // ─────────────────────────────────────────────
-// 2. verifyPayment — من payment-success.html بعد الرجوع من Crosspay
-//
-// ⚠️ Crosspay لا يوفّر API للتحقق من حالة الفاتورة، فالنتيجة تأتي
-// من رابط الرجوع (is_paid). لذلك:
-//  - الطلب يتحول مرة واحدة فقط، ولا يرجع من paid إلى failed
-//  - transaction_id لا يُقبل مرتين
-//  - إذا فُعّل "المراجعة اليدوية" من لوحة التحكم ← awaiting_approval
-//    والأدمن يوافق بعد مطابقة الدفع مع لوحة Crosspay
+// 2. verifyPayment — من payment-success.html بعد الرجوع من Togo
+// ما بنثق بأي شي من رابط الرجوع: بنسأل Togo مباشرة عن حالة الطلب
 // ─────────────────────────────────────────────
 exports.verifyPayment = onRequest(
-  { region: "us-central1" },
+  { secrets: [TOGO_API_KEY], region: "us-central1" },
   async (req, res) => {
     setCORS(req, res);
     if (req.method === "OPTIONS") { res.status(204).send(""); return; }
@@ -244,7 +354,7 @@ exports.verifyPayment = onRequest(
     const user = await verifyToken(req);
     if (!user) { res.status(401).json({ error: "Unauthorized" }); return; }
 
-    const { invoiceId, isPaid, transactionId } = req.body || {};
+    const { invoiceId } = req.body || {};
     if (!invoiceId || typeof invoiceId !== "string") {
       res.status(400).json({ error: "invoice_id مطلوب" }); return;
     }
@@ -253,47 +363,50 @@ exports.verifyPayment = onRequest(
     const orderSnap = await orderRef.get();
     if (!orderSnap.exists) { res.status(404).json({ error: "الطلب غير موجود" }); return; }
 
-    const order = orderSnap.data();
-    if (order.userId !== user.uid) { res.status(403).json({ error: "غير مصرح" }); return; }
+    let order = orderSnap.data();
+    if (order.userId !== user.uid && !isAdmin(user)) { res.status(403).json({ error: "غير مصرح" }); return; }
 
-    if (order.status !== "pending" && order.status !== "failed") {
-      const links = order.status === "paid" ? await resolveDownloads(order) : [];
-      res.status(200).json({ success: order.status === "paid", ...publicOrder(order, links) });
-      return;
+    order = await syncTogoOrder(orderRef, order);
+    const links = order.status === "paid" ? await resolveDownloads(order) : [];
+    res.status(200).json({ success: order.status === "paid", ...publicOrder(order, links) });
+  }
+);
+
+// ─────────────────────────────────────────────
+// فحص دوري: طلبات Togo المعلّقة (لو الزبون دفع وسكّر الصفحة قبل الرجوع)
+// ─────────────────────────────────────────────
+exports.syncTogoPayments = onSchedule(
+  { schedule: "every 30 minutes", region: "us-central1", secrets: [TOGO_API_KEY], timeZone: "Asia/Gaza" },
+  async () => {
+    const snap = await db.collection("orders").where("method", "==", "togo").where("status", "==", "pending").limit(50).get();
+    const cutoff = Date.now() - 3 * 24 * 3600 * 1000;
+    let checked = 0;
+    for (const doc of snap.docs) {
+      const o = doc.data();
+      if ((o.createdAt?.toMillis?.() || 0) < cutoff) continue;
+      await syncTogoOrder(doc.ref, o);
+      checked++;
     }
+    logger.info("Togo sweep", { pending: snap.size, checked });
+  }
+);
 
-    if (String(isPaid) !== "1") {
-      await orderRef.update({ status: "failed", updatedAt: FieldValue.serverTimestamp() });
-      logger.info("Payment failed", { invoiceId });
-      res.status(200).json({ success: false, status: "failed", invoiceId });
-      return;
+// ─────────────────────────────────────────────
+// adminTogo — اختبار الاتصال بالبوابة من لوحة التحكم (قراءة فقط)
+// ─────────────────────────────────────────────
+exports.adminTogo = onRequest(
+  { secrets: [TOGO_API_KEY], region: "us-central1" },
+  async (req, res) => {
+    setCORS(req, res);
+    if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+    const user = await verifyToken(req);
+    if (!isAdmin(user)) { res.status(403).json({ error: "للأدمن فقط" }); return; }
+    try {
+      const json = await togo("GET", "/currency-exchange");
+      res.status(200).json({ ok: true, rate: json.data ?? null });
+    } catch (e) {
+      res.status(200).json({ ok: false, error: e.message, status: e.status || null });
     }
-
-    const txId = String(transactionId || "").substring(0, 120);
-    if (txId) {
-      const dup = await db.collection("orders").where("transactionId", "==", txId).limit(1).get();
-      if (!dup.empty && dup.docs[0].id !== invoiceId) {
-        logger.warn("Duplicate transaction id", { invoiceId, txId });
-        res.status(409).json({ error: "رقم العملية مستخدم مسبقاً" });
-        return;
-      }
-    }
-
-    const payCfg = await getPaymentConfig();
-    const status = payCfg.manualApproval ? "awaiting_approval" : "paid";
-
-    await orderRef.update({
-      status,
-      transactionId: txId,
-      verification:  "return_url",
-      returnedAt:    FieldValue.serverTimestamp(),
-      ...(status === "paid" ? { paidAt: FieldValue.serverTimestamp() } : {}),
-    });
-    logger.info("Payment returned", { invoiceId, status, txId });
-
-    const updated = { ...order, status };
-    const links = status === "paid" ? await resolveDownloads(updated) : [];
-    res.status(200).json({ success: status === "paid", ...publicOrder(updated, links) });
   }
 );
 
@@ -359,6 +472,7 @@ exports.getUserOrders = onRequest(
           method:        o.method || "",
           transactionId: o.transactionId || "",
           verification:  o.verification || "",
+          togoLastStatus: o.togoLastStatus || "",
           note:          o.note || "",
         };
       }
@@ -375,7 +489,7 @@ exports.getUserOrders = onRequest(
 // Body: { invoiceId, action: "approve" | "revoke" }
 // ─────────────────────────────────────────────
 exports.adminUpdateOrder = onRequest(
-  { region: "us-central1" },
+  { secrets: [TOGO_API_KEY], region: "us-central1" },
   async (req, res) => {
     setCORS(req, res);
     if (req.method === "OPTIONS") { res.status(204).send(""); return; }
@@ -384,13 +498,19 @@ exports.adminUpdateOrder = onRequest(
     if (!isAdmin(user)) { res.status(403).json({ error: "للأدمن فقط" }); return; }
 
     const { invoiceId, action } = req.body || {};
-    if (!invoiceId || typeof invoiceId !== "string" || !["approve", "revoke"].includes(action)) {
+    if (!invoiceId || typeof invoiceId !== "string" || !["approve", "revoke", "recheck"].includes(action)) {
       res.status(400).json({ error: "بيانات غير صالحة" }); return;
     }
 
     const ref = db.collection("orders").doc(invoiceId);
     const snap = await ref.get();
     if (!snap.exists) { res.status(404).json({ error: "الطلب غير موجود" }); return; }
+
+    if (action === "recheck") {
+      const o = await syncTogoOrder(ref, snap.data());
+      res.status(200).json({ success: true, invoiceId, status: o.status, togo: o.togoLastStatus || null });
+      return;
+    }
 
     const update = action === "approve"
       ? { status: "paid", paidAt: FieldValue.serverTimestamp(), approvedBy: user.email }

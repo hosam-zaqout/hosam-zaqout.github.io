@@ -1067,8 +1067,7 @@ function buildPaymentButtons(){
   const p=window._payConfig;
   let html='';
   // كل طريقة دفع تظهر فقط إذا كانت مفعّلة من لوحة التحكم
-  if(p?.lahza?.active){html+=`<button class="btn-pay-lz" onclick="payWithCrosspay('card')">💳 الدفع بالبطاقة (PaySky)</button>`;}
-  if(p?.lahza?.active&&p?.crosspayPaypal?.active){html+=`<button class="btn-pay-pp" onclick="payWithCrosspay('paypal')">🅿️ PayPal (دفع إلكتروني)</button>`;}
+  if(p?.togo?.active){html+=`<button class="btn-pay-lz" onclick="payOnline('togo')">💳 الدفع بالبطاقة (Visa / MasterCard)</button>`;}
   if(p?.paypal?.active&&p.paypal.link){html+=`<button class="btn-pay-pp" onclick="payWithPayPal()">🅿️ الدفع عبر PayPal</button>`;}
   if(p?.whatsapp?.active){html+=`<button class="btn-pay-wa" onclick="payWithWhatsApp()">💬 الدفع عبر واتساب</button>`;}
   if(!html){html=`<button class="btn-pay-wa" onclick="payWithWhatsApp()">💬 اطلب عبر واتساب</button><p style="font-size:.76rem;color:var(--mt);text-align:center;margin-top:8px">الدفع الإلكتروني غير متاح حالياً — تواصل معنا لإتمام الطلب</p>`;}
@@ -1076,15 +1075,15 @@ function buildPaymentButtons(){
 }
 
 // ==============================
-// PAYMENT — مباشرة للـ Crosspay
+// PAYMENT — الدفع الإلكتروني عبر بوابة Togo (السيرفر يحسب السعر ويتأكد من الدفع)
 // الـ apiKey يُقرأ من Firebase config (admin panel)
 // الطلب يُحفظ في Firestore قبل التحويل
 // ==============================
 // ==============================
 // PHONE MODAL — قبل الدفع
 // ==============================
-window.payWithCrosspay = async function(provider) {
-  window._payProvider = provider === 'paypal' ? 'paypal' : 'card';
+window.payOnline = async function(provider) {
+  window._payProvider = 'togo';
   if (!_currentUser) {
     toast('⚠️ سجّل الدخول أولاً للدفع','err');
     setTimeout(()=>{ window.location.href='auth.html'; }, 1500);
@@ -1111,7 +1110,7 @@ function showPhoneModal(total) {
         <div style="text-align:center;margin-bottom:20px;">
           <div style="font-size:2.5rem;margin-bottom:10px;">📱</div>
           <h3 style="font-size:1.05rem;font-weight:800;margin-bottom:6px;">أدخل رقم جوالك</h3>
-          <p style="font-size:.84rem;color:var(--mt);line-height:1.6;">يُستخدم رقم الجوال لتأكيد عملية الدفع عبر PaySky</p>
+          <p style="font-size:.84rem;color:var(--mt);line-height:1.6;">يُستخدم رقم الجوال لإنشاء طلب الدفع الآمن عبر بوابة Togo</p>
         </div>
 
         <div style="margin-bottom:8px;">
@@ -1132,6 +1131,10 @@ function showPhoneModal(total) {
               onkeypress="if(event.key==='Enter')window.confirmPhoneAndPay()">
           </div>
           <p style="font-size:.72rem;color:var(--mt);margin-top:6px;">مثال: 592753159 (بدون 0 في البداية، وبدون + أو 00)</p>
+        </div>
+        <div style="margin-bottom:8px;">
+          <label style="display:block;font-size:.76rem;font-weight:700;color:var(--mt);margin-bottom:6px;">المدينة</label>
+          <input id="payCity" type="text" placeholder="غزة" value="غزة" style="width:100%;padding:11px 13px;background:rgba(15,23,42,.7);border:1px solid var(--b2);border-radius:8px;color:var(--tx);font-family:'Cairo',sans-serif;font-size:.86rem;outline:none;">
         </div>
 
         <div id="phoneTotalRow" style="display:flex;justify-content:space-between;padding:12px 0;border-top:1px solid var(--br);margin-bottom:16px;font-weight:800;">
@@ -1175,7 +1178,7 @@ window.confirmPhoneAndPay = async function() {
   const fullMobile  = code + cleanNumber;
 
   document.getElementById('phonePayModal').style.display = 'none';
-  await processPayment(fullMobile, window._payProvider || 'card');
+  await processPayment(fullMobile, window._payProvider || 'togo');
 };
 
 async function processPayment(mobile, provider) {
@@ -1210,6 +1213,7 @@ async function processPayment(mobile, provider) {
       items:    itemsJson,
       mobile:   mobile,
       name:     customerName,
+      city:     (document.getElementById('payCity')?.value || '').trim().slice(0, 60),
       provider: provider,
     };
 
