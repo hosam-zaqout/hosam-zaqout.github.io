@@ -67,6 +67,11 @@
     <image:image><image:loc>https://www.3engs.com/img/products/AX88UPXucTD67WRfMkRY.webp</image:loc><image:title>CP210 Driver</image:title></image:image>
   </url>
   <url>
+    <loc>https://www.3engs.com/products/payment-test/</loc>
+    <lastmod>2026-09-30</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.3engs.com/books/</loc>
     <priority>0.9</priority>
   </url>
