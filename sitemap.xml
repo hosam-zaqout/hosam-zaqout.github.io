@@ -124,6 +124,16 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://www.3engs.com/sections/workshop/</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/sections/workshop/pcb-workshop/</loc>
+    <lastmod>2026-10-02</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/section_items/Qfbpcr69iEID6OTQTWz3.webp</image:loc><image:title>ورشة Pcb</image:title></image:image>
+  </url>
+  <url>
     <loc>https://www.3engs.com/team/</loc>
     <priority>0.6</priority>
   </url>
