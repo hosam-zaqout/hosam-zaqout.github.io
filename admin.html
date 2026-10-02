@@ -163,6 +163,7 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
   <div class="ni" onclick="showP('orders',this);loadOrders();moRenderItems();moFillUsers()"><span class="ic">🧾</span> الطلبات <span class="nb" id="oc">0</span></div>
   <div class="ni" onclick="showP('users',this)"><span class="ic">👥</span> المستخدمون <span class="nb" id="uc">0</span></div>
   <div class="ni" onclick="showP('messages',this)"><span class="ic">💬</span> الرسائل <span class="nb" id="mc">0</span></div>
+  <div class="ni" onclick="showP('workshops',this);loadWorkshops()"><span class="ic">🎟️</span> الورشات <span class="nb" id="wsc">0</span></div>
   <div class="ni" onclick="showP('newsletter',this)"><span class="ic">📧</span> النشرة البريدية</div>
   <div class="ni" onclick="showP('payment',this)"><span class="ic">💳</span> إعدادات الدفع</div>
   <div class="ni" onclick="showP('design',this)"><span class="ic">🎨</span> تصميم الموقع</div>
@@ -345,6 +346,31 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
     <!-- MESSAGES -->
     <div class="panel" id="p-messages">
       <div class="pc"><h3>💬 رسائل التواصل</h3><div id="msgList"><div style="color:var(--mt);text-align:center;padding:30px">جاري التحميل...</div></div></div>
+    </div>
+
+    <!-- WORKSHOPS -->
+    <div class="panel" id="p-workshops">
+      <div class="pc"><h3>➕ ورشة جديدة</h3>
+        <p style="font-size:.8rem;color:var(--mt);margin-bottom:14px">أنشئ الورشة، انسخ رابط التسجيل وابعته للطلاب. المسجلون بيظهروا هون وبتقدر تصدّرهم Excel جاهز للواتساب.</p>
+        <div class="g2">
+          <div class="cg"><label>اسم الورشة *</label><input class="ci" id="ws-title" placeholder="ورشة Arduino للمبتدئين"></div>
+          <div class="cg"><label>🔗 الرابط بالإنجليزي *</label><input class="ci" id="ws-slug" placeholder="arduino-workshop" dir="ltr"></div>
+        </div>
+        <div class="g2">
+          <div class="cg"><label>الموعد (نص حر)</label><input class="ci" id="ws-date" placeholder="السبت 10/10 — الساعة 6 مساءً"></div>
+          <div class="cg"><label>وصف مختصر</label><input class="ci" id="ws-desc" placeholder="يظهر للطالب فوق نموذج التسجيل"></div>
+        </div>
+        <button class="btn-save" onclick="wsAdd()">➕ إنشاء الورشة</button>
+      </div>
+      <div class="pc"><h3>🎟️ الورشات</h3><div id="wsList"><div style="color:var(--mt);text-align:center;padding:30px">جاري التحميل...</div></div></div>
+      <div class="pc" id="wsRegCard" style="display:none">
+        <h3 id="wsRegTitle"></h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+          <button class="btn-add" onclick="wsExport('xlsx')">📊 تصدير Excel</button>
+          <button class="btn-add" onclick="wsExport('csv')">📄 تصدير CSV</button>
+        </div>
+        <div id="wsRegList"></div>
+      </div>
     </div>
 
     <!-- NEWSLETTER -->
@@ -651,7 +677,7 @@ window.deleteArticle=async function(id){
 async function loadAll(){
   loadDashboard(); loadProducts(); loadCourses(); loadBooks();
   loadProjects(); loadTestimonials(); loadUsers(); loadMessages();
-  loadNewsletter(); loadConfig(); loadCustomSections().then(()=>loadArticles());
+  loadNewsletter(); loadConfig(); loadWorkshops(); loadCustomSections().then(()=>loadArticles());
 }
 
 // DASHBOARD
@@ -841,6 +867,74 @@ async function loadMessages(){
   document.getElementById('mc').textContent=arr.length;
 }
 window.loadMessages=loadMessages;
+
+// WORKSHOPS — الورشات والمسجلون
+let _ws=[],_wsRegs=[],_wsCur=null;
+async function loadWorkshops(){
+  const [ws,rg]=await Promise.all([getDocs(collection(db,'workshops')),getDocs(collection(db,'workshop_registrations'))]);
+  _ws=[];ws.forEach(d=>_ws.push({id:d.id,...d.data()}));
+  _wsRegs=[];rg.forEach(d=>_wsRegs.push({id:d.id,...d.data()}));
+  _ws.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+  _wsRegs.sort((a,b)=>(a.timestamp?.seconds||0)-(b.timestamp?.seconds||0));
+  document.getElementById('wsc').textContent=_wsRegs.length;
+  document.getElementById('wsList').innerHTML=_ws.map(w=>{const n=_wsRegs.filter(r=>r.workshopId===w.id).length;
+    return `<div class="irow"><div class="iemoji">🎟️</div><div class="iinfo"><div class="ititle">${escH(w.title)}</div><div class="imeta">${escH(w.date||'')} • <strong style="color:var(--p)">${n}</strong> مسجّل • ${w.open?'<span style="color:var(--ok)">التسجيل مفتوح</span>':'<span style="color:var(--er)">مغلق</span>'}</div></div><div class="iacts"><button class="btn-edit" onclick="wsShow('${w.id}')">👥 المسجلون</button><button class="btn-edit" onclick="wsCopy('${w.id}')">🔗 الرابط</button><button class="btn-edit" onclick="wsToggle('${w.id}')">${w.open?'🔒 إغلاق':'🔓 فتح'}</button><button class="btn-del" onclick="wsDel('${w.id}')">🗑️</button></div></div>`;}).join('')||'<p style="color:var(--mt);text-align:center;padding:30px">لا توجد ورشات بعد</p>';
+  if(_wsCur)wsShow(_wsCur,true);
+}
+window.loadWorkshops=loadWorkshops;
+const wsUrl=w=>'https://www.3engs.com/register/?w='+w.slug;
+window.wsAdd=async()=>{
+  const g=id=>document.getElementById(id).value.trim();
+  const title=g('ws-title'),slug=g('ws-slug').toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60);
+  if(!title||!slug){toast('⚠️ الاسم والرابط مطلوبان','err');return;}
+  if(_ws.some(w=>w.slug===slug)){toast('⚠️ هذا الرابط مستخدم لورشة أخرى','err');return;}
+  await addDoc(collection(db,'workshops'),{title,slug,date:g('ws-date'),desc:g('ws-desc'),open:true,createdAt:serverTimestamp()});
+  ['ws-title','ws-slug','ws-date','ws-desc'].forEach(id=>document.getElementById(id).value='');
+  toast('✅ تم إنشاء الورشة');loadWorkshops();
+};
+window.wsCopy=async id=>{const u=wsUrl(_ws.find(w=>w.id===id));try{await navigator.clipboard.writeText(u);toast('🔗 تم نسخ رابط التسجيل');}catch{prompt('رابط التسجيل:',u);}};
+window.wsToggle=async id=>{const w=_ws.find(x=>x.id===id);await updateDoc(doc(db,'workshops',id),{open:!w.open});toast(w.open?'🔒 تم إغلاق التسجيل':'🔓 تم فتح التسجيل');loadWorkshops();};
+window.wsDel=async id=>{
+  const regs=_wsRegs.filter(r=>r.workshopId===id);
+  if(!confirm('حذف الورشة'+(regs.length?' مع '+regs.length+' مسجّل':'')+' نهائياً؟'))return;
+  await Promise.all(regs.map(r=>deleteDoc(doc(db,'workshop_registrations',r.id))));
+  await deleteDoc(doc(db,'workshops',id));
+  if(_wsCur===id){_wsCur=null;document.getElementById('wsRegCard').style.display='none';}
+  toast('🗑️ تم الحذف','warn');loadWorkshops();
+};
+window.wsShow=(id,keep)=>{
+  _wsCur=id;const w=_ws.find(x=>x.id===id);const card=document.getElementById('wsRegCard');
+  if(!w){card.style.display='none';return;}
+  const regs=_wsRegs.filter(r=>r.workshopId===id);
+  card.style.display='block';
+  document.getElementById('wsRegTitle').textContent='👥 المسجلون في: '+w.title+' ('+regs.length+')';
+  document.getElementById('wsRegList').innerHTML=regs.map((r,i)=>`<div class="irow"><div class="iemoji" style="font-size:.85rem;color:var(--mt)">${i+1}</div><div class="iinfo"><div class="ititle">${escH(r.name)}</div><div class="imeta"><a href="https://wa.me/${escH(r.phone)}" target="_blank" rel="noopener" dir="ltr" style="color:var(--ok);text-decoration:none">💬 +${escH(r.phone)}</a>${r.email?' • <span dir="ltr">'+escH(r.email)+'</span>':''} • ${r.timestamp?.toDate?.()?.toLocaleDateString('ar')||'—'}<br>🌍 ${escH(r.country||'—')} • 🎓 ${escH(r.major||'—')}</div></div><button class="btn-del" onclick="delItem('workshop_registrations','${escH(r.id)}',loadWorkshops)">🗑️</button></div>`).join('')||'<p style="color:var(--mt);text-align:center;padding:30px">لا يوجد مسجلون بعد</p>';
+  if(!keep)card.scrollIntoView({behavior:'smooth'});
+};
+// تصدير جاهز للواتساب: الرقم دولي كنص (ما بيتحول لصيغة علمية) + رابط wa.me لكل طالب
+window.wsExport=async fmt=>{
+  const w=_ws.find(x=>x.id===_wsCur);if(!w)return;
+  const regs=_wsRegs.filter(r=>r.workshopId===w.id);
+  if(!regs.length){toast('⚠️ لا يوجد مسجلون','err');return;}
+  // منع حقن المعادلات في Excel
+  const san=v=>{v=String(v??'');return /^[=+\-@\t\r]/.test(v)?"'"+v:v;};
+  const rows=[['#','الاسم','رقم الواتساب','رابط الواتساب','البريد الإلكتروني','الدولة','التخصص','تاريخ التسجيل'],
+    ...regs.map((r,i)=>[String(i+1),san(r.name),String(r.phone||''),'https://wa.me/'+(r.phone||''),san(r.email),san(r.country),san(r.major),r.timestamp?.toDate?.()?.toLocaleString('en-GB')||''])];
+  const fname='3engs-'+w.slug+'-'+new Date().toISOString().slice(0,10);
+  if(fmt==='csv'){
+    const csv='﻿'+rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download=fname+'.csv';a.click();URL.revokeObjectURL(a.href);
+    return;
+  }
+  try{
+    if(!window.XLSX)await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);});
+    const sh=XLSX.utils.aoa_to_sheet(rows);
+    sh['!cols']=[{wch:5},{wch:28},{wch:18},{wch:32},{wch:30},{wch:16},{wch:28},{wch:20}];
+    const wb=XLSX.utils.book_new();wb.Workbook={Views:[{RTL:true}]};
+    XLSX.utils.book_append_sheet(wb,sh,'المسجلون');
+    XLSX.writeFile(wb,fname+'.xlsx');
+  }catch(e){console.error(e);toast('⚠️ تعذّر تحميل مكتبة Excel — جرّب CSV','err');}
+};
 
 // NEWSLETTER
 async function loadNewsletter(){
@@ -1511,7 +1605,7 @@ window.toast=toast;
 </script>
 
 <script>
-const panelTitles={articles:'📝 المقالات',dashboard:'🏠 الرئيسية',hero:'🎯 القسم الرئيسي',products:'📦 المنتجات',courses:'🎓 الدورات',books:'📚 الكتب',projects:'🔧 المشاريع',testimonials:'⭐ آراء الطلاب',sections:'➕ أقسام مخصصة',orders:'🧾 الطلبات',users:'👥 المستخدمون',messages:'💬 الرسائل',newsletter:'📧 النشرة',payment:'💳 إعدادات الدفع',design:'🎨 التصميم',seo:'🔍 SEO',brand:'💡 الهوية',social:'🔗 التواصل'};
+const panelTitles={workshops:'🎟️ الورشات',articles:'📝 المقالات',dashboard:'🏠 الرئيسية',hero:'🎯 القسم الرئيسي',products:'📦 المنتجات',courses:'🎓 الدورات',books:'📚 الكتب',projects:'🔧 المشاريع',testimonials:'⭐ آراء الطلاب',sections:'➕ أقسام مخصصة',orders:'🧾 الطلبات',users:'👥 المستخدمون',messages:'💬 الرسائل',newsletter:'📧 النشرة',payment:'💳 إعدادات الدفع',design:'🎨 التصميم',seo:'🔍 SEO',brand:'💡 الهوية',social:'🔗 التواصل'};
 function showP(id,el){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));

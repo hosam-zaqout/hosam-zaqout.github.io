@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3ENG.s | التسجيل في الورشة</title>
+<link rel="icon" href="/logo.jpg">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--p:#F59E0B;--pd:#D97706;--dk:#0F172A;--d2:#1E293B;--br:rgba(245,158,11,.25);--tx:#F1F5F9;--mt:#94A3B8;--ok:#10B981;--er:#EF4444;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Cairo',sans-serif;background:var(--dk);color:var(--tx);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;position:relative;}
+.bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 80% 60% at 30% 20%,rgba(245,158,11,.1) 0%,transparent 60%),linear-gradient(135deg,#0F172A,#1E293B);}
+.card{position:relative;z-index:10;background:rgba(30,41,59,.95);backdrop-filter:blur(24px);border:1px solid var(--br);border-radius:20px;width:100%;max-width:460px;padding:36px 32px;box-shadow:0 25px 80px rgba(0,0,0,.5);}
+.logo-wrap{display:flex;flex-direction:column;align-items:center;margin-bottom:22px;}
+.logo-circle{width:72px;height:72px;border-radius:50%;background:white;display:flex;align-items:center;justify-content:center;margin-bottom:10px;box-shadow:0 0 0 4px rgba(245,158,11,.3);}
+.logo-circle img{width:58px;height:58px;object-fit:contain;border-radius:50%;}
+.wtitle{font-size:1.25rem;font-weight:900;color:var(--p);text-align:center;line-height:1.5;}
+.wmeta{font-size:.82rem;color:var(--mt);font-weight:700;text-align:center;margin-top:4px;}
+.wdesc{font-size:.85rem;color:var(--tx);opacity:.85;text-align:center;margin-top:10px;line-height:1.8;white-space:pre-line;}
+.fg{margin-bottom:15px;}
+.fg label{display:block;font-size:.77rem;font-weight:700;color:var(--mt);margin-bottom:7px;}
+.fg input,.fg select{width:100%;padding:12px 14px;background:rgba(15,23,42,.7);border:1px solid rgba(255,255,255,.08);border-radius:10px;color:var(--tx);font-family:'Cairo',sans-serif;font-size:.9rem;outline:none;transition:border-color .25s;}
+.fg input:focus,.fg select:focus{border-color:var(--p);}
+.fg input::placeholder{color:var(--mt);}
+.fg input[readonly]{opacity:.7;}
+.fg select option{background:var(--d2);}
+.phone-row{display:flex;gap:8px;direction:ltr;}
+.phone-row select{width:120px;flex-shrink:0;}
+.hint{font-size:.72rem;color:var(--mt);margin-top:5px;}
+.hint a{color:var(--p);font-weight:700;text-decoration:none;}
+.btn-main{width:100%;padding:14px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--p),var(--pd));color:var(--dk);font-family:'Cairo',sans-serif;font-size:.97rem;font-weight:900;cursor:pointer;transition:all .25s;margin-top:4px;}
+.btn-main:hover{transform:translateY(-2px);}
+.btn-main:disabled{opacity:.6;cursor:wait;transform:none;}
+.alert{padding:11px 14px;border-radius:8px;font-size:.83rem;font-weight:700;margin-bottom:14px;display:none;}
+.alert.show{display:block;}
+.alert.ok{background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);color:var(--ok);}
+.alert.er{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:var(--er);}
+.back{display:inline-flex;align-items:center;gap:7px;color:var(--mt);text-decoration:none;font-size:.8rem;font-weight:700;margin-bottom:16px;}
+.back:hover{color:var(--p);}
+.wlist a{display:block;padding:14px;background:rgba(15,23,42,.5);border:1px solid rgba(255,255,255,.08);border-radius:10px;margin-bottom:8px;color:var(--tx);text-decoration:none;font-weight:700;font-size:.9rem;}
+.wlist a:hover{border-color:var(--p);}
+.wlist small{display:block;color:var(--mt);font-size:.74rem;margin-top:3px;}
+.done{text-align:center;padding:10px 0;}
+.done .big{font-size:3rem;margin-bottom:8px;}
+.done h2{font-size:1.15rem;color:var(--ok);margin-bottom:8px;}
+.done p{font-size:.86rem;color:var(--mt);line-height:1.9;}
+@media(max-width:480px){.card{padding:26px 18px;}}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="card">
+  <a class="back" href="/">→ الرجوع للموقع</a>
+  <div class="logo-wrap">
+    <div class="logo-circle"><img src="/logo.jpg" alt="3ENG.s"></div>
+    <div class="wtitle" id="wTitle">جاري التحميل...</div>
+    <div class="wmeta" id="wMeta"></div>
+    <div class="wdesc" id="wDesc"></div>
+  </div>
+  <div class="alert" id="alert"></div>
+
+  <div id="wList" class="wlist" style="display:none"></div>
+
+  <form id="regForm" style="display:none" onsubmit="return false">
+    <div class="fg"><label>الاسم الكامل *</label><input id="r-name" maxlength="100" placeholder="الاسم الثلاثي" autocomplete="name"></div>
+    <div class="fg"><label>رقم الواتساب *</label>
+      <div class="phone-row">
+        <select id="r-cc">
+          <option value="970">🇵🇸 +970</option>
+          <option value="972">+972</option>
+          <option value="962">🇯🇴 +962</option>
+          <option value="20">🇪🇬 +20</option>
+          <option value="966">🇸🇦 +966</option>
+          <option value="971">🇦🇪 +971</option>
+          <option value="974">🇶🇦 +974</option>
+          <option value="965">🇰🇼 +965</option>
+          <option value="90">🇹🇷 +90</option>
+          <option value="">أخرى (اكتبه مع +)</option>
+        </select>
+        <input id="r-phone" type="tel" inputmode="tel" maxlength="20" placeholder="0599123456" dir="ltr" autocomplete="tel">
+      </div>
+    </div>
+    <div class="fg"><label>البريد الإلكتروني <span id="emailOpt">(اختياري)</span></label>
+      <input id="r-email" type="email" maxlength="200" placeholder="name@gmail.com" dir="ltr" autocomplete="email">
+      <div class="hint" id="emailHint"></div>
+    </div>
+    <div class="fg"><label>الدولة *</label><input id="r-country" maxlength="60" list="r-countries" placeholder="فلسطين" autocomplete="country-name">
+      <datalist id="r-countries"><option value="فلسطين"><option value="الأردن"><option value="مصر"><option value="السعودية"><option value="الإمارات"><option value="قطر"><option value="الكويت"><option value="تركيا"><option value="سوريا"><option value="لبنان"><option value="العراق"><option value="اليمن"><option value="ليبيا"><option value="الجزائر"><option value="المغرب"><option value="تونس"><option value="السودان"><option value="عُمان"><option value="البحرين"></datalist>
+    </div>
+    <div class="fg"><label>التخصص *</label><input id="r-major" maxlength="100" placeholder="هندسة كهربائية"></div>
+    <button class="btn-main" id="r-btn" onclick="doRegister()">سجّلني بالورشة 🎟️</button>
+  </form>
+
+  <div class="done" id="done" style="display:none">
+    <div class="big">✅</div>
+    <h2>تم تسجيلك بنجاح!</h2>
+    <p>رح نتواصل معك على الواتساب بتفاصيل الورشة.</p>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, doc, setDoc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const CFG={apiKey:"AIzaSyALJiF8l_wnk_6FU6etQpz44Z43lSORXQk",authDomain:"engs-website.firebaseapp.com",projectId:"engs-website",storageBucket:"engs-website.firebasestorage.app",messagingSenderId:"1028163586505",appId:"1:1028163586505:web:c09de00bb30a3369ca4018",measurementId:"G-GZJCYL5YM8"};
+const app=initializeApp(CFG); const auth=getAuth(app); const db=getFirestore(app);
+
+const $=id=>document.getElementById(id);
+const escH=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function showAlert(msg,type){const a=$('alert');a.textContent=msg;a.className='alert show '+type;}
+const slug=(new URLSearchParams(location.search).get('w')||'').toLowerCase().replace(/[^a-z0-9-]/g,'');
+let _ws=null,_user=null;
+
+// المسجّل دخوله: ناخذ إيميله واسمه من الحساب
+onAuthStateChanged(auth,user=>{
+  _user=user;
+  if(user){
+    if(user.email){$('r-email').value=user.email;$('r-email').readOnly=true;$('emailOpt').textContent='';$('emailHint').textContent='✔️ من حسابك المسجّل بالموقع';}
+    if(user.displayName&&!$('r-name').value)$('r-name').value=user.displayName;
+  }else{
+    const back=encodeURIComponent('https://www.3engs.com/register/'+location.search);
+    $('emailHint').innerHTML='أو <a href="/auth.html?redirect='+back+'">سجّل دخول بحساب Google</a> وبناخذ الإيميل تلقائياً';
+  }
+});
+
+async function init(){
+  try{
+    if(!slug){
+      // بدون ?w= ← قائمة الورشات المفتوحة
+      const snap=await getDocs(query(collection(db,'workshops'),where('open','==',true)));
+      const arr=[];snap.forEach(d=>arr.push(d.data()));
+      $('wTitle').textContent='🎟️ التسجيل في الورشات';
+      $('wList').style.display='block';
+      $('wList').innerHTML=arr.length?arr.map(w=>`<a href="?w=${escH(w.slug)}">${escH(w.title)}<small>${escH(w.date||'')}</small></a>`).join(''):'<p style="text-align:center;color:var(--mt);font-size:.86rem">لا توجد ورشات مفتوحة للتسجيل حالياً</p>';
+      return;
+    }
+    const snap=await getDocs(query(collection(db,'workshops'),where('slug','==',slug)));
+    if(snap.empty){$('wTitle').textContent='الورشة غير موجودة';showAlert('⚠️ تأكد من رابط التسجيل','er');return;}
+    _ws={id:snap.docs[0].id,...snap.docs[0].data()};
+    document.title='3ENG.s | التسجيل: '+_ws.title;
+    $('wTitle').textContent=_ws.title;
+    $('wMeta').textContent=_ws.date?'📅 '+_ws.date:'';
+    $('wDesc').textContent=_ws.desc||'';
+    if(!_ws.open){showAlert('🔒 التسجيل في هذه الورشة مغلق','er');return;}
+    $('regForm').style.display='block';
+  }catch(e){console.error(e);$('wTitle').textContent='تعذّر التحميل';showAlert('⚠️ حدث خطأ، حاول مرة أخرى','er');}
+}
+init();
+
+// الرقم بصيغة دولية بدون + ولا أصفار — جاهز لـ wa.me
+function normPhone(cc,raw){
+  let d=String(raw).replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c)).replace(/[^\d+]/g,'');
+  if(d.startsWith('+'))return d.replace(/\D/g,'');
+  if(d.startsWith('00'))return d.slice(2);
+  d=d.replace(/^0+/,'');
+  if(cc&&d.startsWith(cc)&&d.length>=cc.length+8)return d;
+  return cc+d;
+}
+
+window.doRegister=async()=>{
+  const name=$('r-name').value.trim().replace(/\s+/g,' ');
+  const phone=normPhone($('r-cc').value,$('r-phone').value);
+  const email=$('r-email').value.trim();
+  const country=$('r-country').value.trim();
+  const major=$('r-major').value.trim();
+  if(name.length<2){showAlert('⚠️ اكتب اسمك الكامل','er');return;}
+  if(!country){showAlert('⚠️ اكتب الدولة','er');return;}
+  if(!major){showAlert('⚠️ اكتب التخصص','er');return;}
+  if(!/^[0-9]{9,15}$/.test(phone)){showAlert('⚠️ رقم الواتساب غير صحيح','er');return;}
+  if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showAlert('⚠️ البريد الإلكتروني غير صحيح','er');return;}
+  const btn=$('r-btn');btn.disabled=true;btn.textContent='جاري التسجيل...';
+  try{
+    // معرّف المستند = الورشة + الرقم ← نفس الرقم ما بيتسجل مرتين
+    await setDoc(doc(db,'workshop_registrations',_ws.id+'__'+phone),{workshopId:_ws.id,workshopTitle:_ws.title,name,phone,email,uid:_user?.uid||'',country,major,timestamp:serverTimestamp()});
+    $('regForm').style.display='none';$('alert').className='alert';$('done').style.display='block';
+  }catch(e){
+    console.error(e);
+    showAlert(e.code==='permission-denied'?'ℹ️ هذا الرقم مسجّل مسبقاً في الورشة (أو التسجيل أُغلق).':'⚠️ تعذّر التسجيل، حاول مرة أخرى','er');
+    btn.disabled=false;btn.textContent='سجّلني بالورشة 🎟️';
+  }
+};
+</script>
+</body>
+</html>

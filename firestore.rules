@@ -116,6 +116,31 @@ service cloud.firestore {
     }
 
     // ─────────────────────────────────────────
+    // 🎟️ الورشات والتسجيل فيها
+    // معرّف التسجيل = {workshopId}__{phone} ← نفس الرقم ما بيتسجل مرتين
+    // ─────────────────────────────────────────
+    match /workshops/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /workshop_registrations/{regId} {
+      allow create: if request.resource.data.keys().hasOnly(['workshopId','workshopTitle','name','phone','email','uid','country','major','timestamp']) &&
+        request.resource.data.keys().hasAll(['workshopId','name','phone','email','uid','country','major','timestamp']) &&
+        shortStr(request.resource.data.workshopId, 100) &&
+        shortStr(request.resource.data.name, 100) && request.resource.data.name.size() >= 2 &&
+        request.resource.data.phone is string && request.resource.data.phone.matches('^[0-9]{9,15}$') &&
+        regId == request.resource.data.workshopId + '__' + request.resource.data.phone &&
+        shortStr(request.resource.data.email, 200) &&
+        (!('workshopTitle' in request.resource.data) || shortStr(request.resource.data.workshopTitle, 200)) &&
+        shortStr(request.resource.data.country, 60) && request.resource.data.country.size() >= 1 &&
+        shortStr(request.resource.data.major, 100) && request.resource.data.major.size() >= 1 &&
+        (request.resource.data.uid == '' || (isSignedIn() && request.resource.data.uid == request.auth.uid)) &&
+        request.resource.data.timestamp == request.time &&
+        get(/databases/$(database)/documents/workshops/$(request.resource.data.workshopId)).data.open == true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // ─────────────────────────────────────────
     // رفض أي شيء آخر
     // ─────────────────────────────────────────
     match /{document=**} {
