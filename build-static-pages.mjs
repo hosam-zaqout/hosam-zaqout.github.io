@@ -209,6 +209,7 @@ h1{font-size:1.75rem;line-height:1.5;margin-bottom:10px}
 .price s{color:var(--mut)}
 .price .off{background:#34d39922;color:var(--ok);padding:2px 10px;border-radius:999px;font-size:.8rem}
 .cta{display:flex;flex-wrap:wrap;gap:10px}
+.trust{margin-top:12px;font-size:.82rem;color:var(--mut)}.trust a{color:var(--acc)}
 .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:12px;font-weight:700;font-size:.95rem}
 .btn.main{background:var(--acc);color:#1a1200}
 .btn.main:hover{background:var(--acc2)}
@@ -312,7 +313,7 @@ ${schemas.map(jsonLd).join("\n")}
 ${body}
 </main>
 <footer><div class="wrap">
-  <nav><a href="/">الرئيسية</a>${SECTIONS.map((s) => `<a href="/${s.dir}/">${s.label}</a>`).join("")}<a href="/topics/">التصنيفات</a><a href="/team/">الفريق</a><a href="/#about">من نحن</a><a href="/#faq">الأسئلة الشائعة</a><a href="/privacy.html">سياسة الخصوصية</a></nav>
+  <nav><a href="/">الرئيسية</a>${SECTIONS.map((s) => `<a href="/${s.dir}/">${s.label}</a>`).join("")}<a href="/topics/">التصنيفات</a><a href="/team/">الفريق</a><a href="/about/">من نحن</a><a href="/#faq">الأسئلة الشائعة</a><a href="/privacy.html">سياسة الخصوصية</a></nav>
   © ${new Date().getFullYear()} ${BRAND} — ${BRAND_AR} • منصة تعليم الهندسة الكهربائية والأنظمة المدمجة
 </div></footer>
 </body>
@@ -742,6 +743,7 @@ ${bc.html}
           : `<a class="btn main" href="/?open=${sec.col}:${item.id}">📥 احصل عليه مجاناً</a>`}
       <a class="btn wa" href="https://wa.me/${WHATSAPP}?text=${waMsg}" rel="nofollow">💬 استفسار واتساب</a>
     </div>
+    ${!free ? `<p class="trust">🔒 دفع آمن عبر بوابة Togo — بيانات بطاقتك لا تصل إلينا • ↩️ <a href="/privacy.html#refund">استرداد خلال 7 أيام</a> حسب السياسة</p>` : ""}
   </div>
 </section>
 
@@ -921,6 +923,52 @@ function teamHub(list) {
   });
 }
 
+// ---------------- صفحة من نحن /about/ — الهوية، الفريق، الدفع والاسترداد، التواصل ----------------
+function aboutPage(list, counts) {
+  const url = "/about/";
+  const bc = crumbs([{ name: "الرئيسية", url: "/" }, { name: "من نحن", url }]);
+  const about = { "@context": "https://schema.org", "@type": "AboutPage", url: SITE + url, name: `من نحن — ${BRAND}`, mainEntity: { "@id": ORG_ID } };
+  const org = { "@context": "https://schema.org", ...ORG, email: "info@3engs.com", telephone: "+" + WHATSAPP, areaServed: "Arab World",
+    founder: { "@id": `${SITE}/team/${TEAM.find((m) => m.founder)?.slug}/#person` },
+    employee: TEAM.map((m) => ({ "@id": `${SITE}/team/${m.slug}/#person` })) };
+  const stat = (n, l) => (n ? `<div class="box" style="text-align:center;margin:0"><b style="font-size:1.6rem;color:var(--acc)">${n}</b><div style="color:var(--mut);font-size:.85rem">${l}</div></div>` : "");
+  const body = `${bc.html}
+<h1>من نحن — ${BRAND} (${BRAND_AR})</h1>
+<p class="lead">مهندسون كهربائيون من فلسطين نعلّم الهندسة بطريقة عملية.</p>
+<section class="box"><h2>🎯 قصتنا</h2>
+<p>بدأت ${BRAND} كمبادرة تعليمية هدفها نقل الخبرة العملية في الهندسة الكهربائية والأنظمة المدمجة للطلاب والمهتمين في العالم العربي.</p>
+<p>نقدّم دورات تدريبية، مشاريع جاهزة، وكتباً هندسية مبسطة في مجالات ESP32 و Arduino و PIC وإنترنت الأشياء والذكاء الاصطناعي، وكل محتوانا مبني على تجربة حقيقية في التدريس الجامعي والمشاريع العملية.</p>
+</section>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:18px 0">
+${stat(counts.courses, "دورة تعليمية")}${stat(counts.projects, "مشروع هندسي")}${stat(counts.products, "منتج رقمي")}${stat(counts.books, "كتاب هندسي")}${stat(TEAM.length, "مهندسين في الفريق")}
+</div>
+<h2 class="sec-title">👷 الفريق</h2>
+<div class="cards">${list.map(([m, photo]) => `<a class="card" href="/team/${m.slug}/">${photo ? `<img src="${photo}" alt="${esc(m.name)}" loading="lazy" width="480" height="480">` : `<div class="ph">${esc(m.name.replace(/^م\.\s*/, "")[0])}</div>`}<div class="b"><h3>${esc(m.name)}</h3><div class="k">${esc(m.role)}</div></div></a>`).join("")}</div>
+<section class="box"><h2>🔒 الشراء والدفع</h2>
+<ul>
+<li>الدفع الإلكتروني بالبطاقة يتم عبر بوابة الدفع <b>Togo</b> على صفحتها الآمنة — بيانات بطاقتك لا تصل إلينا ولا نخزّنها.</li>
+<li>تأكيد الدفع يتم آلياً من بوابة الدفع نفسها، وبعدها تظهر مشترياتك فوراً في صفحة <b>"📦 مشترياتي"</b> بحسابك على الموقع.</li>
+<li>يمكن أيضاً الشراء بالتواصل معنا مباشرة عبر <a href="https://wa.me/${WHATSAPP}" rel="nofollow" style="color:var(--acc)">واتساب</a> أو PayPal.</li>
+<li>↩️ يحق لك طلب الاسترداد خلال <b>7 أيام</b> من تاريخ الشراء في الحالات المذكورة في <a href="/privacy.html#refund" style="color:var(--acc)">سياسة الإرجاع والاسترداد</a>.</li>
+</ul>
+</section>
+<section class="box"><h2>📞 تواصل معنا</h2>
+<ul>
+<li>📧 البريد: <a href="mailto:info@3engs.com" style="color:var(--acc)">info@3engs.com</a></li>
+<li>💬 واتساب: <a href="https://wa.me/${WHATSAPP}" rel="nofollow" style="color:var(--acc)" dir="ltr">+${WHATSAPP}</a></li>
+<li>🌐 حساباتنا: ${ORG.sameAs.map((u) => `<a href="${u}" target="_blank" rel="noopener me" style="color:var(--acc)">${esc(u.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, ""))}</a>`).join(" • ")}</li>
+<li>📄 <a href="/privacy.html" style="color:var(--acc)">سياسة الخصوصية</a> • <a href="/privacy.html#terms" style="color:var(--acc)">شروط الاستخدام</a></li>
+</ul>
+</section>`;
+  return layout({
+    title: `من نحن | ${BRAND} — ${BRAND_AR}`,
+    description: cut(`${BRAND} (${BRAND_AR}): منصة تعليمية لمهندسين كهربائيين من فلسطين — دورات ومشاريع وكتب في ESP32 و Arduino وإنترنت الأشياء. تعرّف على الفريق وطرق الدفع الآمن وسياسة الاسترداد.`, 155),
+    canonical: SITE + url,
+    schemas: [about, org, bc.schema],
+    body,
+  });
+}
+
 // ---------------- صفحات التصنيف /topics/ ----------------
 function topicPage(t, items) {
   const url = `/topics/${t.slug}/`;
@@ -1002,7 +1050,8 @@ async function updateHome(data) {
     `<section class="csec"><div class="shdr"><div><div class="stag">${esc(sec.emoji)} ${esc(sec.tagline || "")}</div><h2 class="stitle">${esc(sec.label)}</h2></div></div>${ssrItems(sec, items.slice(0, 4))}<div class="more-wrap"><a class="more-btn" href="/${sec.dir}/">اكتشف المزيد ←</a></div></section>`).join(""));
   const hero = data.config?.hero || {};
   for (const i of [1, 2, 3, 4]) {
-    const v = clean(hero["stat" + i]?.num);
+    const auto = { 1: String((data.products || []).length), 2: String((data.courses || []).length) }[i];
+    const v = clean(hero["stat" + i]?.num) || auto;
     if (v) html = ssrReplace(html, `s${i}n`, esc(v));
   }
   return writeFile("index.html", html);
@@ -1231,7 +1280,10 @@ async function main() {
     if (await writeFile(`team/${m.slug}/index.html`, teamPage(m, photo, teamWorks(m, all)))) changed.push(`${SITE}/team/${m.slug}/`);
     entries.push({ loc: `/team/${m.slug}/`, priority: 0.6, ...(photo ? { image: SITE + photo, title: m.name } : {}) });
   }
-  console.log(`👷 الفريق: ${TEAM.length} صفحات`);
+  const counts = Object.fromEntries(["courses", "projects", "products", "books"].map((c) => [c, (data[c] || []).length]));
+  if (await writeFile("about/index.html", aboutPage(teamList, counts))) changed.push(`${SITE}/about/`);
+  entries.push({ loc: "/about/", priority: 0.7 });
+  console.log(`👷 الفريق: ${TEAM.length} صفحات + من نحن`);
 
   // 4) صفحات التصنيف — فقط للتصنيفات اللي فيها عنصرين أو أكثر (بلا صفحات ضعيفة)
   const topicList = TAXONOMY.map((t) => [t, all.filter((it) => itemTopics(it).includes(t))]).filter(([, items]) => items.length >= 2);

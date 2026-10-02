@@ -51,6 +51,12 @@
     <image:image><image:loc>https://www.3engs.com/img/projects/ABaMSMO49TXKwWE8GaMk.webp</image:loc><image:title>محطة طقس متنقلة ذكية</image:title></image:image>
   </url>
   <url>
+    <loc>https://www.3engs.com/projects/blind-stick-project/</loc>
+    <lastmod>2026-10-02</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/projects/wJcchGH56DQYmTm14pa7.webp</image:loc><image:title>العصا الذكية للمكفوفين (Smart Blind Stick)</image:title></image:image>
+  </url>
+  <url>
     <loc>https://www.3engs.com/products/</loc>
     <priority>0.9</priority>
   </url>
@@ -148,6 +154,10 @@
   <url>
     <loc>https://www.3engs.com/team/furat-altaweel/</loc>
     <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/about/</loc>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.3engs.com/topics/</loc>
