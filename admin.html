@@ -369,6 +369,15 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
           <button class="btn-add" onclick="wsExport('xlsx')">📊 تصدير Excel</button>
           <button class="btn-add" onclick="wsExport('csv')">📄 تصدير CSV</button>
         </div>
+        <div id="wsMailBox" style="background:rgba(15,23,42,.5);border:1px solid var(--b2);border-radius:10px;padding:14px;margin-bottom:14px">
+          <div style="font-size:.86rem;font-weight:800;margin-bottom:10px">✉️ إيميل لكل المسجلين <span id="wsMailCount" style="color:var(--mt);font-weight:600"></span></div>
+          <div class="cg"><label>العنوان *</label><input class="ci" id="ws-mail-subj" maxlength="150" placeholder="تفاصيل ورشة Arduino — رابط الدخول"></div>
+          <div class="cg"><label>النص * — اكتب <b>{name}</b> وبيتبدّل باسم كل طالب</label><textarea class="cta" id="ws-mail-msg" rows="6" maxlength="5000" placeholder="أهلاً {name}،&#10;&#10;نذكّرك بموعد الورشة يوم ..."></textarea></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn-edit" onclick="wsMail(true)">🧪 تجربة على إيميلي</button>
+            <button class="btn-save" onclick="wsMail(false)">✉️ إرسال للكل</button>
+          </div>
+        </div>
         <div id="wsRegList"></div>
       </div>
     </div>
@@ -907,9 +916,19 @@ window.wsShow=(id,keep)=>{
   if(!w){card.style.display='none';return;}
   const regs=_wsRegs.filter(r=>r.workshopId===id);
   card.style.display='block';
+  document.getElementById('wsMailCount').textContent='('+new Set(regs.map(r=>(r.email||'').toLowerCase()).filter(Boolean)).size+' عندهم إيميل من أصل '+regs.length+')';
   document.getElementById('wsRegTitle').textContent='👥 المسجلون في: '+w.title+' ('+regs.length+')';
   document.getElementById('wsRegList').innerHTML=regs.map((r,i)=>`<div class="irow"><div class="iemoji" style="font-size:.85rem;color:var(--mt)">${i+1}</div><div class="iinfo"><div class="ititle">${escH(r.name)}</div><div class="imeta"><a href="https://wa.me/${escH(r.phone)}" target="_blank" rel="noopener" dir="ltr" style="color:var(--ok);text-decoration:none">💬 +${escH(r.phone)}</a>${r.email?' • <span dir="ltr">'+escH(r.email)+'</span>':''} • ${r.timestamp?.toDate?.()?.toLocaleDateString('ar')||'—'}<br>🌍 ${escH(r.country||'—')} • 🎓 ${escH(r.major||'—')}</div></div><button class="btn-del" onclick="delItem('workshop_registrations','${escH(r.id)}',loadWorkshops)">🗑️</button></div>`).join('')||'<p style="color:var(--mt);text-align:center;padding:30px">لا يوجد مسجلون بعد</p>';
   if(!keep)card.scrollIntoView({behavior:'smooth'});
+};
+window.wsMail=async test=>{
+  const subject=document.getElementById('ws-mail-subj').value.trim(),message=document.getElementById('ws-mail-msg').value.trim();
+  if(!_wsCur||!subject||!message){toast('⚠️ اكتب العنوان والنص','err');return;}
+  if(!test&&!confirm('إرسال الإيميل لكل المسجلين اللي عندهم إيميل؟ ما بينفع تتراجع بعد الإرسال.'))return;
+  toast(test?'🧪 جاري إرسال التجربة...':'✉️ جاري الإرسال... لا تسكّر الصفحة');
+  try{const r=await callFn('adminWorkshopEmail',{workshopId:_wsCur,subject,message,test});
+    toast(test?'✅ وصلتك نسخة تجريبية على إيميلك':`✅ انبعت لـ ${r.sent}`+(r.failed?` • فشل ${r.failed}`:'')+(r.noEmail?` • ${r.noEmail} بدون إيميل`:''),r.failed?'warn':'ok');
+  }catch(err){toast('⚠️ '+err.message,'err');}
 };
 // تصدير جاهز للواتساب: الرقم دولي كنص (ما بيتحول لصيغة علمية) + رابط wa.me لكل طالب
 window.wsExport=async fmt=>{

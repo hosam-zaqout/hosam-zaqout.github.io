@@ -1742,6 +1742,11 @@ function defaultTests(){return emptyPh('كن أول من يشاركنا رأيه
 
 // فتح العنصر تلقائياً عند القدوم من صفحة ثابتة: /?open=courses:ID
 (async function openFromUrl(){
+  // رابط الإيصال: /?myorders=1 ← يفتح مشترياتي بعد ما يجهز تسجيل الدخول
+  if(new URLSearchParams(location.search).has('myorders')){
+    for(let i=0;i<20&&!window._currentUser;i++)await new Promise(r=>setTimeout(r,250));
+    window.openMyOrders?.();history.replaceState(null,'',location.pathname+location.hash);return;
+  }
   const p=new URLSearchParams(location.search).get('open');
   if(!p)return;
   const [col,id]=p.split(':');

@@ -639,3 +639,122 @@ exports.adminCreateOrder = onRequest(
     res.status(200).json({ success: true, invoiceId, buyer: buyer.email, items: items.length, total });
   }
 );
+
+// ─────────────────────────────────────────────
+// 📧 الإيميلات — عبر Gmail (Google Workspace) من info@3engs.com
+// كلمة مرور التطبيق في Secret Manager:
+//   firebase functions:secrets:set SMTP_PASS --project engs-website
+// ─────────────────────────────────────────────
+const { onDocumentWritten } = require("firebase-functions/v2/firestore");
+const SMTP_PASS = defineSecret("SMTP_PASS");
+const MAIL_FROM = "info@3engs.com";
+let _mailer = null;
+function mailer() {
+  if (!_mailer) {
+    const nodemailer = require("nodemailer");
+    _mailer = nodemailer.createTransport({ host: "smtp.gmail.com", port: 465, secure: true, auth: { user: MAIL_FROM, pass: SMTP_PASS.value() } });
+  }
+  return _mailer;
+}
+const escMail = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+function mailLayout(title, inner) {
+  return `<!DOCTYPE html><html lang="ar" dir="rtl"><body style="margin:0;background:#f1f5f9;font-family:Tahoma,Arial,sans-serif">
+<div style="max-width:560px;margin:24px auto;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #e2e8f0" dir="rtl">
+<div style="background:#0F172A;padding:18px 22px;color:#F59E0B;font-size:20px;font-weight:bold">3ENG.s <span style="color:#94A3B8;font-size:13px;font-weight:normal">— المهندسون الثلاثة</span></div>
+<div style="padding:22px;color:#0f172a;font-size:15px;line-height:1.9;text-align:right"><h2 style="margin:0 0 12px;font-size:18px">${escMail(title)}</h2>${inner}</div>
+<div style="padding:14px 22px;background:#f8fafc;color:#64748b;font-size:12px;text-align:right">📧 ${MAIL_FROM} • 💬 واتساب +972592753159 • <a href="${SITE}" style="color:#D97706">www.3engs.com</a></div>
+</div></body></html>`;
+}
+async function sendMail(to, subject, title, inner, text) {
+  return mailer().sendMail({ from: `"3ENG.s المهندسون الثلاثة" <${MAIL_FROM}>`, replyTo: MAIL_FROM, to, subject, html: mailLayout(title, inner), text });
+}
+
+const METHOD_AR = { togo: "بطاقة بنكية (Togo)", "manual-whatsapp": "واتساب", "manual-paypal": "PayPal", "manual-transfer": "تحويل بنكي / محفظة", "manual-cash": "نقداً", "manual-other": "أخرى" };
+
+// 🧾 إيصال تلقائي لما يصير الطلب "paid" — Togo أو موافقة الأدمن أو طلب يدوي
+exports.sendReceipt = onDocumentWritten(
+  { document: "orders/{orderId}", region: "us-central1", secrets: [SMTP_PASS] },
+  async (event) => {
+    const after = event.data?.after?.data();
+    const before = event.data?.before?.data();
+    if (!after || after.status !== "paid" || before?.status === "paid") return;
+    if (!after.userEmail || after.receiptSentAt) return;
+    const ref = event.data.after.ref;
+    // نحجز الإرسال بمعاملة — ما بيطلع إيصالين لنفس الطلب
+    const claimed = await db.runTransaction(async (t) => {
+      const s = (await t.get(ref)).data() || {};
+      if (s.receiptSentAt || s.receiptClaimedAt) return false;
+      t.update(ref, { receiptClaimedAt: FieldValue.serverTimestamp() });
+      return true;
+    });
+    if (!claimed) return;
+    const o = after;
+    const paidAt = (o.paidAt?.toDate?.() || new Date()).toLocaleString("en-GB", { timeZone: "Asia/Gaza" });
+    const rows = (o.items || []).map((i) => `<tr><td style="padding:6px 0;border-bottom:1px solid #e2e8f0">${escMail(i.emoji || "")} ${escMail(i.name)}</td><td style="padding:6px 0;border-bottom:1px solid #e2e8f0;text-align:left" dir="ltr">$${Number(i.price || 0).toFixed(2)}</td></tr>`).join("");
+    const inner = `<p>شكراً لك! تم استلام دفعتك بنجاح ✅</p>
+<table style="width:100%;font-size:14px;margin:10px 0"><tr><td style="color:#64748b">رقم الطلب</td><td style="text-align:left" dir="ltr"><b>${escMail(o.invoiceId)}</b></td></tr>
+<tr><td style="color:#64748b">التاريخ</td><td style="text-align:left" dir="ltr">${escMail(paidAt)}</td></tr>
+<tr><td style="color:#64748b">طريقة الدفع</td><td style="text-align:left">${escMail(METHOD_AR[o.method] || o.method || "—")}</td></tr></table>
+<table style="width:100%;font-size:14px;border-collapse:collapse;margin:10px 0">${rows}
+<tr><td style="padding:8px 0"><b>الإجمالي</b></td><td style="padding:8px 0;text-align:left" dir="ltr"><b>$${Number(o.total || 0).toFixed(2)} ${escMail(o.currency || CURRENCY)}</b></td></tr></table>
+<p>📦 مشترياتك جاهزة الآن في حسابك: <a href="${SITE}/?myorders=1" style="color:#D97706;font-weight:bold">افتح مشترياتي</a></p>
+<p style="font-size:13px;color:#64748b">↩️ يمكنك طلب الاسترداد خلال 7 أيام حسب <a href="${SITE}/privacy.html#refund" style="color:#D97706">سياسة الاسترداد</a>. لأي استفسار رد على هذا الإيميل مع رقم الطلب.</p>`;
+    const text = `تم استلام دفعتك بنجاح.\nرقم الطلب: ${o.invoiceId}\nالتاريخ: ${paidAt}\n${(o.items || []).map((i) => `- ${i.name}: $${Number(i.price || 0).toFixed(2)}`).join("\n")}\nالإجمالي: $${Number(o.total || 0).toFixed(2)}\nمشترياتك: ${SITE}/?myorders=1`;
+    try {
+      await sendMail(o.userEmail, `🧾 إيصال الدفع — طلب ${o.invoiceId}`, "🧾 إيصال الدفع", inner, text);
+      await ref.update({ receiptSentAt: FieldValue.serverTimestamp(), receiptError: FieldValue.delete() });
+      logger.info("Receipt sent", { invoiceId: o.invoiceId, to: o.userEmail });
+    } catch (e) {
+      await ref.update({ receiptError: String(e.message || e).substring(0, 300), receiptClaimedAt: FieldValue.delete() });
+      logger.error("Receipt failed", { invoiceId: o.invoiceId, msg: e.message });
+    }
+  }
+);
+
+// ✉️ إيميل جماعي لمسجلي ورشة — للأدمن فقط. {name} بيتبدّل باسم الطالب
+exports.adminWorkshopEmail = onRequest(
+  { region: "us-central1", secrets: [SMTP_PASS], timeoutSeconds: 540 },
+  async (req, res) => {
+    setCORS(req, res);
+    if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+    const admin = await verifyToken(req);
+    if (!isAdmin(admin)) { res.status(403).json({ error: "للأدمن فقط" }); return; }
+
+    const { workshopId, subject, message, test } = req.body || {};
+    const subj = String(subject || "").trim().substring(0, 150);
+    const msg = String(message || "").trim().substring(0, 5000);
+    if (!/^[A-Za-z0-9_-]{1,64}$/.test(String(workshopId || ""))) { res.status(400).json({ error: "ورشة غير صحيحة" }); return; }
+    if (!subj || !msg) { res.status(400).json({ error: "العنوان والنص مطلوبان" }); return; }
+    const ws = await db.collection("workshops").doc(workshopId).get();
+    if (!ws.exists) { res.status(404).json({ error: "الورشة غير موجودة" }); return; }
+    const wsTitle = ws.data().title || "";
+
+    const regs = (await db.collection("workshop_registrations").where("workshopId", "==", workshopId).get()).docs.map((d) => d.data());
+    const seen = new Set();
+    let targets = regs.filter((r) => {
+      const e = String(r.email || "").trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) || seen.has(e)) return false;
+      seen.add(e); return true;
+    });
+    const noEmail = regs.length - targets.length;
+    // تجربة ← لإيميل الأدمن فقط، باسم أول مسجّل
+    if (test) targets = [{ name: targets[0]?.name || "اسم الطالب", email: admin.email }];
+
+    let sent = 0; const failed = [];
+    for (const r of targets) {
+      const body = msg.replace(/\{name\}/g, r.name || "");
+      try {
+        await sendMail(r.email, subj.replace(/\{name\}/g, r.name || ""), wsTitle, `<div style="white-space:pre-line">${escMail(body)}</div>`, body);
+        sent++;
+      } catch (e) {
+        failed.push(r.email);
+        logger.warn("Workshop email failed", { workshopId, to: r.email, msg: e.message });
+      }
+    }
+    if (!test) {
+      await db.collection("workshop_emails").add({ workshopId, subject: subj, message: msg, sent, failed, noEmail, by: admin.email, createdAt: FieldValue.serverTimestamp() });
+    }
+    logger.info("Workshop email", { workshopId, test: !!test, sent, failed: failed.length, by: admin.email });
+    res.status(200).json({ success: true, sent, failed: failed.length, noEmail: test ? 0 : noEmail });
+  }
+);
