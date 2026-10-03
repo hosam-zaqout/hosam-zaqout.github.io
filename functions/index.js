@@ -671,6 +671,63 @@ async function sendMail(to, subject, title, inner, text) {
 
 const METHOD_AR = { togo: "بطاقة بنكية (Togo)", "manual-whatsapp": "واتساب", "manual-paypal": "PayPal", "manual-transfer": "تحويل بنكي / محفظة", "manual-cash": "نقداً", "manual-other": "أخرى" };
 
+// نص الإيصال قابل للتعديل من لوحة التحكم (site_config/emails) — جدول الطلب ثابت
+// المتغيرات: {name} {invoice} {total}
+const DEFAULT_RECEIPT = {
+  receiptSubject: "🧾 إيصال الدفع — طلب {invoice}",
+  receiptTitle: "🧾 إيصال الدفع",
+  receiptIntro: "أهلاً {name}،\nشكراً لك! تم استلام دفعتك بنجاح ✅",
+  receiptFooter: "لأي استفسار رد على هذا الإيميل مع رقم الطلب.",
+};
+async function receiptTemplate() {
+  const c = (await db.collection("site_config").doc("emails").get()).data() || {};
+  const t = {};
+  for (const k of Object.keys(DEFAULT_RECEIPT)) t[k] = String(c[k] || "").trim() || DEFAULT_RECEIPT[k];
+  return t;
+}
+async function buyerName(email) {
+  try { const u = await getAuth().getUserByEmail(email); return u.displayName || email.split("@")[0]; }
+  catch { return String(email || "").split("@")[0]; }
+}
+function buildReceipt(o, tpl, name) {
+  const total = `$${Number(o.total || 0).toFixed(2)}`;
+  const fill = (s) => String(s).replace(/\{name\}/g, name).replace(/\{invoice\}/g, o.invoiceId).replace(/\{total\}/g, total);
+  const para = (s) => `<p style="white-space:pre-line">${escMail(fill(s))}</p>`;
+  const paidAt = (o.paidAt?.toDate?.() || new Date()).toLocaleString("en-GB", { timeZone: "Asia/Gaza" });
+  const rows = (o.items || []).map((i) => `<tr><td style="padding:6px 0;border-bottom:1px solid #e2e8f0">${escMail(i.emoji || "")} ${escMail(i.name)}</td><td style="padding:6px 0;border-bottom:1px solid #e2e8f0;text-align:left" dir="ltr">$${Number(i.price || 0).toFixed(2)}</td></tr>`).join("");
+  const inner = `${para(tpl.receiptIntro)}
+<table style="width:100%;font-size:14px;margin:10px 0"><tr><td style="color:#64748b">رقم الطلب</td><td style="text-align:left" dir="ltr"><b>${escMail(o.invoiceId)}</b></td></tr>
+<tr><td style="color:#64748b">التاريخ</td><td style="text-align:left" dir="ltr">${escMail(paidAt)}</td></tr>
+<tr><td style="color:#64748b">طريقة الدفع</td><td style="text-align:left">${escMail(METHOD_AR[o.method] || o.method || "—")}</td></tr></table>
+<table style="width:100%;font-size:14px;border-collapse:collapse;margin:10px 0">${rows}
+<tr><td style="padding:8px 0"><b>الإجمالي</b></td><td style="padding:8px 0;text-align:left" dir="ltr"><b>${total} ${escMail(o.currency || CURRENCY)}</b></td></tr></table>
+<p>📦 مشترياتك جاهزة الآن في حسابك: <a href="${SITE}/?myorders=1" style="color:#D97706;font-weight:bold">افتح مشترياتي</a></p>
+${para(tpl.receiptFooter)}
+<p style="font-size:13px;color:#64748b">↩️ يمكنك طلب الاسترداد خلال 7 أيام حسب <a href="${SITE}/privacy.html#refund" style="color:#D97706">سياسة الاسترداد</a>.</p>`;
+  const text = `${fill(tpl.receiptIntro)}\n\nرقم الطلب: ${o.invoiceId}\nالتاريخ: ${paidAt}\n${(o.items || []).map((i) => `- ${i.name}: $${Number(i.price || 0).toFixed(2)}`).join("\n")}\nالإجمالي: ${total}\nمشترياتك: ${SITE}/?myorders=1\n\n${fill(tpl.receiptFooter)}`;
+  return { subject: fill(tpl.receiptSubject).substring(0, 200), title: fill(tpl.receiptTitle), inner, text };
+}
+
+// 🧪 إيصال تجريبي لإيميل الأدمن — لمعاينة النص المحفوظ
+exports.adminTestReceipt = onRequest(
+  { region: "us-central1", secrets: [SMTP_PASS] },
+  async (req, res) => {
+    setCORS(req, res);
+    if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+    const admin = await verifyToken(req);
+    if (!isAdmin(admin)) { res.status(403).json({ error: "للأدمن فقط" }); return; }
+    const sample = { invoiceId: "3ENGS-TEST-0000", method: "togo", total: 25, currency: CURRENCY, items: [{ emoji: "🎓", name: "دورة تجريبية", price: 25 }] };
+    const r = buildReceipt(sample, await receiptTemplate(), await buyerName(admin.email));
+    try {
+      await sendMail(admin.email, "[تجربة] " + r.subject, r.title, r.inner, r.text);
+      res.status(200).json({ success: true, to: admin.email });
+    } catch (e) {
+      logger.error("Test receipt failed", { msg: e.message });
+      res.status(500).json({ error: "فشل الإرسال: " + String(e.message || e).substring(0, 200) });
+    }
+  }
+);
+
 // 🧾 إيصال تلقائي لما يصير الطلب "paid" — Togo أو موافقة الأدمن أو طلب يدوي
 exports.sendReceipt = onDocumentWritten(
   { document: "orders/{orderId}", region: "us-central1", secrets: [SMTP_PASS] },
@@ -689,19 +746,9 @@ exports.sendReceipt = onDocumentWritten(
     });
     if (!claimed) return;
     const o = after;
-    const paidAt = (o.paidAt?.toDate?.() || new Date()).toLocaleString("en-GB", { timeZone: "Asia/Gaza" });
-    const rows = (o.items || []).map((i) => `<tr><td style="padding:6px 0;border-bottom:1px solid #e2e8f0">${escMail(i.emoji || "")} ${escMail(i.name)}</td><td style="padding:6px 0;border-bottom:1px solid #e2e8f0;text-align:left" dir="ltr">$${Number(i.price || 0).toFixed(2)}</td></tr>`).join("");
-    const inner = `<p>شكراً لك! تم استلام دفعتك بنجاح ✅</p>
-<table style="width:100%;font-size:14px;margin:10px 0"><tr><td style="color:#64748b">رقم الطلب</td><td style="text-align:left" dir="ltr"><b>${escMail(o.invoiceId)}</b></td></tr>
-<tr><td style="color:#64748b">التاريخ</td><td style="text-align:left" dir="ltr">${escMail(paidAt)}</td></tr>
-<tr><td style="color:#64748b">طريقة الدفع</td><td style="text-align:left">${escMail(METHOD_AR[o.method] || o.method || "—")}</td></tr></table>
-<table style="width:100%;font-size:14px;border-collapse:collapse;margin:10px 0">${rows}
-<tr><td style="padding:8px 0"><b>الإجمالي</b></td><td style="padding:8px 0;text-align:left" dir="ltr"><b>$${Number(o.total || 0).toFixed(2)} ${escMail(o.currency || CURRENCY)}</b></td></tr></table>
-<p>📦 مشترياتك جاهزة الآن في حسابك: <a href="${SITE}/?myorders=1" style="color:#D97706;font-weight:bold">افتح مشترياتي</a></p>
-<p style="font-size:13px;color:#64748b">↩️ يمكنك طلب الاسترداد خلال 7 أيام حسب <a href="${SITE}/privacy.html#refund" style="color:#D97706">سياسة الاسترداد</a>. لأي استفسار رد على هذا الإيميل مع رقم الطلب.</p>`;
-    const text = `تم استلام دفعتك بنجاح.\nرقم الطلب: ${o.invoiceId}\nالتاريخ: ${paidAt}\n${(o.items || []).map((i) => `- ${i.name}: $${Number(i.price || 0).toFixed(2)}`).join("\n")}\nالإجمالي: $${Number(o.total || 0).toFixed(2)}\nمشترياتك: ${SITE}/?myorders=1`;
+    const r = buildReceipt(o, await receiptTemplate(), await buyerName(o.userEmail));
     try {
-      await sendMail(o.userEmail, `🧾 إيصال الدفع — طلب ${o.invoiceId}`, "🧾 إيصال الدفع", inner, text);
+      await sendMail(o.userEmail, r.subject, r.title, r.inner, r.text);
       await ref.update({ receiptSentAt: FieldValue.serverTimestamp(), receiptError: FieldValue.delete() });
       logger.info("Receipt sent", { invoiceId: o.invoiceId, to: o.userEmail });
     } catch (e) {

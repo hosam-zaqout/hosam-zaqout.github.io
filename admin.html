@@ -389,6 +389,14 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
 
     <!-- PAYMENT -->
     <div class="panel" id="p-payment">
+      <div class="pc"><h3>🧾 نص إيصال الدفع (إيميل العميل)</h3>
+        <p style="font-size:.8rem;color:var(--mt);margin-bottom:14px">بيوصل للعميل تلقائياً بعد كل دفعة ناجحة. جدول الطلب (رقم الطلب، العناصر، الإجمالي) وزر "مشترياتي" بينضافوا لحالهم. المتغيرات: <b>{name}</b> اسم العميل • <b>{invoice}</b> رقم الطلب • <b>{total}</b> المبلغ. اترك أي خانة فاضية لتستخدم النص الافتراضي.</p>
+        <div class="cg"><label>عنوان الإيميل</label><input class="ci" id="em-receiptSubject" maxlength="150" placeholder="🧾 إيصال الدفع — طلب {invoice}"></div>
+        <div class="cg"><label>العنوان داخل الإيميل</label><input class="ci" id="em-receiptTitle" maxlength="100" placeholder="🧾 إيصال الدفع"></div>
+        <div class="cg"><label>النص قبل تفاصيل الطلب</label><textarea class="cta" id="em-receiptIntro" rows="4" maxlength="2000" placeholder="أهلاً {name}،&#10;شكراً لك! تم استلام دفعتك بنجاح ✅"></textarea></div>
+        <div class="cg"><label>النص بعد تفاصيل الطلب</label><textarea class="cta" id="em-receiptFooter" rows="3" maxlength="2000" placeholder="لأي استفسار رد على هذا الإيميل مع رقم الطلب."></textarea></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-save" onclick="saveEmailTpl()">💾 حفظ النص</button><button class="btn-edit" onclick="testReceipt()">🧪 إرسال إيصال تجريبي لإيميلي</button></div>
+      </div>
       <div class="pc"><h3>💳 إعدادات الدفع</h3>
         <p style="font-size:.8rem;color:var(--mt);margin-bottom:16px">طرق الدفع المتاحة للمستخدمين عند الشراء</p>
 
@@ -686,7 +694,7 @@ window.deleteArticle=async function(id){
 async function loadAll(){
   loadDashboard(); loadProducts(); loadCourses(); loadBooks();
   loadProjects(); loadTestimonials(); loadUsers(); loadMessages();
-  loadNewsletter(); loadConfig(); loadWorkshops(); loadCustomSections().then(()=>loadArticles());
+  loadNewsletter(); loadConfig(); loadEmailTpl(); loadWorkshops(); loadCustomSections().then(()=>loadArticles());
 }
 
 // DASHBOARD
@@ -921,6 +929,11 @@ window.wsShow=(id,keep)=>{
   document.getElementById('wsRegList').innerHTML=regs.map((r,i)=>`<div class="irow"><div class="iemoji" style="font-size:.85rem;color:var(--mt)">${i+1}</div><div class="iinfo"><div class="ititle">${escH(r.name)}</div><div class="imeta"><a href="https://wa.me/${escH(r.phone)}" target="_blank" rel="noopener" dir="ltr" style="color:var(--ok);text-decoration:none">💬 +${escH(r.phone)}</a>${r.email?' • <span dir="ltr">'+escH(r.email)+'</span>':''} • ${r.timestamp?.toDate?.()?.toLocaleDateString('ar')||'—'}<br>🌍 ${escH(r.country||'—')} • 🎓 ${escH(r.major||'—')}</div></div><button class="btn-del" onclick="delItem('workshop_registrations','${escH(r.id)}',loadWorkshops)">🗑️</button></div>`).join('')||'<p style="color:var(--mt);text-align:center;padding:30px">لا يوجد مسجلون بعد</p>';
   if(!keep)card.scrollIntoView({behavior:'smooth'});
 };
+// نص إيصال الدفع — site_config/emails
+const EM_KEYS=['receiptSubject','receiptTitle','receiptIntro','receiptFooter'];
+async function loadEmailTpl(){const s=await getDoc(doc(db,'site_config','emails'));const d=s.exists()?s.data():{};EM_KEYS.forEach(k=>{const el=document.getElementById('em-'+k);if(el)el.value=d[k]||'';});}
+window.saveEmailTpl=async()=>{const d={updatedAt:serverTimestamp()};EM_KEYS.forEach(k=>d[k]=document.getElementById('em-'+k).value.trim());await setDoc(doc(db,'site_config','emails'),d,{merge:true});toast('✅ تم حفظ نص الإيصال');};
+window.testReceipt=async()=>{await window.saveEmailTpl();toast('🧪 جاري إرسال إيصال تجريبي...');try{const r=await callFn('adminTestReceipt',{});toast('✅ انبعت لـ '+r.to,'ok');}catch(err){toast('⚠️ '+err.message,'err');}};
 window.wsMail=async test=>{
   const subject=document.getElementById('ws-mail-subj').value.trim(),message=document.getElementById('ws-mail-msg').value.trim();
   if(!_wsCur||!subject||!message){toast('⚠️ اكتب العنوان والنص','err');return;}
