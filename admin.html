@@ -725,7 +725,7 @@ async function loadProducts(){
   document.getElementById('pc').textContent=window._prods.length;
   const el=document.getElementById('prodList');
   if(!window._prods.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد منتجات</p>';return;}
-  el.innerHTML=window._prods.map(p=>`<div class="irow"><div class="iemoji">${p.emoji||'📦'}</div><div class="iinfo"><div class="ititle">${p.title||''}</div><div class="imeta">${p.type||''} • $${p.price||0}${fileBadge(p)}${isFreeItem(p)?' • <span style="color:var(--ok)">مجاني</span>':''}</div></div><div class="iacts"><button class="btn-edit" onclick="editItem('product','${p.id}')">✏️</button><button class="btn-del" onclick="delItem('products','${p.id}',loadProducts)">🗑️</button></div></div>`).join('');
+  el.innerHTML=window._prods.map(p=>`<div class="irow"><div class="iemoji">${p.emoji||'📦'}</div><div class="iinfo"><div class="ititle">${p.title||''}</div><div class="imeta">${p.type||''} • $${p.price||0}${fileBadge(p)}${isFreeItem(p)?' • <span style="color:var(--ok)">مجاني</span>':''}</div></div><div class="iacts"><button class="btn-edit" title="نسخ رابط الصفحة" onclick="copyItemLink('products','${p.id}')">🔗</button><button class="btn-edit" onclick="editItem('product','${p.id}')">✏️</button><button class="btn-del" onclick="delItem('products','${p.id}',loadProducts)">🗑️</button></div></div>`).join('');
 }
 window.loadProducts=loadProducts;
 
@@ -737,7 +737,7 @@ async function loadCourses(){
   document.getElementById('cc').textContent=window._courses.length;
   const el=document.getElementById('courseList');
   if(!window._courses.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد دورات</p>';return;}
-  el.innerHTML=window._courses.map(c=>`<div class="irow"><div class="iemoji">${c.emoji||'🎓'}</div><div class="iinfo"><div class="ititle">${c.title||''}</div><div class="imeta">${c.category||''} • $${c.price||0}${c.oldPrice?` <span style="text-decoration:line-through;color:var(--mt);font-size:.7rem">$${c.oldPrice}</span>`:''}${c.imageUrl?' • <span style="color:var(--ok)">🖼️</span>':''}${c.videoUrl?' • <span style="color:var(--ac)">▶️</span>':''}</div></div><div class="iacts"><button class="btn-edit" onclick="editItem('course','${c.id}')">✏️</button><button class="btn-del" onclick="delItem('courses','${c.id}',loadCourses)">🗑️</button></div></div>`).join('');
+  el.innerHTML=window._courses.map(c=>`<div class="irow"><div class="iemoji">${c.emoji||'🎓'}</div><div class="iinfo"><div class="ititle">${c.title||''}</div><div class="imeta">${c.category||''} • $${c.price||0}${c.oldPrice?` <span style="text-decoration:line-through;color:var(--mt);font-size:.7rem">$${c.oldPrice}</span>`:''}${c.imageUrl?' • <span style="color:var(--ok)">🖼️</span>':''}${c.videoUrl?' • <span style="color:var(--ac)">▶️</span>':''}</div></div><div class="iacts"><button class="btn-edit" title="نسخ رابط الصفحة" onclick="copyItemLink('courses','${c.id}')">🔗</button><button class="btn-edit" onclick="editItem('course','${c.id}')">✏️</button><button class="btn-del" onclick="delItem('courses','${c.id}',loadCourses)">🗑️</button></div></div>`).join('');
 }
 window.loadCourses=loadCourses;
 
@@ -749,7 +749,7 @@ async function loadBooks(){
   document.getElementById('bc').textContent=window._books.length;
   const el=document.getElementById('bookList');
   if(!window._books.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد كتب</p>';return;}
-  el.innerHTML=window._books.map(b=>`<div class="irow"><div class="iemoji">${b.emoji||'📚'}</div><div class="iinfo"><div class="ititle">${b.title||''}</div><div class="imeta">${b.author||''} • $${b.price||0}${isFreeItem(b)?' • <span style="color:var(--ok)">مجاني</span>':''}${fileBadge(b)}</div></div><div class="iacts"><button class="btn-edit" onclick="editItem('book','${b.id}')">✏️</button><button class="btn-del" onclick="delItem('books','${b.id}',loadBooks)">🗑️</button></div></div>`).join('');
+  el.innerHTML=window._books.map(b=>`<div class="irow"><div class="iemoji">${b.emoji||'📚'}</div><div class="iinfo"><div class="ititle">${b.title||''}</div><div class="imeta">${b.author||''} • $${b.price||0}${isFreeItem(b)?' • <span style="color:var(--ok)">مجاني</span>':''}${fileBadge(b)}</div></div><div class="iacts"><button class="btn-edit" title="نسخ رابط الصفحة" onclick="copyItemLink('books','${b.id}')">🔗</button><button class="btn-edit" onclick="editItem('book','${b.id}')">✏️</button><button class="btn-del" onclick="delItem('books','${b.id}',loadBooks)">🗑️</button></div></div>`).join('');
 }
 window.loadBooks=loadBooks;
 
@@ -761,7 +761,7 @@ async function loadProjects(){
   document.getElementById('prc').textContent=window._projects.length;
   const el=document.getElementById('projList');
   if(!window._projects.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد مشاريع — اضغط "إضافة مشروع"</p>';return;}
-  el.innerHTML=window._projects.map(p=>`<div class="irow"><div class="iemoji">${p.emoji||'🔧'}</div><div class="iinfo"><div class="ititle">${p.title||''}</div><div class="imeta">${p.category||''} • ${isFreeItem(p)?'<span style="color:var(--ok)">مجاني</span>':'$'+(p.price||0)}${p.oldPrice&&!isFreeItem(p)?` <span style="text-decoration:line-through;color:var(--mt);font-size:.7rem">$${p.oldPrice}</span>`:''}${fileBadge(p)}${p.videoUrl?' • <span style="color:var(--er)">▶️ فيديو</span>':''}</div></div><div class="iacts"><button class="btn-edit" onclick="editItem('project','${p.id}')">✏️</button><button class="btn-del" onclick="delItem('projects','${p.id}',loadProjects)">🗑️</button></div></div>`).join('');
+  el.innerHTML=window._projects.map(p=>`<div class="irow"><div class="iemoji">${p.emoji||'🔧'}</div><div class="iinfo"><div class="ititle">${p.title||''}</div><div class="imeta">${p.category||''} • ${isFreeItem(p)?'<span style="color:var(--ok)">مجاني</span>':'$'+(p.price||0)}${p.oldPrice&&!isFreeItem(p)?` <span style="text-decoration:line-through;color:var(--mt);font-size:.7rem">$${p.oldPrice}</span>`:''}${fileBadge(p)}${p.videoUrl?' • <span style="color:var(--er)">▶️ فيديو</span>':''}</div></div><div class="iacts"><button class="btn-edit" title="نسخ رابط الصفحة" onclick="copyItemLink('projects','${p.id}')">🔗</button><button class="btn-edit" onclick="editItem('project','${p.id}')">✏️</button><button class="btn-del" onclick="delItem('projects','${p.id}',loadProjects)">🗑️</button></div></div>`).join('');
 }
 window.loadProjects=loadProjects;
 
@@ -1056,6 +1056,10 @@ window.saveSec=async(sec)=>{
 };
 window.saveAllSections=async()=>{await Promise.all(['hero','social','brand','design','siteConfig','payment','seo'].map(s=>window.saveSec(s)));toast('✅ تم حفظ الكل!');};
 
+// 🔗 رابط صفحة العنصر — نفس منطق build-static-pages.mjs (slugify)
+function itemSlug(it){const c=String(it.slug||'').toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/^-+|-+$/g,'');if(c)return c;const w=(String(it.title||'').toLowerCase().match(/[a-z0-9]+/g)||[]).slice(0,5);return w.length?w.join('-')+'-'+it.id.slice(0,6).toLowerCase():it.id.toLowerCase();}
+window.copyItemLink=async(col,id)=>{const list={products:window._prods,courses:window._courses,books:window._books,projects:window._projects}[col]||[];const it=list.find(x=>x.id===id);if(!it)return;
+  const u=`https://www.3engs.com/${col}/${itemSlug(it)}/`;try{await navigator.clipboard.writeText(u);toast('🔗 تم نسخ الرابط — الصفحات الجديدة بتجهز خلال ساعة');}catch{prompt('رابط الصفحة:',u);}};
 window.delItem=async(col,id,reloadFn)=>{
   if(!confirm('تأكيد الحذف؟'))return;
   await deleteDoc(doc(db,col,id));
