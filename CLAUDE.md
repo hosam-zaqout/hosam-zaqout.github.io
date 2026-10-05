@@ -22,6 +22,11 @@
 - **الأدوات المتقدمة** (مدفوعة، افتراضياً $7، السعر من لوحة التحكم ← 💳 إعدادات الدفع): منتج `products/tools-pro` (slug `advanced-tools`). بعد الدفع تكتب الدالة `grantToolsPro` في `entitlements/{uid}.toolsPro`، و`assets/tools-pro.js` يتيح الحفظ في `tool_saves/{uid}/items` وتقرير PDF (نافذة طباعة). القواعد تمنع الحفظ دون الصلاحية.
 - جداول الأسلاك (IEC 60364-5-52 B.52.4 طريقة C، و NEC 310.16 عمود 75°C) وافتراضات المنظومة الشمسية **بانتظار مراجعة حسام الهندسية**.
 
+## 3ENG CAD — محاكي الدوائر `/cad/`
+- صفحة ثابتة مكتوبة يدوياً `cad/index.html` (عربي/إنجليزي، `?lang=ar|en&c=<file>`، اللغة محفوظة في localStorage `cad-lang`) فيها مكتبة دوائر جاهزة مشروحة (مصفوفة `LIB`) وإطار للمحاكي.
+- المحرك: نسخة مبنية غير معدّلة من CircuitJS1 (GPL-2، Paul Falstad و Iain Sharp) منسوخة من falstad.com إلى `cad/sim/` (`circuitjs110/` + `circuits/` + الخطوط)، مع إضافات: `circuitjs110/locale_ar.txt` (ترجمة عربية لأهم النصوص، والباقي يبقى إنجليزياً)، و`iframe.html` (شعار الشريط الجانبي)، وتعديلات CSS في `circuitjs.html`. يُحمَّل بـ `circuitjs.html?lang=ar&startCircuit=<file>.txt`.
+- الإشارة للترخيص ورابط المصدر في تذييل الصفحة إلزامية (GPL).
+
 ## الدفع — بوابة Togo (https://api.togo.ps/docs)
 - المفتاح في Secret Manager: `TOGO_API_KEY` (لا يُكتب بالكود أبداً).
 - التدفق: `createPayment` (POST form) → يقرأ الأسعار من Firestore → receiver address (مخزّن بـ `users/{uid}.togoReceivers`) → `POST /api/v1/actions` (Create_Visa, type RFP, USD, prevent_sms_link) → redirect إلى `direct-pay?orderId=<hashed_id>`.
@@ -45,7 +50,7 @@
 2. **اختبار الإيميلات** (الإيصال التجريبي + تجربة إيميل الورشة) و**الأدوات المتقدمة** (طلب يدوي بمبلغ 0 لحساب حسام ثم حفظ/تقرير).
 3. `https://3engs.com` بدون www: سجلات A الأربعة صحيحة و http يحوّل، لكن شهادة SSL للدومين بدون www لم تصدر بعد — إن استمر: إزالة الدومين من GitHub Pages وإعادة إضافته ثم Enforce HTTPS.
 4. بعد اختبار الدفع: عناوين أنظف (`/login/` بدل auth.html، `/payment/` بدل payment-success.html — انتبه لروابط الرجوع في createPayment).
-5. المحاكي الرسومي (CircuitJS، ترخيص GPL) بواجهة عربية ودوائر جاهزة — آخر مرحلة من قسم الحاسبات.
+5. 3ENG CAD منشور على /cad/ — توسيع الترجمة العربية في locale_ar.txt وإضافة دوائر للمكتبة حسب الحاجة.
 6. صور وروابط LinkedIn لـ م. إسراء و م. فرات؛ الدورات الحقيقية (الموقع الآن يعرض العدد الفعلي)؛ مراجعة المقالات المسودّة ونشرها؛ Google Business Profile وتقييمات حقيقية.
 
 ## قواعد مهمة
