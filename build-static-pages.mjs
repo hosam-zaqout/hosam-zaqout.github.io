@@ -35,6 +35,7 @@ import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 // محوّل نصوص المقالات — نفس الملف اللي تستخدمه لوحة التحكم وصفحة 404
 await import(new URL("./assets/md.js", import.meta.url));
+import { TOOLS, TOOL_CATS } from "./tools-data.mjs";
 const md = globalThis.md3;
 
 // ---------------- الإعدادات ----------------
@@ -268,6 +269,29 @@ footer nav{display:flex;justify-content:center;flex-wrap:wrap;gap:16px;margin-bo
 .prose pre{background:#0a0f1d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto;direction:ltr;text-align:left;margin:14px 0}
 .prose pre code{background:none;padding:0}
 .tbl{overflow-x:auto;margin:14px 0}.tbl table{border-collapse:collapse;width:100%;font-size:.94rem}.tbl th,.tbl td{border:1px solid var(--line);padding:8px 12px;text-align:right;vertical-align:top}.tbl th{background:#1a2340;color:var(--acc2)}.tbl tr:nth-child(even) td{background:#0f1528}
+.calc .fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:14px}
+.calc label{display:flex;flex-direction:column;gap:4px;font-size:.86rem;color:var(--mut)}
+.calc input,.calc select{background:#0a0f1d;border:1px solid var(--line);border-radius:10px;padding:9px 12px;color:var(--txt);font:inherit;width:100%}
+.calc input:focus,.calc select:focus{outline:none;border-color:var(--acc)}
+.calc .u{display:flex;gap:6px}.calc .u select{width:auto}
+.calc .chk{flex-direction:row;align-items:center;gap:8px}.calc .chk input{width:auto}
+.calc .sub{grid-column:1/-1;margin:0}
+.res{display:grid;gap:6px}.res .r{display:flex;justify-content:space-between;gap:10px;padding:9px 12px;background:#0f1528;border-radius:10px}.res .r.main{border:1px solid var(--acc);background:#1c2542}.res .r.main b{color:var(--acc2);font-size:1.1rem}
+.hint{font-size:.82rem;color:var(--mut);margin-top:8px}
+.warn{background:#3b2a0a;border:1px solid #F59E0B55;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:.9rem}
+.rsvg{width:100%;max-width:320px;display:block;margin:0 auto 12px}
+.rev{margin:6px 0 14px;font-size:.9rem}.rev .u{max-width:260px;margin:6px 0}
+.tblw{overflow-x:auto}.loads{width:100%;border-collapse:collapse;font-size:.88rem}.loads th{color:var(--mut);text-align:right;padding:6px}.loads td{padding:4px}.loads{table-layout:fixed}.loads th:nth-child(1){width:34%}.loads th:last-child{width:28px}.loads th{font-size:.78rem}.loads input{padding:7px 6px;min-width:0}
+.calc .add{background:none;border:1px dashed var(--acc);color:var(--acc2);border-radius:10px;padding:7px 14px;margin:8px 0 14px;font:inherit;cursor:pointer}
+.calc .del{background:none;border:0;color:#f87171;cursor:pointer;font-size:1rem}
+.tlinks{display:flex;flex-wrap:wrap;gap:8px}.tlinks a{border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:.88rem}.tlinks a:hover{border-color:var(--acc)}
+[hidden]{display:none!important}
+.answer b,.box p b{direction:ltr;unicode-bidi:isolate}
+.vd{position:relative;max-width:520px;margin:4px auto 6px;aspect-ratio:480/300;color:#cbd3e6}.vd svg{width:100%;height:100%;display:block}.vd .lbl{fill:var(--acc2)}
+.vd input{position:absolute;width:21%;padding:6px 8px;text-align:center;font-weight:700;background:#0a0f1d;border:1.5px solid var(--acc);border-radius:9px;color:var(--txt);font:inherit;font-size:.95rem}
+.vd input.auto{border-color:var(--ok);color:var(--ok);background:#0d2a22;box-shadow:0 0 0 3px #34d39933}
+.calc .clr{background:none;border:0;color:var(--acc);text-decoration:underline;cursor:pointer;font:inherit}
+@media(max-width:480px){.vd input{font-size:.8rem;padding:4px}.vd .lbl{font-size:18px}}
 @media(max-width:820px){.hero,.grid2{grid-template-columns:1fr}.nav{display:none}h1{font-size:1.4rem}.facts th{white-space:normal}}
 `;
 
@@ -307,13 +331,13 @@ ${schemas.map(jsonLd).join("\n")}
 <body>
 <header class="top"><div class="wrap">
   <a class="logo" href="/"><img src="/logo.jpg" alt="شعار 3ENG.s" width="36" height="36">${BRAND}</a>
-  <nav class="nav">${SECTIONS.map((s) => `<a href="/${s.dir}/">${s.label}</a>`).join("")}<a href="/topics/">التصنيفات</a></nav>
+  <nav class="nav">${SECTIONS.map((s) => `<a href="/${s.dir}/">${s.label}</a>`).join("")}<a href="/tools/">الحاسبات</a><a href="/topics/">التصنيفات</a></nav>
 </div></header>
 <main class="wrap">
 ${body}
 </main>
 <footer><div class="wrap">
-  <nav><a href="/">الرئيسية</a>${SECTIONS.map((s) => `<a href="/${s.dir}/">${s.label}</a>`).join("")}<a href="/topics/">التصنيفات</a><a href="/team/">الفريق</a><a href="/about/">من نحن</a><a href="/#faq">الأسئلة الشائعة</a><a href="/privacy.html">سياسة الخصوصية</a></nav>
+  <nav><a href="/">الرئيسية</a>${SECTIONS.map((s) => `<a href="/${s.dir}/">${s.label}</a>`).join("")}<a href="/tools/">الحاسبات</a><a href="/topics/">التصنيفات</a><a href="/team/">الفريق</a><a href="/about/">من نحن</a><a href="/#faq">الأسئلة الشائعة</a><a href="/privacy.html">سياسة الخصوصية</a></nav>
   © ${new Date().getFullYear()} ${BRAND} — ${BRAND_AR} • منصة تعليم الهندسة الكهربائية والأنظمة المدمجة
 </div></footer>
 </body>
@@ -923,6 +947,48 @@ function teamHub(list) {
   });
 }
 
+// ---------------- الحاسبات /tools/ ----------------
+const TOOLS_DISCLAIMER = `<p class="warn">⚠️ النتائج للتعلّم والتقدير المبدئي. التمديدات الكهربائية والمنظومات الحقيقية لازم يصممها أو يراجعها مهندس كهربائي مرخّص حسب الكود المحلي.</p>`;
+function toolPage(t, all) {
+  const url = `/tools/${t.slug}/`;
+  const bc = crumbs([{ name: "الرئيسية", url: "/" }, { name: "الحاسبات الهندسية", url: "/tools/" }, { name: t.name, url }]);
+  const app = {
+    "@context": "https://schema.org", "@type": "WebApplication", name: t.title, url: SITE + url, description: t.desc,
+    applicationCategory: "EducationalApplication", operatingSystem: "Any", inLanguage: "ar", isAccessibleForFree: true,
+    offers: { "@type": "Offer", price: "0", priceCurrency: "USD" }, publisher: { "@id": ORG_ID },
+  };
+  const faq = { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: t.faq.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) };
+  const related = all.filter((it) => itemTopics(it).some((x) => t.topics.includes(x.slug))).slice(0, 4);
+  const siblings = TOOLS.filter((x) => x.slug !== t.slug);
+  const body = `${bc.html}
+<h1>${esc(t.emoji)} ${esc(t.title)}</h1>
+<section class="box answer"><h2>✅ باختصار</h2><p>${t.answer}</p></section>
+<section class="box calc" data-tool="${t.slug}"><h2>🧮 الحاسبة</h2>${t.form}<div class="out" aria-live="polite"></div></section>
+${t.warn ? TOOLS_DISCLAIMER : ""}
+<section class="box"><h2>📐 طريقة الحساب</h2>${t.how}</section>
+<section class="box"><h2>📝 مثال</h2><p>${t.example}</p></section>
+<section class="box faq"><h2>❓ أسئلة شائعة</h2>${t.faq.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}</section>
+${related.length ? `<h2 class="sec-title">📚 تعلّم أكثر</h2><div class="cards">${related.map((w) => card(w._sec, w, true)).join("")}</div>` : ""}
+<h2 class="sec-title">🧮 حاسبات أخرى</h2>
+<div class="tlinks">${siblings.map((x) => `<a href="/tools/${x.slug}/">${esc(x.emoji)} ${esc(x.name)}</a>`).join("")}</div>
+<script src="/assets/tools.js?v=1" defer></script>`;
+  return layout({ title: `${t.title} | ${BRAND}`, description: t.desc, canonical: SITE + url, schemas: [app, faq, bc.schema], body });
+}
+function toolsHub() {
+  const url = "/tools/";
+  const bc = crumbs([{ name: "الرئيسية", url: "/" }, { name: "الحاسبات الهندسية", url }]);
+  const list = { "@context": "https://schema.org", "@type": "ItemList", itemListElement: TOOLS.map((t, i) => ({ "@type": "ListItem", position: i + 1, url: `${SITE}/tools/${t.slug}/`, name: t.title })) };
+  const body = `${bc.html}
+<h1>🧮 الحاسبات الهندسية — ${BRAND}</h1>
+<p class="lead">حاسبات كهربائية مجانية بالعربي: قانون أوم، مقاومة الـ LED، مقسّم الجهد، ألوان المقاومات، مقطع السلك وهبوط الجهد، ومنظومات الطاقة الشمسية — مع شرح المعادلات وأمثلة.</p>
+${TOOL_CATS.map((c) => { const ts = TOOLS.filter((t) => t.cat === c.id); return ts.length ? `<h2 class="sec-title">${c.emoji} ${esc(c.label)}</h2><div class="cards">${ts.map((t) => `<a class="card" href="/tools/${t.slug}/"><div class="ph">${esc(t.emoji)}</div><div class="b"><h3>${esc(t.title)}</h3><div class="k">${esc(cut(t.desc, 90))}</div></div></a>`).join("")}</div>` : ""; }).join("")}`;
+  return layout({
+    title: `الحاسبات الهندسية والكهربائية بالعربي | ${BRAND}`,
+    description: cut(`حاسبات كهربائية مجانية بالعربي من ${BRAND}: قانون أوم، مقاومة LED، مقسّم الجهد، ألوان المقاومات، مقطع السلك وهبوط الجهد، وحاسبة منظومة الطاقة الشمسية.`, 155),
+    canonical: SITE + url, schemas: [list, bc.schema], body,
+  });
+}
+
 // ---------------- صفحة من نحن /about/ — الهوية، الفريق، الدفع والاسترداد، التواصل ----------------
 function aboutPage(list, counts) {
   const url = "/about/";
@@ -1284,6 +1350,15 @@ async function main() {
   if (await writeFile("about/index.html", aboutPage(teamList, counts))) changed.push(`${SITE}/about/`);
   entries.push({ loc: "/about/", priority: 0.7 });
   console.log(`👷 الفريق: ${TEAM.length} صفحات + من نحن`);
+
+  // 3.6) الحاسبات
+  if (await writeFile("tools/index.html", toolsHub())) changed.push(`${SITE}/tools/`);
+  entries.push({ loc: "/tools/", priority: 0.8 });
+  for (const t of TOOLS) {
+    if (await writeFile(`tools/${t.slug}/index.html`, toolPage(t, all))) changed.push(`${SITE}/tools/${t.slug}/`);
+    entries.push({ loc: `/tools/${t.slug}/`, priority: 0.7 });
+  }
+  console.log(`🧮 الحاسبات: ${TOOLS.length}`);
 
   // 4) صفحات التصنيف — فقط للتصنيفات اللي فيها عنصرين أو أكثر (بلا صفحات ضعيفة)
   const topicList = TAXONOMY.map((t) => [t, all.filter((it) => itemTopics(it).includes(t))]).filter(([, items]) => items.length >= 2);
