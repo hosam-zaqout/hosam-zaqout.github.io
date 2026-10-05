@@ -29,9 +29,9 @@ async function init() {
   const upsell = () => {
     if (!user) {
       const back = encodeURIComponent(location.href.startsWith("https://www.3engs.com/") ? location.href : "https://www.3engs.com" + location.pathname);
-      return show(`🔐 حفظ الحسابات وتصدير التقارير جزء من <b>الأدوات المتقدمة</b>. <a href="/auth.html?redirect=${back}">سجّل دخول</a> أولاً.`);
+      return show(`🔐 حفظ الحسابات وتصدير التقارير جزء من <b>الأدوات المتقدمة</b>. يُرجى <a href="/auth.html?redirect=${back}">تسجيل الدخول</a> أولاً.`);
     }
-    show(`⭐ <b>الأدوات المتقدمة</b>${price ? ` — <b>$${esc(price)}</b> مرة وحدة` : ""}: احفظ حساباتك بحسابك وارجعلها بأي وقت، وصدّر تقرير PDF مرتّب لكل حاسبة. <a class="pro-buy" href="/?open=products:${PRO_ID}">🛒 اشترِ الآن</a>`);
+    show(`⭐ <b>الأدوات المتقدمة</b>${price ? ` — <b>$${esc(price)}</b> لمرة واحدة` : ""}: احفظ حساباتك في حسابك وارجع إليها في أي وقت، وصدّر تقريراً منسّقاً بصيغة PDF لكل حاسبة. <a class="pro-buy" href="/?open=products:${PRO_ID}">🛒 اشترِ الآن</a>`);
   };
 
   // المدخلات: كل الحقول بترتيبها — الحقول المحسوبة (auto) ما بتنحفظ
@@ -59,7 +59,7 @@ async function init() {
     const snap = await F.getDocs(F.query(F.collection(db, "tool_saves", user.uid, "items"), F.where("tool", "==", tool)));
     const items = snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
     list.hidden = false;
-    list.innerHTML = `<b>📁 حساباتي المحفوظة (${items.length})</b>` + (items.length ? items.map((it) => `<div class="pro-item"><span>${esc(it.title)}<small>${it.createdAt?.toDate?.().toLocaleDateString("ar") || ""}</small></span><button type="button" data-load="${it.id}">↩️ فتح</button><button type="button" data-del="${it.id}">🗑️</button></div>`).join("") : `<p class="hint">لسا ما حفظت أي حساب بهالحاسبة.</p>`);
+    list.innerHTML = `<b>📁 حساباتي المحفوظة (${items.length})</b>` + (items.length ? items.map((it) => `<div class="pro-item"><span>${esc(it.title)}<small>${it.createdAt?.toDate?.().toLocaleDateString("ar") || ""}</small></span><button type="button" data-load="${it.id}">↩️ فتح</button><button type="button" data-del="${it.id}">🗑️</button></div>`).join("") : `<p class="hint">لا توجد حسابات محفوظة لهذه الحاسبة بعد.</p>`);
     list.querySelectorAll("[data-load]").forEach((b) => (b.onclick = () => { const it = items.find((x) => x.id === b.dataset.load); restore(it.inputs || []); calc.scrollIntoView({ behavior: "smooth" }); }));
     list.querySelectorAll("[data-del]").forEach((b) => (b.onclick = async () => { if (!confirm("حذف هذا الحساب؟")) return; await F.deleteDoc(F.doc(db, "tool_saves", user.uid, "items", b.dataset.del)); loadList(); }));
   }
@@ -77,13 +77,13 @@ async function init() {
     if (!act) return;
     if (!pro) return upsell();
     const res = results();
-    if (!res.length) return show("⚠️ عبّي الحاسبة أولاً لحد ما تطلع النتيجة.");
+    if (!res.length) return show("⚠️ أدخل القيم أولاً حتى تظهر النتيجة.");
     if (act === "save") {
       const title = prompt("اسم الحساب:", `${toolName.replace(/^\S+\s/, "")} — ${new Date().toLocaleDateString("ar")}`);
       if (!title) return;
       try {
         await F.addDoc(F.collection(db, "tool_saves", user.uid, "items"), { tool, title: title.slice(0, 120), inputs: snapshot(), results: res, createdAt: F.serverTimestamp() });
-        show("✅ انحفظ الحساب");
+        show("✅ حُفظ الحساب");
         loadList();
       } catch (err) { console.error(err); show("⚠️ تعذّر الحفظ، حاول مرة أخرى"); }
     } else report(res);
@@ -101,7 +101,7 @@ async function init() {
       fig = `<div class="fig${svg.classList.contains("vd") ? "" : " plain"}">${clone.outerHTML}</div>`;
     }
     const w = window.open("", "_blank");
-    if (!w) return show("⚠️ المتصفح منع فتح نافذة التقرير — اسمح بالنوافذ المنبثقة");
+    if (!w) return show("⚠️ منع المتصفح فتح نافذة التقرير؛ اسمح بالنوافذ المنبثقة لهذا الموقع");
     w.document.write(`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>تقرير — ${esc(toolName)}</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
 <style>body{font-family:Cairo,Tahoma,sans-serif;color:#0f172a;max-width:760px;margin:24px auto;padding:0 18px}header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #F59E0B;padding-bottom:10px;margin-bottom:18px}header b{font-size:1.4rem;color:#D97706}h1{font-size:1.25rem}h2{font-size:1rem;color:#D97706;margin:18px 0 8px}table{width:100%;border-collapse:collapse;font-size:.92rem}th,td{border:1px solid #e2e8f0;padding:7px 10px;text-align:right}th{background:#f8fafc;width:45%}.fig{max-width:520px;margin:10px auto;position:relative;aspect-ratio:480/300;color:#334155}.fig svg{width:100%;height:100%}.fig .lbl{fill:#D97706}.fig input{position:absolute;width:21%;text-align:center;border:1.5px solid #F59E0B;border-radius:8px;padding:4px;font:inherit;font-size:.85rem;background:#fff}.fig input.auto{border-color:#10B981;color:#047857}.fig.plain{aspect-ratio:auto;max-width:300px}footer{margin-top:24px;font-size:.78rem;color:#64748b;border-top:1px solid #e2e8f0;padding-top:8px}@media print{.noprint{display:none}}</style></head><body>

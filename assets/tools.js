@@ -68,8 +68,8 @@
     $(root, ".clr").onclick = () => { autos = []; KEYS.forEach((k) => { inp(k).value = ""; inp(k).classList.remove("auto"); }); root.dispatchEvent(new Event("input")); };
     bind(root, () => {
     const filled = KEYS.filter((k) => !autos.includes(k) && inp(k).value.trim() !== "");
-    if (filled.length < 2) { clearAutos(); return out(root, null, "عبّي أي خانتين من الأربعة على الرسمة"); }
-    if (filled.length > 2) { clearAutos(); return out(root, null, "عبّي خانتين بس — فرّغ الخانات اللي بدك تحسبها"); }
+    if (filled.length < 2) { clearAutos(); return out(root, null, "أدخل أي قيمتين من القيم الأربع على الرسمة"); }
+    if (filled.length > 2) { clearAutos(); return out(root, null, "أدخل قيمتين فقط، واترك الخانتين المطلوب حسابهما فارغتين"); }
     const g = (k) => (filled.includes(k) ? num(root, k) : NaN);
     let V = g("v"), I = g("i"), R = g("r"), P = g("p");
     if (isFinite(V) && isFinite(I)) { R = V / I; P = V * I; }
@@ -78,7 +78,7 @@
     else if (isFinite(I) && isFinite(R)) { V = I * R; P = V * I; }
     else if (isFinite(I) && isFinite(P)) { V = P / I; R = V / I; }
     else { V = Math.sqrt(P * R); I = V / R; }
-    if (![V, I, R, P].every((x) => isFinite(x) && x > 0)) { clearAutos(); return out(root, null, "القيم غير منطقية — لازم تكون موجبة"); }
+    if (![V, I, R, P].every((x) => isFinite(x) && x > 0)) { clearAutos(); return out(root, null, "القيم غير صالحة؛ يجب أن تكون موجبة"); }
     const vals = { v: V, i: I, r: R, p: P };
     autos = KEYS.filter((k) => !filled.includes(k));
     autos.forEach((k) => { inp(k).value = +vals[k].toPrecision(4); inp(k).classList.add("auto"); });
@@ -95,7 +95,7 @@
       const Vs = num(root, "vs"), Vf = num(root, "vf"), If = num(root, "if") / 1000, n = Math.max(1, Math.round(num(root, "n") || 1));
       if (![Vs, Vf, If].every(isFinite) || If <= 0) return out(root, null);
       const drop = Vs - n * Vf;
-      if (drop <= 0) return out(root, null, `جهد المصدر (${Vs} V) لازم يكون أكبر من مجموع جهود الـ LED (${fx(n * Vf)} V) — قلّل عدد الـ LED بالتوالي أو ارفع الجهد`);
+      if (drop <= 0) return out(root, null, `يجب أن يكون جهد المصدر (${Vs} V) أكبر من مجموع جهود الثنائيات (${fx(n * Vf)} V)؛ قلّل عدد الثنائيات على التوالي أو ارفع الجهد`);
       const R = drop / If, Rstd = eSeries(R, E24, 1), Ireal = drop / Rstd, P = drop * Ireal;
       $(root, "[name=r]").value = si(Rstd, "Ω");
       out(root, [
@@ -105,7 +105,7 @@
         ["قدرة المقاومة", si(P, "W")],
         ["قدرة المقاومة المقترحة", wName(ratingFor(P))],
         ["القدرة الكلية من المصدر", si(Vs * Ireal, "W")],
-      ], "اخترنا القيمة القياسية الأكبر عشان التيار ما يتجاوز المطلوب، وقدرة المقاومة بهامش أمان ×2.");
+      ], "اختيرت القيمة القياسية الأكبر حتى لا يتجاوز التيار المطلوب، واقتُرحت قدرة للمقاومة بهامش أمان مضاعف.");
     });
   };
 
@@ -120,8 +120,8 @@
     bind(root, () => {
       const filled = KEYS.filter((k) => k !== auto && inp(k).value.trim() !== "");
       const clearAuto = () => { if (auto) { inp(auto).value = ""; inp(auto).classList.remove("auto"); auto = null; } };
-      if (filled.length < 3) { clearAuto(); return out(root, null, "عبّي 3 خانات من الأربعة على الرسمة"); }
-      if (filled.length > 3) return out(root, null, "عبّي 3 خانات بس — فرّغ الخانة اللي بدك تحسبها");
+      if (filled.length < 3) { clearAuto(); return out(root, null, "أدخل ثلاث قيم من القيم الأربع على الرسمة"); }
+      if (filled.length > 3) return out(root, null, "أدخل ثلاث قيم فقط، واترك الخانة المطلوب حسابها فارغة");
       const miss = KEYS.find((k) => !filled.includes(k));
       let Vin = num(root, "vin"), R1 = num(root, "r1") * 1000, R2 = num(root, "r2") * 1000, Vout = num(root, "vout");
       if (miss === "vout") Vout = Vin * R2 / (R1 + R2);
@@ -129,7 +129,7 @@
       else if (miss === "r1") R1 = R2 * (Vin - Vout) / Vout;
       else R2 = R1 * Vout / (Vin - Vout);
       const ok = [Vin, R1, R2, Vout].every((x) => isFinite(x) && x > 0) && Vout < Vin;
-      if (!ok) { clearAuto(); return out(root, null, "القيم غير منطقية — لازم كلها موجبة و Vout أقل من Vin"); }
+      if (!ok) { clearAuto(); return out(root, null, "القيم غير صالحة؛ يجب أن تكون جميعها موجبة، وأن يكون جهد الخرج أقل من جهد الدخل"); }
       if (auto && auto !== miss) clearAuto();
       auto = miss;
       const v = { vin: Vin, r1: R1 / 1000, r2: R2 / 1000, vout: Vout }[miss];
@@ -143,7 +143,7 @@
         rows.push([`أقرب ${miss.toUpperCase()} قياسية (E24)`, si(s, "Ω")], ["Vout بالقيمة القياسية", `${si(Vs, "V")} (${fx((Vs - Vout) / Vout * 100, 2)} %)`]);
       }
       rows.push(["النسبة Vout/Vin", fx(Vout / Vin, 4)], ["تيار المقسّم", si(I, "A")], ["قدرة R1", si(I * I * R1, "W")], ["قدرة R2", si(I * I * R2, "W")]);
-      out(root, rows, "النتيجة بدون حِمل. لو وصلت حِمل على الخرج مقاومته مش أكبر بكثير من R2 (×10 على الأقل)، الجهد بينزل.");
+      out(root, rows, "النتيجة دون حِمل؛ وإذا وُصل بالخرج حِمل لا تزيد مقاومته على عشرة أضعاف R2 فسينخفض الجهد.");
     });
   };
 
@@ -224,26 +224,26 @@
       if (std === "iec") {
         const loaded = sys === "ac3" ? 2 : 1;
         const pick = IEC.find((r) => r[loaded] >= I && vdOf(r[0]) <= V * vdMax / 100);
-        if (!pick) return out(root, rows.concat([["النتيجة", "التيار أو الطول كبير جداً — استخدم كوابل متوازية أو استشر مهندس"]]));
+        if (!pick) return out(root, rows.concat([["النتيجة", "التيار أو الطول كبير جداً؛ استخدم كوابل متوازية أو استشر مهندساً مختصاً"]]));
         const Iz = pick[loaded], In = MCB_IEC.find((b) => b >= I && b <= Iz);
         const vd = vdOf(pick[0]);
         out(root, rows.concat([
           ["المقطع المقترح (IEC)", pick[0] + " mm²", true], ["قدرة تحمّل الكابل Iz", Iz + " A"],
           ["هبوط الجهد الفعلي", `${fx(vd)} V (${fx(vd / V * 100)} %)`],
-          ["القاطع المقترح In", In ? In + " A" : "لا يوجد قاطع قياسي بين Ib و Iz — كبّر المقطع"],
-        ]), "حسب IEC 60364-5-52 (طريقة C، نحاس PVC، 30°C). الشرط: Ib ≤ In ≤ Iz. ظروف تركيب مختلفة (مواسير مدفونة، تجميع كوابل، حرارة أعلى) بتقلّل قدرة التحمّل.");
+          ["القاطع المقترح In", In ? In + " A" : "لا يوجد قاطع قياسي بين تيار الحِمل وتحمّل الكابل؛ اختر مقطعاً أكبر"],
+        ]), "وفق IEC 60364-5-52 (طريقة التركيب C، نحاس بعزل PVC، 30°م). وتقلّل ظروف التركيب المختلفة، كالتمديد في مواسير مدفونة أو تجميع الكوابل أو ارتفاع الحرارة، من قدرة التحمّل.");
       } else {
         const cont = $(root, "[name=cont]").checked, Ireq = cont ? I * 1.25 : I;
         const pick = AWG.find((r) => r[2] >= Ireq && vdOf(r[1]) <= V * vdMax / 100);
-        if (!pick) return out(root, rows.concat([["النتيجة", "أكبر من 4/0 AWG — استخدم kcmil أو كوابل متوازية"]]));
+        if (!pick) return out(root, rows.concat([["النتيجة", "أكبر من 4/0 AWG؛ استخدم مقاطع kcmil أو كوابل متوازية"]]));
         const maxOcpd = pick[3] || pick[2];
         const ocpd = OCPD_NEC.find((b) => b >= Ireq);
         const vd = vdOf(pick[1]);
         out(root, rows.concat([
           ["المقطع المقترح (NEC)", pick[0] + " AWG", true], ["المساحة", pick[1] + " mm²"], ["قدرة التحمّل (75°C)", pick[2] + " A"],
           ["هبوط الجهد الفعلي", `${fx(vd)} V (${fx(vd / V * 100)} %)`],
-          ["القاطع المقترح", ocpd && ocpd <= maxOcpd ? ocpd + " A" : `كبّر المقطع (أقصى قاطع لهذا السلك ${maxOcpd} A)`],
-        ]), "حسب NEC 310.16 (نحاس، عمود 75°C) و240.4(D) للمقاطع 14–10 AWG." + (cont ? " تم ضرب التيار ×1.25 للحمل المستمر." : ""));
+          ["القاطع المقترح", ocpd && ocpd <= maxOcpd ? ocpd + " A" : `اختر مقطعاً أكبر (أقصى قاطع لهذا السلك ${maxOcpd} A)`],
+        ]), "وفق الجدول 310.16 من NEC (نحاس، عمود 75°م) والبند 240.4(D) للمقاطع من 14 إلى 10 AWG." + (cont ? " وضُرب التيار في 1.25 لأن الحِمل مستمر." : ""));
       }
     });
   };
@@ -257,7 +257,7 @@
       tr.querySelector(".del").onclick = () => { tr.remove(); root.dispatchEvent(new Event("input")); };
       tbody.appendChild(tr);
     };
-    [["لمبات LED", 10, 6, 6], ["ثلاجة", 150, 1, 10], ["راوتر", 12, 1, 24], ["شاحن لابتوب", 65, 1, 5]].forEach((r) => row(...r));
+    [["مصابيح LED", 10, 6, 6], ["ثلاجة", 150, 1, 10], ["موجّه الإنترنت", 12, 1, 24], ["شاحن حاسوب محمول", 65, 1, 5]].forEach((r) => row(...r));
     $(root, ".add").onclick = () => { row(); };
     bind(root, () => {
       let E = 0, Pmax = 0;
@@ -280,8 +280,8 @@
         ["الاستهلاك اليومي", fx(E / 1000, 2) + " kWh"], ["أقصى حِمل لحظي", fx(Pmax, 0) + " W"],
         ["قدرة الألواح المطلوبة", fx(Wp, 0) + " Wp"], [`عدد الألواح (${pw} W)`, panels + " لوح", true],
         [`جهد نظام البطاريات${auto ? " (مقترح)" : ""}`, Vb + " V"], ["سعة البطاريات", fx(Ah, 0) + " Ah @ " + Vb + " V", true],
-        ["قدرة الإنفرتر (هامش 25%)", fx(invW, 0) + " W", true], ["تيار منظّم الشحن MPPT", "≥ " + fx(Icc, 0) + " A"],
-      ], "تقدير مبدئي: كفاءة إنفرتر 90%. للأحمال اللي فيها مواتير (ثلاجة، مضخة، مكيف) اختار إنفرتر بيتحمّل تيار البدء (Surge) 2–3 أضعاف قدرتها. تأكد من مواصفات الألواح والبطاريات من الشركة المصنّعة.");
+        ["قدرة العاكس (بهامش 25%)", fx(invW, 0) + " W", true], ["تيار منظّم الشحن", "≥ " + fx(Icc, 0) + " A"],
+      ], "تقدير مبدئي بافتراض كفاءة عاكس 90%. للأحمال التي تحتوي محركات (كالثلاجة والمضخة والمكيّف) اختر عاكساً يتحمّل تيار البدء بمقدار ضعفين إلى ثلاثة أضعاف قدرتها، وراجع مواصفات الألواح والبطاريات لدى الشركة المصنّعة.");
     });
   };
 
@@ -325,15 +325,15 @@
   T["series-parallel"] = (root) => bind(root, () => {
     const fig = $(root, ".sp-fig");
     const vals = String(val(root, "list") || "").split(/[\s,،;+]+/).filter(Boolean).map(parseSI);
-    if (vals.length < 2 || vals.some((v) => !(v > 0))) { fig.innerHTML = ""; return out(root, null, "اكتب قيمتين أو أكثر مفصولين بفاصلة، مثل: 10k, 4.7k, 2.2k"); }
+    if (vals.length < 2 || vals.some((v) => !(v > 0))) { fig.innerHTML = ""; return out(root, null, "اكتب قيمتين أو أكثر مفصولة بفواصل، مثل: 10k, 4.7k, 2.2k"); }
     const kind = val(root, "kind"), conn = val(root, "conn"), u = kind === "c" ? "F" : kind === "l" ? "H" : "Ω";
     const sum = vals.reduce((a, b) => a + b, 0), inv = 1 / vals.reduce((a, b) => a + 1 / b, 0);
     // المكثفات عكس المقاومات والملفات
     const ser = kind === "c" ? inv : sum, par = kind === "c" ? sum : inv;
     fig.innerHTML = spFigure(kind, conn, vals, u);
     const main = conn === "s" ? ["المكافئ على التوالي", si(ser, u), true] : ["المكافئ على التوازي", si(par, u), true];
-    out(root, [main, ["عدد العناصر", String(vals.length)], [conn === "s" ? "لو كانت على التوازي" : "لو كانت على التوالي", si(conn === "s" ? par : ser, u)]],
-      kind === "c" ? "المكثفات: بالتوازي بتنجمع، وبالتوالي بتنحسب بمقلوب المجموع." : "بالتوالي بتنجمع، وبالتوازي مقلوب المجموع = مجموع المقلوبات.");
+    out(root, [main, ["عدد العناصر", String(vals.length)], [conn === "s" ? "المكافئ لو وُصلت على التوازي" : "المكافئ لو وُصلت على التوالي", si(conn === "s" ? par : ser, u)]],
+      kind === "c" ? "تُجمع المكثفات على التوازي، ويُحسب مكافئها على التوالي بمجموع المقلوبات." : "تُجمع القيم على التوالي، ويُحسب المكافئ على التوازي بمجموع المقلوبات.");
   });
 
   // ───────── ثابت الزمن RC ─────────
@@ -352,20 +352,20 @@
     bind(root, () => {
       const mode = val(root, "mode");
       if (mode === "bi") {
-        return out(root, [["التوقيت", "لا يوجد — الخرج بيتغير بالأزرار", true], ["ضغط SET (الرجل 2 → GND)", "OUT = HIGH ويضل"], ["ضغط RESET (الرجل 4 → GND)", "OUT = LOW ويضل"], ["مقاومات الرفع المقترحة", "10 kΩ"]],
-          "Bistable: الـ 555 بيشتغل كـ Flip-Flop (ذاكرة بت وحدة) — مفيد لتشغيل/إطفاء حِمل بزرّين أو لإزالة ارتداد الأزرار.");
+        return out(root, [["التوقيت", "لا يوجد؛ يتغير الخرج بالأزرار", true], ["الضغط على زر الضبط (الطرف 2 إلى الأرضي)", "يصبح الخرج مرتفعاً ويبقى"], ["الضغط على زر إعادة الضبط (الطرف 4 إلى الأرضي)", "يصبح الخرج منخفضاً ويبقى"], ["مقاومات الرفع المقترحة", "10 kΩ"]],
+          "في هذا الوضع يعمل المؤقت قلّاباً (ذاكرة بِت واحد)، ويفيد في تشغيل حِمل وإطفائه بزرّين أو في إزالة ارتداد الأزرار.");
       }
       if (mode === "mono") {
         const R = res(root, "r"), C = cap(root, "cm");
         if (!(R > 0 && C > 0)) return out(root, null);
-        return out(root, [["مدة النبضة t = 1.1 × R × C", si(1.1 * R * C, "s"), true]], "Monostable: بتطلع نبضة وحدة بطول ثابت كل ما ينضغط زر TRIG.");
+        return out(root, [["مدة النبضة t = 1.1 × R × C", si(1.1 * R * C, "s"), true]], "تخرج نبضة واحدة ثابتة المدة عند كل ضغطة على زر الإطلاق.");
       }
       const C = cap(root, "c");
       const R1 = res(root, "r1"), R2 = res(root, "r2");
       if (!(R1 > 0 && R2 > 0 && C > 0)) return out(root, null);
       const th = 0.693 * (R1 + R2) * C, tl = 0.693 * R2 * C, f = 1 / (th + tl);
-      out(root, [["التردد f", si(f, "Hz"), true], ["زمن HIGH", si(th, "s")], ["زمن LOW", si(tl, "s")], ["الدورة T", si(th + tl, "s")], ["Duty Cycle", fx(th / (th + tl) * 100, 1) + " %", true]],
-        "Astable: f = 1.44 ÷ ((R1 + 2R2) × C). الـ Duty دايماً أكبر من 50% بهالتوصيل — لـ Duty أقل حط دايود على R2.");
+      out(root, [["التردد", si(f, "Hz"), true], ["زمن المستوى المرتفع", si(th, "s")], ["زمن المستوى المنخفض", si(tl, "s")], ["زمن الدورة", si(th + tl, "s")], ["نسبة التشغيل", fx(th / (th + tl) * 100, 1) + " %", true]],
+        "نسبة التشغيل في هذا التوصيل أكبر من 50% دائماً، وللحصول على نسبة أقل يوضع ثنائي على التوازي مع R2.");
     });
   };
 
@@ -378,28 +378,28 @@
     if (!(I > 0)) return out(root, null, "أدخل التيار أو القدرة");
     const S = Math.sqrt(3) * V * I, Pw = S * pf, Q = S * Math.sin(Math.acos(pf));
     out(root, [["التيار لكل خط", si(I, "A"), true], ["القدرة الفعّالة P", si(Pw, "W"), true], ["القدرة الظاهرية S", si(S, "VA")], ["القدرة غير الفعّالة Q", si(Q, "VAR")], ["جهد الطور (Y)", si(V / Math.sqrt(3), "V")]],
-      "P = √3 × V_L × I_L × cosφ — V_L جهد الخط (بين طورين)، مثلاً 400 V.");
+      "جهد الخط هو الجهد بين طورين، مثل 400 فولت.");
   });
 
   // ───────── تحسين معامل القدرة ─────────
   T["power-factor-correction"] = (root) => bind(root, () => {
     const P = num(root, "p") * 1000, pf1 = num(root, "pf1"), pf2 = num(root, "pf2"), V = num(root, "v"), f = num(root, "f"), ph = val(root, "ph");
     if (![P, pf1, pf2, V, f].every((x) => x > 0) || pf1 >= 1 || pf2 > 1) return out(root, null);
-    if (pf2 <= pf1) return out(root, null, "معامل القدرة المطلوب لازم يكون أعلى من الحالي");
+    if (pf2 <= pf1) return out(root, null, "يجب أن يكون معامل القدرة المطلوب أعلى من الحالي");
     const Qc = P * (Math.tan(Math.acos(pf1)) - Math.tan(Math.acos(pf2))), w = 2 * Math.PI * f;
     const rows = [["قدرة المكثفات المطلوبة Qc", fx(Qc / 1000, 2) + " kVAR", true], ["التيار قبل", si(ph === "3" ? P / (Math.sqrt(3) * V * pf1) : P / (V * pf1), "A")], ["التيار بعد", si(ph === "3" ? P / (Math.sqrt(3) * V * pf2) : P / (V * pf2), "A")]];
     if (ph === "3") rows.push(["سعة كل مكثف (توصيل دلتا)", si(Qc / (3 * w * V * V), "F")], ["سعة كل مكثف (توصيل نجمة)", si(Qc / (w * V * V), "F")]);
     else rows.push(["سعة المكثف", si(Qc / (w * V * V), "F"), true]);
-    out(root, rows, "Qc = P × (tanφ1 − tanφ2). المكثفات لازم تكون مخصصة لتحسين معامل القدرة وبجهد مناسب.");
+    out(root, rows, "يجب أن تكون المكثفات مخصصة لتحسين معامل القدرة، وبجهد تشغيل مناسب.");
   });
 
   // ───────── عمر البطارية للأجهزة المدمجة ─────────
   T["battery-life"] = (root) => bind(root, () => {
     const C = num(root, "cap"), Ia = num(root, "ia"), Is = num(root, "is") / 1000, ta = num(root, "ta"), T0 = num(root, "period"), der = num(root, "der") / 100;
-    if (![C, Ia, ta, T0].every((x) => x > 0) || !(Is >= 0) || ta > T0) return out(root, null, "تأكد إنه زمن التشغيل أقل من زمن الدورة");
+    if (![C, Ia, ta, T0].every((x) => x > 0) || !(Is >= 0) || ta > T0) return out(root, null, "تأكد أن زمن التشغيل أقل من زمن الدورة");
     const Iavg = (Ia * ta + Is * (T0 - ta)) / T0, h = C * (der || 1) / Iavg;
     out(root, [["متوسط التيار", fx(Iavg, 4) + " mA", true], ["عمر البطارية", h >= 48 ? fx(h / 24, 1) + " يوم" : fx(h, 1) + " ساعة", true], ["بالساعات", fx(h, 0) + " h"], ["نسبة وقت التشغيل", fx(ta / T0 * 100, 3) + " %"]],
-      "Iavg = (Ia × ta + Is × (T − ta)) ÷ T. التقدير بيهمل التفريغ الذاتي وانخفاض السعة مع الحرارة.");
+      "يُهمل هذا التقدير التفريغ الذاتي للبطارية وانخفاض سعتها مع الحرارة.");
   });
 
   // ───────── ADC ─────────
@@ -410,7 +410,7 @@
     const rows = [["أعلى قراءة", String(max)], ["دقة القراءة (LSB)", si(lsb, "V"), true]];
     if (raw >= 0) rows.push([`الجهد عند القراءة ${raw}`, si(raw / max * Vref, "V"), true], ["الجهد الأصلي قبل المقسّم", si(raw / max * Vref * ratio, "V")]);
     if (Vin >= 0) rows.push([`القراءة المتوقعة لـ ${Vin} V`, String(Math.min(max, Math.round(Vin / ratio / Vref * max)))]);
-    out(root, rows, "V = القراءة ÷ (2ⁿ − 1) × Vref. ملاحظة: ADC تبع ESP32 غير خطي قرب الطرفين — للدقة استخدم analogReadMilliVolts().");
+    out(root, rows, "ملاحظة: محوّل ESP32 غير خطي قرب طرفي المدى؛ وللحصول على دقة أعلى استخدم الدالة analogReadMilliVolts().");
   });
 
   // ───────── PWM ─────────
@@ -420,10 +420,10 @@
     if (Vh > 0 && duty >= 0 && duty <= 100) rows.push(["الجهد المتوسط", si(Vh * duty / 100, "V"), true]);
     if (clk > 0 && f > 0) {
       const bitsMax = Math.floor(Math.log2(clk / f));
-      rows.push(["زمن الدورة", si(1 / f, "s")], ["زمن HIGH", isFinite(duty) ? si(duty / 100 / f, "s") : "—"], ["أقصى دقة ممكنة", bitsMax + " bit", true], ["قيمة الـ Duty بهالدقة", isFinite(duty) ? String(Math.round(duty / 100 * (2 ** bitsMax - 1))) + " من " + (2 ** bitsMax - 1) : "—"]);
+      rows.push(["زمن الدورة", si(1 / f, "s")], ["زمن المستوى المرتفع", isFinite(duty) ? si(duty / 100 / f, "s") : "—"], ["أقصى دقة ممكنة", bitsMax + " bit", true], ["قيمة نسبة التشغيل بهذه الدقة", isFinite(duty) ? String(Math.round(duty / 100 * (2 ** bitsMax - 1))) + " من " + (2 ** bitsMax - 1) : "—"]);
     }
     if (!rows.length) return out(root, null);
-    out(root, rows, "أقصى دقة = log₂(تردد الساعة ÷ تردد PWM). مثلاً ESP32 (LEDC بساعة 80 MHz) على 5 kHz بيعطي 13 bit.");
+    out(root, rows, "أقصى دقة هي اللوغاريتم الثنائي لنسبة تردد الساعة إلى تردد الإشارة؛ فمثلاً يعطي ESP32 بساعة 80 ميغاهرتز على تردد 5 كيلوهرتز دقة 13 بِت.");
   });
 
   // ───────── UART Baud ─────────
@@ -431,8 +431,8 @@
     const F = num(root, "clk") * 1e6, B = num(root, "baud"), x2 = $(root, "[name=u2x]").checked, div = x2 ? 8 : 16;
     if (!(F > 0 && B > 0)) return out(root, null);
     const ubrr = Math.max(0, Math.round(F / (div * B) - 1)), actual = F / (div * (ubrr + 1)), err = (actual - B) / B * 100;
-    out(root, [["قيمة UBRR", String(ubrr), true], ["الـ Baud الفعلي", fx(actual, 1)], ["نسبة الخطأ", fx(err, 2) + " %", true], ["الحالة", Math.abs(err) <= 2 ? "✅ مقبول (≤ 2%)" : (x2 ? "⚠️ خطأ كبير — جرّب سرعة أقل أو كريستال مختلف" : "⚠️ خطأ كبير — جرّب U2X أو كريستال مختلف")]],
-      "صيغة متحكمات AVR (Arduino Uno): UBRR = F_CPU ÷ (16 × Baud) − 1، ومع U2X ÷ 8.");
+    out(root, [["قيمة UBRR", String(ubrr), true], ["السرعة الفعلية", fx(actual, 1)], ["نسبة الخطأ", fx(err, 2) + " %", true], ["الحالة", Math.abs(err) <= 2 ? "✅ مقبول (حتى 2%)" : (x2 ? "⚠️ خطأ كبير؛ جرّب سرعة أقل أو كريستالاً مختلفاً" : "⚠️ خطأ كبير؛ جرّب السرعة المضاعفة أو كريستالاً مختلفاً")]],
+      "الحساب وفق صيغة متحكمات AVR مثل Arduino Uno.");
   });
 
   document.querySelectorAll(".calc[data-tool]").forEach((el) => T[el.dataset.tool] && T[el.dataset.tool](el));
