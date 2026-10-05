@@ -805,3 +805,27 @@ exports.adminWorkshopEmail = onRequest(
     res.status(200).json({ success: true, sent, failed: failed.length, noEmail: test ? 0 : noEmail });
   }
 );
+
+// ─────────────────────────────────────────────
+// 🧮 الأدوات المتقدمة (حفظ وتصدير الحاسبات) — صلاحية بتنفتح بعد شراء المنتج products/tools-pro
+// entitlements/{uid} للقراءة فقط من المستخدم؛ الكتابة من السيرفر بس
+// ─────────────────────────────────────────────
+const TOOLS_PRO_ID = "tools-pro";
+exports.grantToolsPro = onDocumentWritten(
+  { document: "orders/{orderId}", region: "us-central1" },
+  async (event) => {
+    const after = event.data?.after?.data();
+    const before = event.data?.before?.data();
+    if (!after || !after.userId) return;
+    const hasPro = (after.items || []).some((i) => i.col === "products" && i.id === TOOLS_PRO_ID);
+    if (!hasPro || before?.status === after.status) return;
+    const ref = db.collection("entitlements").doc(after.userId);
+    if (after.status === "paid") {
+      await ref.set({ toolsPro: true, toolsProInvoice: after.invoiceId, toolsProSince: FieldValue.serverTimestamp() }, { merge: true });
+      logger.info("Tools Pro granted", { uid: after.userId, invoiceId: after.invoiceId });
+    } else if (before?.status === "paid" && ["revoked", "failed"].includes(after.status)) {
+      await ref.set({ toolsPro: false, toolsProRevokedAt: FieldValue.serverTimestamp() }, { merge: true });
+      logger.info("Tools Pro revoked", { uid: after.userId, invoiceId: after.invoiceId });
+    }
+  }
+);

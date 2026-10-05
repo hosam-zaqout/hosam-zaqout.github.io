@@ -389,6 +389,12 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
 
     <!-- PAYMENT -->
     <div class="panel" id="p-payment">
+      <div class="pc"><h3>🧮 الأدوات المتقدمة (حفظ وتصدير الحاسبات)</h3>
+        <p style="font-size:.8rem;color:var(--mt);margin-bottom:14px">منتج بيندفع مرة وحدة، وبيفتح للمشتري حفظ الحسابات بحسابه وتصدير تقرير PDF بكل صفحات <a href="/tools/" target="_blank" style="color:var(--p)">/tools/</a>. الصلاحية بتنفتح تلقائياً بعد الدفع (أو بطلب يدوي من 🧾 الطلبات).</p>
+        <div class="g2"><div class="cg"><label>السعر (USD)</label><input class="ci" id="tp-price" type="number" min="0" step="0.5" dir="ltr"></div>
+        <div class="cg"><label>المشتركين</label><div id="tp-stats" style="padding:10px 0;font-size:.85rem;color:var(--mt)">—</div></div></div>
+        <button class="btn-save" onclick="saveToolsPro()">💾 حفظ السعر</button>
+      </div>
       <div class="pc"><h3>🧾 نص إيصال الدفع (إيميل العميل)</h3>
         <p style="font-size:.8rem;color:var(--mt);margin-bottom:14px">بيوصل للعميل تلقائياً بعد كل دفعة ناجحة. جدول الطلب (رقم الطلب، العناصر، الإجمالي) وزر "مشترياتي" بينضافوا لحالهم. المتغيرات: <b>{name}</b> اسم العميل • <b>{invoice}</b> رقم الطلب • <b>{total}</b> المبلغ. اترك أي خانة فاضية لتستخدم النص الافتراضي.</p>
         <div class="cg"><label>عنوان الإيميل</label><input class="ci" id="em-receiptSubject" maxlength="150" placeholder="🧾 إيصال الدفع — طلب {invoice}"></div>
@@ -694,7 +700,7 @@ window.deleteArticle=async function(id){
 async function loadAll(){
   loadDashboard(); loadProducts(); loadCourses(); loadBooks();
   loadProjects(); loadTestimonials(); loadUsers(); loadMessages();
-  loadNewsletter(); loadConfig(); loadEmailTpl(); loadWorkshops(); loadCustomSections().then(()=>loadArticles());
+  loadNewsletter(); loadConfig(); loadEmailTpl(); loadToolsPro().catch(console.error); loadWorkshops(); loadCustomSections().then(()=>loadArticles());
 }
 
 // DASHBOARD
@@ -934,6 +940,15 @@ const EM_KEYS=['receiptSubject','receiptTitle','receiptIntro','receiptFooter'];
 async function loadEmailTpl(){const s=await getDoc(doc(db,'site_config','emails'));const d=s.exists()?s.data():{};EM_KEYS.forEach(k=>{const el=document.getElementById('em-'+k);if(el)el.value=d[k]||'';});}
 window.saveEmailTpl=async()=>{const d={updatedAt:serverTimestamp()};EM_KEYS.forEach(k=>d[k]=document.getElementById('em-'+k).value.trim());await setDoc(doc(db,'site_config','emails'),d,{merge:true});toast('✅ تم حفظ نص الإيصال');};
 window.testReceipt=async()=>{await window.saveEmailTpl();toast('🧪 جاري إرسال إيصال تجريبي...');try{const r=await callFn('adminTestReceipt',{});toast('✅ انبعت لـ '+r.to,'ok');}catch(err){toast('⚠️ '+err.message,'err');}};
+// 🧮 الأدوات المتقدمة — المنتج products/tools-pro (بينعمل تلقائياً بسعر 7$ أول مرة)
+const TP_DEFAULT={title:'🧮 الأدوات المتقدمة — حفظ وتصدير الحاسبات',desc:'احفظ حساباتك من كل حاسبات 3ENG.s بحسابك وارجعلها بأي وقت، وصدّر تقرير PDF مرتّب لكل حساب (المدخلات، الرسمة، والنتائج). دفعة وحدة وبتضل معك.',price:7,oldPrice:0,type:'tool',emoji:'🧮',badge:'جديد',isFree:false,imageUrl:'',slug:'advanced-tools',tags:['electronics','embedded-systems']};
+async function loadToolsPro(){
+  const ref=doc(db,'products','tools-pro');let s=await getDoc(ref);
+  if(!s.exists()){await setDoc(ref,{...TP_DEFAULT,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});s=await getDoc(ref);}
+  document.getElementById('tp-price').value=s.data().price??7;
+  try{const q=await getDocs(query(collection(db,'entitlements'),where('toolsPro','==',true)));document.getElementById('tp-stats').textContent=q.size+' مشترك';}catch(err){console.warn(err);}
+}
+window.saveToolsPro=async()=>{const p=parseFloat(document.getElementById('tp-price').value);if(!(p>=0)){toast('⚠️ سعر غير صحيح','err');return;}await setDoc(doc(db,'products','tools-pro'),{price:p,isFree:p===0,updatedAt:serverTimestamp()},{merge:true});toast('✅ صار سعر الأدوات المتقدمة $'+p);loadProducts();};
 window.wsMail=async test=>{
   const subject=document.getElementById('ws-mail-subj').value.trim(),message=document.getElementById('ws-mail-msg').value.trim();
   if(!_wsCur||!subject||!message){toast('⚠️ اكتب العنوان والنص','err');return;}

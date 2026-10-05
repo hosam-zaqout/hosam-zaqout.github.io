@@ -285,5 +285,120 @@
     });
   };
 
+  // "4.7k" ← 4700 — بادئات: p n u µ m k M G
+  function parseSI(s) {
+    const m = String(s).trim().replace(",", ".").match(/^([0-9]*\.?[0-9]+(?:e[-+]?\d+)?)\s*([pnuµmkKMG]?)/);
+    if (!m) return NaN;
+    return parseFloat(m[1]) * ({ p: 1e-12, n: 1e-9, u: 1e-6, "µ": 1e-6, m: 1e-3, k: 1e3, K: 1e3, M: 1e6, G: 1e9 }[m[2]] || 1);
+  }
+  const cap = (root, base) => num(root, base) * ({ pF: 1e-12, nF: 1e-9, "µF": 1e-6, mF: 1e-3, F: 1 }[val(root, base + "u")] || 1);
+  const res = (root, base) => num(root, base) * ({ "Ω": 1, "kΩ": 1e3, "MΩ": 1e6 }[val(root, base + "u")] || 1);
+
+  // ───────── التوالي والتوازي ─────────
+  T["series-parallel"] = (root) => bind(root, () => {
+    const vals = String(val(root, "list") || "").split(/[\s,،;+]+/).filter(Boolean).map(parseSI);
+    if (vals.length < 2 || vals.some((v) => !(v > 0))) return out(root, null, "اكتب قيمتين أو أكثر مفصولين بفاصلة، مثل: 10k, 4.7k, 2.2k");
+    const kind = val(root, "kind"), u = kind === "c" ? "F" : kind === "l" ? "H" : "Ω";
+    const sum = vals.reduce((a, b) => a + b, 0), inv = 1 / vals.reduce((a, b) => a + 1 / b, 0);
+    // المكثفات عكس المقاومات والملفات
+    const ser = kind === "c" ? inv : sum, par = kind === "c" ? sum : inv;
+    out(root, [["عدد العناصر", String(vals.length)], ["توالي (Series)", si(ser, u), true], ["توازي (Parallel)", si(par, u), true]],
+      kind === "c" ? "المكثفات: بالتوازي بتنجمع، وبالتوالي بتنحسب بمقلوب المجموع." : "بالتوالي بتنجمع، وبالتوازي مقلوب المجموع = مجموع المقلوبات.");
+  });
+
+  // ───────── ثابت الزمن RC ─────────
+  T["rc-time-constant"] = (root) => bind(root, () => {
+    const R = res(root, "r"), C = cap(root, "c"), V = num(root, "v"), t = num(root, "t") / 1000;
+    if (!(R > 0 && C > 0)) return out(root, null);
+    const tau = R * C, rows = [["ثابت الزمن τ = R × C", si(tau, "s"), true], ["الشحن 63% (1τ)", si(tau, "s")], ["شحن شبه كامل 99.3% (5τ)", si(5 * tau, "s")], ["تردد القطع fc = 1/(2πRC)", si(1 / (2 * Math.PI * tau), "Hz"), true]];
+    if (V > 0 && t >= 0) rows.push([`جهد المكثف بعد ${si(t, "s")} (شحن)`, si(V * (1 - Math.exp(-t / tau)), "V")], [`جهد المكثف بعد ${si(t, "s")} (تفريغ)`, si(V * Math.exp(-t / tau), "V")]);
+    out(root, rows);
+  });
+
+  // ───────── مؤقت 555 ─────────
+  T["timer-555"] = (root) => {
+    const sync = () => $$(root, "[data-mode]").forEach((el) => (el.hidden = el.dataset.mode !== val(root, "mode")));
+    root.addEventListener("change", sync); sync();
+    bind(root, () => {
+      const C = cap(root, "c");
+      if (val(root, "mode") === "mono") {
+        const R = res(root, "r");
+        if (!(R > 0 && C > 0)) return out(root, null);
+        return out(root, [["مدة النبضة t = 1.1 × R × C", si(1.1 * R * C, "s"), true]], "Monostable: بتطلع نبضة وحدة بطول ثابت كل ما يوصل Trigger.");
+      }
+      const R1 = res(root, "r1"), R2 = res(root, "r2");
+      if (!(R1 > 0 && R2 > 0 && C > 0)) return out(root, null);
+      const th = 0.693 * (R1 + R2) * C, tl = 0.693 * R2 * C, f = 1 / (th + tl);
+      out(root, [["التردد f", si(f, "Hz"), true], ["زمن HIGH", si(th, "s")], ["زمن LOW", si(tl, "s")], ["الدورة T", si(th + tl, "s")], ["Duty Cycle", fx(th / (th + tl) * 100, 1) + " %", true]],
+        "Astable: f = 1.44 ÷ ((R1 + 2R2) × C). الـ Duty دايماً أكبر من 50% بهالتوصيل — لـ Duty أقل حط دايود على R2.");
+    });
+  };
+
+  // ───────── القدرة ثلاثية الطور ─────────
+  T["three-phase-power"] = (root) => bind(root, () => {
+    const V = num(root, "v"), pf = num(root, "pf");
+    let I = num(root, "i"); const P = num(root, "p") * 1000;
+    if (!(V > 0 && pf > 0 && pf <= 1)) return out(root, null);
+    if (!(I > 0) && P > 0) I = P / (Math.sqrt(3) * V * pf);
+    if (!(I > 0)) return out(root, null, "أدخل التيار أو القدرة");
+    const S = Math.sqrt(3) * V * I, Pw = S * pf, Q = S * Math.sin(Math.acos(pf));
+    out(root, [["التيار لكل خط", si(I, "A"), true], ["القدرة الفعّالة P", si(Pw, "W"), true], ["القدرة الظاهرية S", si(S, "VA")], ["القدرة غير الفعّالة Q", si(Q, "VAR")], ["جهد الطور (Y)", si(V / Math.sqrt(3), "V")]],
+      "P = √3 × V_L × I_L × cosφ — V_L جهد الخط (بين طورين)، مثلاً 400 V.");
+  });
+
+  // ───────── تحسين معامل القدرة ─────────
+  T["power-factor-correction"] = (root) => bind(root, () => {
+    const P = num(root, "p") * 1000, pf1 = num(root, "pf1"), pf2 = num(root, "pf2"), V = num(root, "v"), f = num(root, "f"), ph = val(root, "ph");
+    if (![P, pf1, pf2, V, f].every((x) => x > 0) || pf1 >= 1 || pf2 > 1) return out(root, null);
+    if (pf2 <= pf1) return out(root, null, "معامل القدرة المطلوب لازم يكون أعلى من الحالي");
+    const Qc = P * (Math.tan(Math.acos(pf1)) - Math.tan(Math.acos(pf2))), w = 2 * Math.PI * f;
+    const rows = [["قدرة المكثفات المطلوبة Qc", fx(Qc / 1000, 2) + " kVAR", true], ["التيار قبل", si(ph === "3" ? P / (Math.sqrt(3) * V * pf1) : P / (V * pf1), "A")], ["التيار بعد", si(ph === "3" ? P / (Math.sqrt(3) * V * pf2) : P / (V * pf2), "A")]];
+    if (ph === "3") rows.push(["سعة كل مكثف (توصيل دلتا)", si(Qc / (3 * w * V * V), "F")], ["سعة كل مكثف (توصيل نجمة)", si(Qc / (w * V * V), "F")]);
+    else rows.push(["سعة المكثف", si(Qc / (w * V * V), "F"), true]);
+    out(root, rows, "Qc = P × (tanφ1 − tanφ2). المكثفات لازم تكون مخصصة لتحسين معامل القدرة وبجهد مناسب.");
+  });
+
+  // ───────── عمر البطارية للأجهزة المدمجة ─────────
+  T["battery-life"] = (root) => bind(root, () => {
+    const C = num(root, "cap"), Ia = num(root, "ia"), Is = num(root, "is") / 1000, ta = num(root, "ta"), T0 = num(root, "period"), der = num(root, "der") / 100;
+    if (![C, Ia, ta, T0].every((x) => x > 0) || !(Is >= 0) || ta > T0) return out(root, null, "تأكد إنه زمن التشغيل أقل من زمن الدورة");
+    const Iavg = (Ia * ta + Is * (T0 - ta)) / T0, h = C * (der || 1) / Iavg;
+    out(root, [["متوسط التيار", fx(Iavg, 4) + " mA", true], ["عمر البطارية", h >= 48 ? fx(h / 24, 1) + " يوم" : fx(h, 1) + " ساعة", true], ["بالساعات", fx(h, 0) + " h"], ["نسبة وقت التشغيل", fx(ta / T0 * 100, 3) + " %"]],
+      "Iavg = (Ia × ta + Is × (T − ta)) ÷ T. التقدير بيهمل التفريغ الذاتي وانخفاض السعة مع الحرارة.");
+  });
+
+  // ───────── ADC ─────────
+  T["adc-calculator"] = (root) => bind(root, () => {
+    const bits = num(root, "bits"), Vref = num(root, "vref"), raw = num(root, "raw"), Vin = num(root, "vin"), ratio = num(root, "ratio") || 1;
+    if (!(bits > 0 && Vref > 0)) return out(root, null);
+    const max = 2 ** bits - 1, lsb = Vref / 2 ** bits;
+    const rows = [["أعلى قراءة", String(max)], ["دقة القراءة (LSB)", si(lsb, "V"), true]];
+    if (raw >= 0) rows.push([`الجهد عند القراءة ${raw}`, si(raw / max * Vref, "V"), true], ["الجهد الأصلي قبل المقسّم", si(raw / max * Vref * ratio, "V")]);
+    if (Vin >= 0) rows.push([`القراءة المتوقعة لـ ${Vin} V`, String(Math.min(max, Math.round(Vin / ratio / Vref * max)))]);
+    out(root, rows, "V = القراءة ÷ (2ⁿ − 1) × Vref. ملاحظة: ADC تبع ESP32 غير خطي قرب الطرفين — للدقة استخدم analogReadMilliVolts().");
+  });
+
+  // ───────── PWM ─────────
+  T["pwm-calculator"] = (root) => bind(root, () => {
+    const Vh = num(root, "vh"), duty = num(root, "duty"), clk = num(root, "clk") * 1e6, f = num(root, "f");
+    const rows = [];
+    if (Vh > 0 && duty >= 0 && duty <= 100) rows.push(["الجهد المتوسط", si(Vh * duty / 100, "V"), true]);
+    if (clk > 0 && f > 0) {
+      const bitsMax = Math.floor(Math.log2(clk / f));
+      rows.push(["زمن الدورة", si(1 / f, "s")], ["زمن HIGH", isFinite(duty) ? si(duty / 100 / f, "s") : "—"], ["أقصى دقة ممكنة", bitsMax + " bit", true], ["قيمة الـ Duty بهالدقة", isFinite(duty) ? String(Math.round(duty / 100 * (2 ** bitsMax - 1))) + " من " + (2 ** bitsMax - 1) : "—"]);
+    }
+    if (!rows.length) return out(root, null);
+    out(root, rows, "أقصى دقة = log₂(تردد الساعة ÷ تردد PWM). مثلاً ESP32 (LEDC بساعة 80 MHz) على 5 kHz بيعطي 13 bit.");
+  });
+
+  // ───────── UART Baud ─────────
+  T["uart-baud"] = (root) => bind(root, () => {
+    const F = num(root, "clk") * 1e6, B = num(root, "baud"), x2 = $(root, "[name=u2x]").checked, div = x2 ? 8 : 16;
+    if (!(F > 0 && B > 0)) return out(root, null);
+    const ubrr = Math.max(0, Math.round(F / (div * B) - 1)), actual = F / (div * (ubrr + 1)), err = (actual - B) / B * 100;
+    out(root, [["قيمة UBRR", String(ubrr), true], ["الـ Baud الفعلي", fx(actual, 1)], ["نسبة الخطأ", fx(err, 2) + " %", true], ["الحالة", Math.abs(err) <= 2 ? "✅ مقبول (≤ 2%)" : (x2 ? "⚠️ خطأ كبير — جرّب سرعة أقل أو كريستال مختلف" : "⚠️ خطأ كبير — جرّب U2X أو كريستال مختلف")]],
+      "صيغة متحكمات AVR (Arduino Uno): UBRR = F_CPU ÷ (16 × Baud) − 1، ومع U2X ÷ 8.");
+  });
+
   document.querySelectorAll(".calc[data-tool]").forEach((el) => T[el.dataset.tool] && T[el.dataset.tool](el));
 })();

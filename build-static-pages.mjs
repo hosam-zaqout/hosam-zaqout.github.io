@@ -286,7 +286,10 @@ footer nav{display:flex;justify-content:center;flex-wrap:wrap;gap:16px;margin-bo
 .calc .del{background:none;border:0;color:#f87171;cursor:pointer;font-size:1rem}
 .tlinks{display:flex;flex-wrap:wrap;gap:8px}.tlinks a{border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:.88rem}.tlinks a:hover{border-color:var(--acc)}
 [hidden]{display:none!important}
-.answer b,.box p b{direction:ltr;unicode-bidi:isolate}
+.answer b,.box p b{unicode-bidi:plaintext}
+.pro-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}.pro-btn{background:#1c2542;border:1px solid var(--acc);color:var(--acc2);border-radius:10px;padding:7px 14px;font:inherit;font-size:.88rem;cursor:pointer}.pro-btn:hover{background:#26305a}.pro-tag{font-size:.75rem;color:var(--mut);margin-inline-start:auto}.pro-bar.is-pro .pro-tag{color:var(--ok)}
+.pro-msg{flex-basis:100%;background:#1c2542;border:1px solid var(--acc);border-radius:12px;padding:10px 14px;font-size:.9rem}.pro-msg a{color:var(--acc);font-weight:700;text-decoration:underline}.pro-buy{display:inline-block;margin-top:6px}
+.pro-list{flex-basis:100%;margin-top:6px;font-size:.9rem}.pro-item{display:flex;align-items:center;gap:8px;padding:7px 10px;background:#0f1528;border-radius:10px;margin-top:6px}.pro-item span{flex:1}.pro-item small{display:block;color:var(--mut);font-size:.75rem}.pro-item button{background:none;border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:3px 10px;font:inherit;font-size:.8rem;cursor:pointer}
 .vd{position:relative;max-width:520px;margin:4px auto 6px;aspect-ratio:480/300;color:#cbd3e6}.vd svg{width:100%;height:100%;display:block}.vd .lbl{fill:var(--acc2)}
 .vd input{position:absolute;width:21%;padding:6px 8px;text-align:center;font-weight:700;background:#0a0f1d;border:1.5px solid var(--acc);border-radius:9px;color:var(--txt);font:inherit;font-size:.95rem}
 .vd input.auto{border-color:var(--ok);color:var(--ok);background:#0d2a22;box-shadow:0 0 0 3px #34d39933}
@@ -971,7 +974,8 @@ ${t.warn ? TOOLS_DISCLAIMER : ""}
 ${related.length ? `<h2 class="sec-title">📚 تعلّم أكثر</h2><div class="cards">${related.map((w) => card(w._sec, w, true)).join("")}</div>` : ""}
 <h2 class="sec-title">🧮 حاسبات أخرى</h2>
 <div class="tlinks">${siblings.map((x) => `<a href="/tools/${x.slug}/">${esc(x.emoji)} ${esc(x.name)}</a>`).join("")}</div>
-<script src="/assets/tools.js?v=1" defer></script>`;
+<script src="/assets/tools.js?v=2" defer></script>
+<script type="module" src="/assets/tools-pro.js?v=1"></script>`;
   return layout({ title: `${t.title} | ${BRAND}`, description: t.desc, canonical: SITE + url, schemas: [app, faq, bc.schema], body });
 }
 function toolsHub() {
@@ -980,11 +984,11 @@ function toolsHub() {
   const list = { "@context": "https://schema.org", "@type": "ItemList", itemListElement: TOOLS.map((t, i) => ({ "@type": "ListItem", position: i + 1, url: `${SITE}/tools/${t.slug}/`, name: t.title })) };
   const body = `${bc.html}
 <h1>🧮 الحاسبات الهندسية — ${BRAND}</h1>
-<p class="lead">حاسبات كهربائية مجانية بالعربي: قانون أوم، مقاومة الـ LED، مقسّم الجهد، ألوان المقاومات، مقطع السلك وهبوط الجهد، ومنظومات الطاقة الشمسية — مع شرح المعادلات وأمثلة.</p>
+<p class="lead">${TOOLS.length} حاسبة كهربائية وإلكترونية مجانية بالعربي — أساسيات الإلكترونيات، التمديدات والقدرة، الطاقة الشمسية، والأنظمة المدمجة — كل وحدة مع شرح المعادلات وأمثلة عملية.</p>
 ${TOOL_CATS.map((c) => { const ts = TOOLS.filter((t) => t.cat === c.id); return ts.length ? `<h2 class="sec-title">${c.emoji} ${esc(c.label)}</h2><div class="cards">${ts.map((t) => `<a class="card" href="/tools/${t.slug}/"><div class="ph">${esc(t.emoji)}</div><div class="b"><h3>${esc(t.title)}</h3><div class="k">${esc(cut(t.desc, 90))}</div></div></a>`).join("")}</div>` : ""; }).join("")}`;
   return layout({
     title: `الحاسبات الهندسية والكهربائية بالعربي | ${BRAND}`,
-    description: cut(`حاسبات كهربائية مجانية بالعربي من ${BRAND}: قانون أوم، مقاومة LED، مقسّم الجهد، ألوان المقاومات، مقطع السلك وهبوط الجهد، وحاسبة منظومة الطاقة الشمسية.`, 155),
+    description: cut(`${TOOLS.length} حاسبة كهربائية مجانية بالعربي من ${BRAND}: قانون أوم، مقاومة LED، مقسّم الجهد، 555، مقطع السلك، ثلاثي الطور، الطاقة الشمسية، ADC و PWM.`, 155),
     canonical: SITE + url, schemas: [list, bc.schema], body,
   });
 }

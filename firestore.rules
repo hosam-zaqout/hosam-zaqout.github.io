@@ -141,6 +141,29 @@ service cloud.firestore {
     }
 
     // ─────────────────────────────────────────
+    // 🧮 الأدوات المتقدمة — الصلاحية من السيرفر، والحفظ لصاحب الصلاحية فقط
+    // ─────────────────────────────────────────
+    function toolsPro(uid) {
+      return exists(/databases/$(database)/documents/entitlements/$(uid)) &&
+        get(/databases/$(database)/documents/entitlements/$(uid)).data.get("toolsPro", false) == true;
+    }
+    match /entitlements/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow write: if false;
+    }
+    match /tool_saves/{uid}/items/{doc} {
+      allow read, delete: if isOwner(uid) && toolsPro(uid);
+      allow create: if isOwner(uid) && toolsPro(uid) &&
+        request.resource.data.keys().hasOnly(["tool","title","inputs","results","createdAt"]) &&
+        shortStr(request.resource.data.tool, 60) &&
+        shortStr(request.resource.data.title, 120) &&
+        request.resource.data.inputs is list && request.resource.data.inputs.size() <= 200 &&
+        request.resource.data.results is list && request.resource.data.results.size() <= 40 &&
+        request.resource.data.createdAt == request.time;
+      allow update: if false;
+    }
+
+    // ─────────────────────────────────────────
     // رفض أي شيء آخر
     // ─────────────────────────────────────────
     match /{document=**} {

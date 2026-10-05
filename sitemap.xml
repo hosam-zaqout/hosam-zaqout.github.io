@@ -189,6 +189,42 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://www.3engs.com/tools/series-parallel/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/tools/rc-time-constant/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/tools/timer-555/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/tools/three-phase-power/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/tools/power-factor-correction/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/tools/battery-life/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/tools/adc-calculator/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/tools/pwm-calculator/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/tools/uart-baud/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.3engs.com/topics/</loc>
     <priority>0.7</priority>
   </url>
