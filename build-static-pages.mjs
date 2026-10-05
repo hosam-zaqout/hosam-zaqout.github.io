@@ -287,6 +287,7 @@ footer nav{display:flex;justify-content:center;flex-wrap:wrap;gap:16px;margin-bo
 .tlinks{display:flex;flex-wrap:wrap;gap:8px}.tlinks a{border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:.88rem}.tlinks a:hover{border-color:var(--acc)}
 [hidden]{display:none!important}
 .answer b,.box p b{unicode-bidi:plaintext}
+.schem{max-width:520px;margin:6px auto 16px;color:#cbd3e6}.schem svg{width:100%;height:auto;display:block;direction:ltr}.schem text{fill:var(--acc2);stroke:none;font-weight:700;font-size:15px;font-family:inherit}.schem .pin text{fill:#98a2bf;font-size:11px;font-weight:700}.schem .chip{font-size:26px;fill:#cbd3e6}.schem .hl{stroke:var(--acc)}
 .pro-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}.pro-btn{background:#1c2542;border:1px solid var(--acc);color:var(--acc2);border-radius:10px;padding:7px 14px;font:inherit;font-size:.88rem;cursor:pointer}.pro-btn:hover{background:#26305a}.pro-tag{font-size:.75rem;color:var(--mut);margin-inline-start:auto}.pro-bar.is-pro .pro-tag{color:var(--ok)}
 .pro-msg{flex-basis:100%;background:#1c2542;border:1px solid var(--acc);border-radius:12px;padding:10px 14px;font-size:.9rem}.pro-msg a{color:var(--acc);font-weight:700;text-decoration:underline}.pro-buy{display:inline-block;margin-top:6px}
 .pro-list{flex-basis:100%;margin-top:6px;font-size:.9rem}.pro-item{display:flex;align-items:center;gap:8px;padding:7px 10px;background:#0f1528;border-radius:10px;margin-top:6px}.pro-item span{flex:1}.pro-item small{display:block;color:var(--mut);font-size:.75rem}.pro-item button{background:none;border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:3px 10px;font:inherit;font-size:.8rem;cursor:pointer}
@@ -974,7 +975,7 @@ ${t.warn ? TOOLS_DISCLAIMER : ""}
 ${related.length ? `<h2 class="sec-title">📚 تعلّم أكثر</h2><div class="cards">${related.map((w) => card(w._sec, w, true)).join("")}</div>` : ""}
 <h2 class="sec-title">🧮 حاسبات أخرى</h2>
 <div class="tlinks">${siblings.map((x) => `<a href="/tools/${x.slug}/">${esc(x.emoji)} ${esc(x.name)}</a>`).join("")}</div>
-<script src="/assets/tools.js?v=2" defer></script>
+<script src="/assets/tools.js?v=3" defer></script>
 <script type="module" src="/assets/tools-pro.js?v=1"></script>`;
   return layout({ title: `${t.title} | ${BRAND}`, description: t.desc, canonical: SITE + url, schemas: [app, faq, bc.schema], body });
 }

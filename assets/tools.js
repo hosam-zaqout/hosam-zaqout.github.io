@@ -295,14 +295,44 @@
   const res = (root, base) => num(root, base) * ({ "Ω": 1, "kΩ": 1e3, "MΩ": 1e6 }[val(root, base + "u")] || 1);
 
   // ───────── التوالي والتوازي ─────────
+  // رمز أفقي من x1 لـ x2 على ارتفاع y: مقاومة (زيغزاغ) / مكثف (لوحين) / ملف (أقواس)
+  function sym(kind, x1, x2, y) {
+    const c = (x1 + x2) / 2;
+    if (kind === "c") return `<path d="M${x1} ${y}H${c - 5}M${c + 5} ${y}H${x2}"/><path d="M${c - 5} ${y - 16}V${y + 16}M${c + 5} ${y - 16}V${y + 16}" stroke-width="3.5"/>`;
+    if (kind === "l") return `<path d="M${x1} ${y}H${c - 24}${" a6 6 0 0 1 12 0".repeat(4)}H${x2}"/>`;
+    let d = `M${x1} ${y}H${c - 24}`;
+    for (let i = 0; i < 6; i++) d += `L${c - 24 + 8 * (i + 0.5)} ${y + (i % 2 ? 9 : -9)}`;
+    return `<path d="${d}L${c + 24} ${y}H${x2}"/>`;
+  }
+  function spFigure(kind, conn, vals, u) {
+    const n = Math.min(vals.length, 6), more = vals.length > 6, lab = (v) => esc(si(v, u)).replace(/ /g, "");
+    let g = "", t = "", W, H;
+    if (conn === "s") {
+      W = 480; H = 120; const x0 = 30, x1 = 450, seg = (x1 - x0) / n, y = 60;
+      for (let i = 0; i < n; i++) { const a = x0 + seg * i, b = a + seg; g += sym(kind, a, b, y); t += `<text x="${(a + b) / 2}" y="${y - 24}" text-anchor="middle">${lab(vals[i])}</text>`; }
+      g += `<circle cx="${x0 - 6}" cy="${y}" r="6"/><circle cx="${x1 + 6}" cy="${y}" r="6"/>`;
+      t += `<text x="${x0 - 6}" y="${y + 30}" text-anchor="middle">A</text><text x="${x1 + 6}" y="${y + 30}" text-anchor="middle">B</text>`;
+    } else {
+      W = 480; H = 210; const yT = 40, yB = 170, x0 = 70, gap = Math.min(85, 380 / n);
+      const xs = [...Array(n)].map((_, i) => x0 + 40 + gap * i), xe = xs[n - 1];
+      g += `<path d="M${x0} ${yT}H${xe}M${x0} ${yB}H${xe}"/><circle cx="${x0 - 6}" cy="${yT}" r="6"/><circle cx="${x0 - 6}" cy="${yB}" r="6"/>`;
+      xs.forEach((x, i) => { const m = (yT + yB) / 2; g += `<g transform="rotate(90 ${x} ${m})">${sym(kind, x - 65, x + 65, m)}</g><circle cx="${x}" cy="${yT}" r="4" fill="currentColor"/><circle cx="${x}" cy="${yB}" r="4" fill="currentColor"/>`; t += `<text x="${x + 22}" y="${m + 5}" text-anchor="start">${lab(vals[i])}</text>`; });
+      t += `<text x="${x0 - 26}" y="${yT + 5}" text-anchor="middle">A</text><text x="${x0 - 26}" y="${yB + 5}" text-anchor="middle">B</text>`;
+    }
+    if (more) t += `<text x="${W - 10}" y="${H - 6}" text-anchor="end">+${vals.length - 6} عناصر أخرى</text>`;
+    return `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round">${g}</g>${t}</svg>`;
+  }
   T["series-parallel"] = (root) => bind(root, () => {
+    const fig = $(root, ".sp-fig");
     const vals = String(val(root, "list") || "").split(/[\s,،;+]+/).filter(Boolean).map(parseSI);
-    if (vals.length < 2 || vals.some((v) => !(v > 0))) return out(root, null, "اكتب قيمتين أو أكثر مفصولين بفاصلة، مثل: 10k, 4.7k, 2.2k");
-    const kind = val(root, "kind"), u = kind === "c" ? "F" : kind === "l" ? "H" : "Ω";
+    if (vals.length < 2 || vals.some((v) => !(v > 0))) { fig.innerHTML = ""; return out(root, null, "اكتب قيمتين أو أكثر مفصولين بفاصلة، مثل: 10k, 4.7k, 2.2k"); }
+    const kind = val(root, "kind"), conn = val(root, "conn"), u = kind === "c" ? "F" : kind === "l" ? "H" : "Ω";
     const sum = vals.reduce((a, b) => a + b, 0), inv = 1 / vals.reduce((a, b) => a + 1 / b, 0);
     // المكثفات عكس المقاومات والملفات
     const ser = kind === "c" ? inv : sum, par = kind === "c" ? sum : inv;
-    out(root, [["عدد العناصر", String(vals.length)], ["توالي (Series)", si(ser, u), true], ["توازي (Parallel)", si(par, u), true]],
+    fig.innerHTML = spFigure(kind, conn, vals, u);
+    const main = conn === "s" ? ["المكافئ على التوالي", si(ser, u), true] : ["المكافئ على التوازي", si(par, u), true];
+    out(root, [main, ["عدد العناصر", String(vals.length)], [conn === "s" ? "لو كانت على التوازي" : "لو كانت على التوالي", si(conn === "s" ? par : ser, u)]],
       kind === "c" ? "المكثفات: بالتوازي بتنجمع، وبالتوالي بتنحسب بمقلوب المجموع." : "بالتوالي بتنجمع، وبالتوازي مقلوب المجموع = مجموع المقلوبات.");
   });
 
@@ -320,12 +350,17 @@
     const sync = () => $$(root, "[data-mode]").forEach((el) => (el.hidden = el.dataset.mode !== val(root, "mode")));
     root.addEventListener("change", sync); sync();
     bind(root, () => {
-      const C = cap(root, "c");
-      if (val(root, "mode") === "mono") {
-        const R = res(root, "r");
-        if (!(R > 0 && C > 0)) return out(root, null);
-        return out(root, [["مدة النبضة t = 1.1 × R × C", si(1.1 * R * C, "s"), true]], "Monostable: بتطلع نبضة وحدة بطول ثابت كل ما يوصل Trigger.");
+      const mode = val(root, "mode");
+      if (mode === "bi") {
+        return out(root, [["التوقيت", "لا يوجد — الخرج بيتغير بالأزرار", true], ["ضغط SET (الرجل 2 → GND)", "OUT = HIGH ويضل"], ["ضغط RESET (الرجل 4 → GND)", "OUT = LOW ويضل"], ["مقاومات الرفع المقترحة", "10 kΩ"]],
+          "Bistable: الـ 555 بيشتغل كـ Flip-Flop (ذاكرة بت وحدة) — مفيد لتشغيل/إطفاء حِمل بزرّين أو لإزالة ارتداد الأزرار.");
       }
+      if (mode === "mono") {
+        const R = res(root, "r"), C = cap(root, "cm");
+        if (!(R > 0 && C > 0)) return out(root, null);
+        return out(root, [["مدة النبضة t = 1.1 × R × C", si(1.1 * R * C, "s"), true]], "Monostable: بتطلع نبضة وحدة بطول ثابت كل ما ينضغط زر TRIG.");
+      }
+      const C = cap(root, "c");
       const R1 = res(root, "r1"), R2 = res(root, "r2");
       if (!(R1 > 0 && R2 > 0 && C > 0)) return out(root, null);
       const th = 0.693 * (R1 + R2) * C, tl = 0.693 * R2 * C, f = 1 / (th + tl);

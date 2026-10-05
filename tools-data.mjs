@@ -7,6 +7,37 @@ const f = {
   sel: (name, label, opts, extra = "") => `<label><span>${label}</span><select name="${name}"${extra}>${opts.map(([v, t, s]) => `<option value="${v}"${s ? " selected" : ""}>${t}</option>`).join("")}</select></label>`,
 };
 
+// ───────── رسومات الدوائر (SVG وقت البناء) ─────────
+const S = {
+  res: (x, y1, y2) => { const m = (y1 + y2) / 2, a = m - 21, h = 7; let d = `M${x} ${y1}V${a}`; for (let i = 0; i < 6; i++) d += `L${x + (i % 2 ? -9 : 9)} ${a + h * (i + 0.5)}`; return `<path d="${d}L${x} ${a + 42}V${y2}"/>`; },
+  cap: (x, y1, y2) => { const m = (y1 + y2) / 2; return `<path d="M${x} ${y1}V${m - 5}M${x - 15} ${m - 5}H${x + 15}M${x - 15} ${m + 5}H${x + 15}M${x} ${m + 5}V${y2}" /><path d="M${x - 15} ${m - 5}H${x + 15}M${x - 15} ${m + 5}H${x + 15}" stroke-width="3.5"/>`; },
+  gnd: (x, y) => `<path d="M${x} ${y}V${y + 8}M${x - 12} ${y + 8}H${x + 12}M${x - 7} ${y + 13}H${x + 7}M${x - 3} ${y + 18}H${x + 3}"/>`,
+  btn: (x, y1, y2) => { const m = (y1 + y2) / 2; return `<path d="M${x} ${y1}V${m - 9}M${x} ${m + 9}V${y2}M${x - 14} ${m - 12}V${m + 12}M${x - 14} ${m}H${x - 24}"/><circle cx="${x}" cy="${m - 9}" r="2.5"/><circle cx="${x}" cy="${m + 9}" r="2.5"/>`; },
+  dot: (x, y) => `<circle cx="${x}" cy="${y}" r="4" fill="currentColor"/>`,
+  w: (d) => `<path d="${d}"/>`,
+  t: (x, y, s, a = "middle") => `<text x="${x}" y="${y}" text-anchor="${a}">${s}</text>`,
+};
+// قالب الـ 555: VCC فوق، DIS/THR/TRIG يسار، RST/OUT يمين، GND/CV تحت
+function ic555(mode, inner) {
+  const pins = `<rect x="200" y="80" width="120" height="180" rx="6"/>
+${S.w("M180 110H200M180 160H200M180 230H200M320 110H340M320 200H340M260 60V80M230 260V280M290 260V275")}`;
+  const lbl = `<g class="pin">${S.t(208, 114, "7 DIS", "start")}${S.t(208, 164, "6 THR", "start")}${S.t(208, 234, "2 TRIG", "start")}${S.t(312, 114, "RST 4", "end")}${S.t(312, 204, "OUT 3", "end")}${S.t(260, 98, "8 VCC")}${S.t(232, 254, "1")}${S.t(290, 254, "5")}</g><text class="chip" x="260" y="146" text-anchor="middle">555</text>`;
+  const common = `${S.w("M30 30H450M260 30V60")}${S.dot(260, 30)}${S.gnd(230, 280)}${S.cap(290, 275, 300)}${S.gnd(290, 300)}${S.w("M340 200H430")}<circle cx="436" cy="200" r="6"/>${S.t(436, 226, "OUT")}${S.t(316, 314, "10nF", "start")}${S.t(30, 22, "+Vcc", "start")}`;
+  const rst = mode === "bi" ? "" : `${S.w("M340 110H380V30")}${S.dot(380, 30)}`;
+  const wave = mode === "astable" ? `<path class="hl" d="M370 185h10v-14h12v14h12v-14h12v14"/>` : mode === "mono" ? `<path class="hl" d="M366 185h14v-14h26v14h18"/>` : "";
+  return `<div class="schem" data-mode="${mode}"><svg viewBox="0 0 470 330" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round">${pins}${common}${rst}${wave}${inner}</g>${lbl}</svg></div>`;
+}
+const SCH_555 = {
+  astable: ic555("astable", `${S.res(110, 30, 100)}${S.dot(110, 30)}${S.w("M110 100V110H180")}${S.dot(110, 110)}${S.res(110, 110, 160)}${S.w("M110 160H180M110 160V230H180")}${S.dot(110, 160)}${S.dot(110, 230)}${S.cap(110, 230, 270)}${S.gnd(110, 270)}
+${S.t(90, 70, "R1", "end")}${S.t(90, 140, "R2", "end")}${S.t(90, 255, "C", "end")}`),
+  mono: ic555("mono", `${S.res(130, 30, 100)}${S.dot(130, 30)}${S.w("M130 100V110H180M130 110V160H180")}${S.dot(130, 110)}${S.dot(130, 160)}${S.cap(130, 160, 196)}${S.gnd(130, 196)}
+${S.res(60, 30, 215)}${S.dot(60, 30)}${S.w("M60 215V230H180")}${S.dot(60, 230)}${S.btn(60, 230, 290)}${S.gnd(60, 290)}
+${S.t(150, 70, "R", "start")}${S.t(150, 185, "C", "start")}${S.t(78, 125, "10k", "start")}${S.t(84, 268, "TRIG", "start")}`),
+  bi: ic555("bi", `${S.w("M180 160H150")}${S.gnd(150, 160)}${S.t(150, 106, "DIS: NC")}
+${S.res(60, 30, 215)}${S.dot(60, 30)}${S.w("M60 215V230H180")}${S.dot(60, 230)}${S.btn(60, 230, 290)}${S.gnd(60, 290)}${S.t(78, 125, "10k", "start")}${S.t(84, 268, "SET", "start")}
+${S.res(410, 30, 95)}${S.dot(410, 30)}${S.w("M410 95V110H340")}${S.dot(410, 110)}${S.btn(410, 110, 160)}${S.gnd(410, 160)}${S.t(428, 70, "10k", "start")}${S.t(388, 150, "RESET", "end")}`),
+};
+
 export const TOOL_CATS = [
   { id: "basics", label: "أساسيات الإلكترونيات", emoji: "⚡" },
   { id: "power", label: "التمديدات والقدرة", emoji: "🔌" },
@@ -190,8 +221,9 @@ ${f.sel("vb", "جهد البطاريات", [["", "تلقائي (مقترح)", 1]
     name: "حاسبة التوالي والتوازي",
     desc: "احسب المقاومة أو السعة أو الحث المكافئ لعدة عناصر على التوالي والتوازي — اكتب القيم مثل 10k, 4.7k, 2.2k والنتيجة فورية مع شرح القوانين.",
     answer: "المقاومات على التوالي بتنجمع: <b>R = R1 + R2 + …</b>، وعلى التوازي: <b>1/R = 1/R1 + 1/R2 + …</b>. المكثفات بالعكس: على التوازي بتنجمع، وعلى التوالي بمقلوب المجموع.",
-    form: `<div class="fields">${f.sel("kind", "نوع العناصر", [["r", "مقاومات (Ω)", 1], ["c", "مكثفات (F)"], ["l", "ملفات (H)"]])}
-<label style="grid-column:1/-1"><span>القيم مفصولة بفاصلة — بتقبل k و M و u و n و p</span><input name="list" dir="ltr" value="10k, 4.7k, 2.2k" placeholder="10k, 4.7k, 2.2k"></label></div>`,
+    form: `<div class="fields">${f.sel("kind", "نوع العناصر", [["r", "مقاومات (Ω)", 1], ["c", "مكثفات (F)"], ["l", "ملفات (H)"]])}${f.sel("conn", "طريقة التوصيل", [["s", "توالي (Series)", 1], ["p", "توازي (Parallel)"]])}
+<label style="grid-column:1/-1"><span>القيم مفصولة بفاصلة — بتقبل k و M و u و n و p</span><input name="list" dir="ltr" value="10k, 4.7k, 2.2k" placeholder="10k, 4.7k, 2.2k"></label></div>
+<div class="schem sp-fig"></div>`,
     how: `<p><b>مقاومات وملفات:</b> توالي R = R1 + R2 + …، توازي 1/R = 1/R1 + 1/R2 + … — ولمقاومتين بالتوازي: <b>R = R1 × R2 ÷ (R1 + R2)</b>.</p>
 <p><b>مكثفات:</b> توازي C = C1 + C2 + …، توالي 1/C = 1/C1 + 1/C2 + ….</p>
 <p>المقاومة المكافئة بالتوازي دايماً أصغر من أصغر مقاومة بالمجموعة.</p>`,
@@ -222,16 +254,17 @@ ${f.num("v", "جهد الشحن (V) — اختياري", "5", ' value="5"')}${f.
   },
   {
     slug: "timer-555", cat: "basics", emoji: "⏲️", topics: ["electronics"],
-    title: "حاسبة مؤقت 555 (Astable و Monostable)",
+    title: "حاسبة مؤقت 555 (Astable و Monostable و Bistable)",
     name: "حاسبة مؤقت 555",
-    desc: "حاسبة 555 Timer: احسب التردد والـ Duty Cycle وزمن HIGH و LOW بوضع Astable، ومدة النبضة بوضع Monostable — من قيم R1 و R2 و C.",
-    answer: "بوضع Astable: <b>f = 1.44 ÷ ((R1 + 2R2) × C)</b> والـ Duty = (R1 + R2) ÷ (R1 + 2R2). بوضع Monostable: مدة النبضة <b>t = 1.1 × R × C</b>.",
-    form: `<div class="fields">${f.sel("mode", "وضع التشغيل", [["astable", "Astable — موجة مربعة مستمرة", 1], ["mono", "Monostable — نبضة وحدة"]])}
-${f.numu("c", "المكثف C", ["pF", "nF", "µF"], "µF", "10")}
-<div data-mode="astable" class="fields sub">${f.numu("r1", "R1", ["Ω", "kΩ", "MΩ"], "kΩ", "1")}${f.numu("r2", "R2", ["Ω", "kΩ", "MΩ"], "kΩ", "10")}</div>
-<div data-mode="mono" class="fields sub">${f.numu("r", "R", ["Ω", "kΩ", "MΩ"], "kΩ", "100")}</div></div>`,
+    desc: "حاسبة 555 Timer مع رسمة الدارة: التردد والـ Duty Cycle بوضع Astable، مدة النبضة بوضع Monostable، وتوصيل Bistable (Flip-Flop) بزرّين SET و RESET.",
+    answer: "بوضع Astable: <b>f = 1.44 ÷ ((R1 + 2R2) × C)</b> والـ Duty = (R1 + R2) ÷ (R1 + 2R2). بوضع Monostable: مدة النبضة <b>t = 1.1 × R × C</b>. وبوضع Bistable ما في توقيت — الخرج بيثبت HIGH بزر SET و LOW بزر RESET.",
+    form: `<div class="fields">${f.sel("mode", "وضع التشغيل", [["astable", "Astable — موجة مربعة مستمرة", 1], ["mono", "Monostable — نبضة وحدة"], ["bi", "Bistable — مفتاح (Flip-Flop)"]])}</div>
+${SCH_555.astable}${SCH_555.mono}${SCH_555.bi}
+<div data-mode="astable" class="fields">${f.numu("r1", "R1", ["Ω", "kΩ", "MΩ"], "kΩ", "1")}${f.numu("r2", "R2", ["Ω", "kΩ", "MΩ"], "kΩ", "10")}${f.numu("c", "المكثف C", ["pF", "nF", "µF"], "µF", "10")}</div>
+<div data-mode="mono" class="fields">${f.numu("r", "R", ["Ω", "kΩ", "MΩ"], "kΩ", "100")}${f.numu("cm", "المكثف C", ["pF", "nF", "µF"], "µF", "10")}</div>`,
     how: `<p><b>Astable:</b> زمن HIGH = 0.693 × (R1 + R2) × C، زمن LOW = 0.693 × R2 × C، والتردد f = 1 ÷ (HIGH + LOW) = 1.44 ÷ ((R1 + 2R2) × C).</p>
 <p><b>Monostable:</b> لما يوصل Trigger (الرجل 2 تنزل تحت ⅓ Vcc) الخرج بيصير HIGH لمدة t = 1.1 × R × C.</p>
+<p><b>Bistable:</b> الرجل 2 (TRIG) مع مقاومة رفع وزر SET، والرجل 4 (RESET) مع مقاومة رفع وزر RESET، والرجل 6 على الأرضي. ضغطة SET بتخلي الخرج HIGH وبيضل، وضغطة RESET بترجعه LOW — زي ذاكرة بت وحدة.</p>
 <p>خلي R1 أكبر من 1 kΩ عشان ما يزيد التيار على الترانزستور الداخلي (رجل Discharge).</p>`,
     example: "R1 = 1 kΩ و R2 = 10 kΩ و C = 10 µF: f ≈ <b>6.9 Hz</b> و Duty ≈ <b>52%</b> — مناسبة لوميض LED.",
     faq: [
