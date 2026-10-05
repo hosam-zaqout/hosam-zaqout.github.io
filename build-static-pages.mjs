@@ -336,13 +336,13 @@ ${schemas.map(jsonLd).join("\n")}
 <body>
 <header class="top"><div class="wrap">
   <a class="logo" href="/"><img src="/logo.jpg" alt="شعار 3ENG.s" width="36" height="36">${BRAND}</a>
-  <nav class="nav">${SECTIONS.map((s) => `<a href="/${s.dir}/">${s.label}</a>`).join("")}<a href="/tools/">الحاسبات</a><a href="/topics/">التصنيفات</a></nav>
+  <nav class="nav">${SECTIONS.map((s) => `<a href="/${s.dir}/">${s.label}</a>`).join("")}<a href="/tools/">الحاسبات</a><a href="/cad/">3ENG CAD</a><a href="/topics/">التصنيفات</a></nav>
 </div></header>
 <main class="wrap">
 ${body}
 </main>
 <footer><div class="wrap">
-  <nav><a href="/">الرئيسية</a>${SECTIONS.map((s) => `<a href="/${s.dir}/">${s.label}</a>`).join("")}<a href="/tools/">الحاسبات</a><a href="/topics/">التصنيفات</a><a href="/team/">الفريق</a><a href="/about/">من نحن</a><a href="/#faq">الأسئلة الشائعة</a><a href="/privacy.html">سياسة الخصوصية</a></nav>
+  <nav><a href="/">الرئيسية</a>${SECTIONS.map((s) => `<a href="/${s.dir}/">${s.label}</a>`).join("")}<a href="/tools/">الحاسبات</a><a href="/cad/">3ENG CAD</a><a href="/topics/">التصنيفات</a><a href="/team/">الفريق</a><a href="/about/">من نحن</a><a href="/#faq">الأسئلة الشائعة</a><a href="/privacy.html">سياسة الخصوصية</a></nav>
   © ${new Date().getFullYear()} ${BRAND} — ${BRAND_AR} • منصة تعليم الهندسة الكهربائية والأنظمة المدمجة
 </div></footer>
 </body>
@@ -1363,6 +1363,7 @@ async function main() {
   // 3.6) الحاسبات
   if (await writeFile("tools/index.html", toolsHub())) changed.push(`${SITE}/tools/`);
   entries.push({ loc: "/tools/", priority: 0.8 });
+  entries.push({ loc: "/cad/", priority: 0.8 }); // 3ENG CAD — صفحة ثابتة مكتوبة يدوياً
   for (const t of TOOLS) {
     if (await writeFile(`tools/${t.slug}/index.html`, toolPage(t, all))) changed.push(`${SITE}/tools/${t.slug}/`);
     entries.push({ loc: `/tools/${t.slug}/`, priority: 0.7 });

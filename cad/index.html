@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3ENG CAD — محاكي الدوائر الكهربائية أونلاين | 3ENG.s</title>
+<meta name="description" content="3ENG CAD: محاكي دوائر كهربائية وإلكترونية مجاني يعمل في المتصفح بالعربية والإنجليزية — ارسم الدائرة وشاهد التيار والجهد مباشرة، مع مكتبة دوائر جاهزة مشروحة.">
+<link rel="canonical" href="https://www.3engs.com/cad/">
+<link rel="icon" href="/logo.jpg">
+<meta name="theme-color" content="#F59E0B">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="3ENG.s">
+<meta property="og:url" content="https://www.3engs.com/cad/">
+<meta property="og:title" content="3ENG CAD — محاكي الدوائر الكهربائية أونلاين">
+<meta property="og:description" content="محاكي دوائر كهربائية مجاني بالعربية والإنجليزية مع مكتبة دوائر جاهزة.">
+<meta property="og:image" content="https://www.3engs.com/og-image.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"3ENG CAD","alternateName":"محاكي الدوائر الكهربائية 3ENG CAD","url":"https://www.3engs.com/cad/","description":"محاكي دوائر كهربائية وإلكترونية مجاني يعمل في المتصفح بالعربية والإنجليزية، مع مكتبة دوائر جاهزة مشروحة.","applicationCategory":"EducationalApplication","operatingSystem":"Any","inLanguage":["ar","en"],"isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"publisher":{"@id":"https://www.3engs.com/#organization"}}</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GZJCYL5YM8"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-GZJCYL5YM8');</script>
+<style>
+:root{--bg:#0b1020;--card:#131a2e;--line:#232c47;--txt:#e9edf7;--mut:#98a2bf;--acc:#F59E0B;--acc2:#fbbf24;--ok:#34d399}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:Cairo,system-ui,Tahoma,sans-serif;background:var(--bg);color:var(--txt);display:flex;flex-direction:column}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer}
+header{display:flex;align-items:center;gap:14px;padding:0 16px;height:58px;border-bottom:1px solid var(--line);background:#0b1020f2;flex-shrink:0}
+.brand{display:flex;align-items:center;gap:10px}
+.brand img{width:34px;height:34px;border-radius:9px}
+.brand b{font-size:1.15rem;font-weight:800;letter-spacing:.5px}
+.brand b span{color:var(--acc)}
+.brand small{display:block;font-size:.72rem;color:var(--mut);margin-top:-3px}
+.spacer{flex:1}
+.top-links{display:flex;gap:16px;font-size:.88rem;color:var(--mut)}
+.top-links a:hover{color:var(--acc)}
+.lang{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.lang button{background:none;border:0;color:var(--mut);padding:5px 12px;font-size:.85rem;font-weight:700}
+.lang button.on{background:var(--acc);color:#1a1200}
+main{flex:1;display:grid;grid-template-columns:300px 1fr;min-height:0}
+aside{border-inline-end:1px solid var(--line);display:flex;flex-direction:column;min-height:0;background:var(--card)}
+.side-head{padding:12px;border-bottom:1px solid var(--line)}
+.side-head h1{font-size:1rem;margin-bottom:8px}
+.side-head input{width:100%;background:#0a0f1d;border:1px solid var(--line);border-radius:10px;padding:8px 12px;color:var(--txt);font:inherit;font-size:.88rem}
+.side-head input:focus{outline:none;border-color:var(--acc)}
+.lib{overflow-y:auto;flex:1;padding:6px 8px 12px}
+.grp{font-size:.74rem;color:var(--mut);font-weight:800;margin:12px 6px 6px;text-transform:uppercase;letter-spacing:.5px}
+.item{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:start;background:none;border:1px solid transparent;border-radius:12px;padding:8px 10px;color:var(--txt)}
+.item:hover{background:#1a2340}
+.item.on{border-color:var(--acc);background:#1c2542}
+.item .e{font-size:1.2rem;line-height:1.4}
+.item b{display:block;font-size:.9rem}
+.item small{display:block;font-size:.76rem;color:var(--mut);line-height:1.6}
+.stage{display:flex;flex-direction:column;min-width:0;min-height:0}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line)}
+.bar .title{font-weight:800;font-size:.95rem;margin-inline-end:auto}
+.btn{background:#1c2542;border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:6px 12px;font-size:.84rem;font-weight:700}
+.btn:hover{border-color:var(--acc);color:var(--acc2)}
+.btn.main{background:var(--acc);color:#1a1200;border-color:var(--acc)}
+.frame{flex:1;position:relative;background:#000;min-height:420px}
+.frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff}
+.info{padding:10px 14px;border-top:1px solid var(--line);font-size:.86rem;color:#d3d9ea;line-height:1.8;max-height:30vh;overflow:auto}
+.info b{color:var(--acc2)}
+.tips{display:none}
+.info.tips-on .tips{display:block;margin-top:6px;color:var(--mut)}
+.tips li{margin-inline-start:18px}
+footer{font-size:.72rem;color:var(--mut);padding:6px 14px;border-top:1px solid var(--line);text-align:center;flex-shrink:0}
+footer a{color:var(--acc)}
+.libtoggle{display:none}
+@media(max-width:860px){
+  .top-links{display:none}
+  main{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+  aside{border-inline-end:0;border-bottom:1px solid var(--line);max-height:none}
+  aside .lib{display:none;max-height:45vh}
+  aside.open .lib{display:block}
+  .libtoggle{display:inline-block;margin-top:8px;width:100%}
+  .frame{min-height:70vh}
+  .brand small{display:none}
+}
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="/cad/"><img src="/logo.jpg" alt="3ENG.s" width="34" height="34"><div><b>3ENG <span>CAD</span></b><small data-t="tagline"></small></div></a>
+  <div class="spacer"></div>
+  <nav class="top-links"><a href="/" data-t="home"></a><a href="/tools/" data-t="tools"></a><a href="/courses/" data-t="courses"></a></nav>
+  <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="ar">عربي</button><button type="button" data-lang="en">English</button></div>
+</header>
+<main>
+  <aside id="side">
+    <div class="side-head">
+      <h1 data-t="library"></h1>
+      <input id="q" type="search" autocomplete="off">
+      <button type="button" class="btn libtoggle" id="libBtn" data-t="showLib"></button>
+    </div>
+    <div class="lib" id="lib"></div>
+  </aside>
+  <section class="stage">
+    <div class="bar">
+      <span class="title" id="curTitle"></span>
+      <button type="button" class="btn" id="newBtn" data-t="new"></button>
+      <button type="button" class="btn" id="tipsBtn" data-t="howto"></button>
+      <button type="button" class="btn" id="fullBtn" data-t="full"></button>
+      <a class="btn main" id="tabBtn" target="_blank" rel="noopener" data-t="newtab"></a>
+    </div>
+    <div class="frame" id="frame"><iframe id="sim" title="3ENG CAD" allow="fullscreen; clipboard-write"></iframe></div>
+    <div class="info" id="info"><div id="desc"></div><ul class="tips" id="tips"></ul></div>
+  </section>
+</main>
+<footer><span data-t="credit"></span> <a href="https://github.com/pfalstad/circuitjs1" target="_blank" rel="noopener">CircuitJS1</a> — Paul Falstad &amp; Iain Sharp — <a href="https://www.gnu.org/licenses/old-licenses/gpl-2.0.html" target="_blank" rel="noopener">GPL v2</a></footer>
+
+<script>
+(function () {
+  "use strict";
+  // ───────── النصوص بالعربية والإنجليزية ─────────
+  var T = {
+    ar: {
+      tagline: "محاكي الدوائر الكهربائية", home: "الرئيسية", tools: "الحاسبات", courses: "الدورات",
+      library: "📚 مكتبة الدوائر الجاهزة", search: "ابحث عن دائرة…", showLib: "📚 عرض مكتبة الدوائر", hideLib: "إخفاء المكتبة",
+      "new": "➕ دائرة جديدة", howto: "❔ طريقة الاستخدام", full: "⛶ ملء الشاشة", newtab: "↗ نافذة مستقلة",
+      blank: "دائرة فارغة", blankDesc: "ابدأ من الصفر: اختر العناصر من قائمة <b>رسم</b> أو من شريط الأدوات، وارسمها على اللوحة.",
+      credit: "محرك المحاكاة مفتوح المصدر:", doc: "3ENG CAD — محاكي الدوائر الكهربائية أونلاين | 3ENG.s",
+      tips: [
+        "اختر عنصراً من قائمة <b>رسم</b> أو من شريط الأدوات، ثم اسحب بالفأرة على اللوحة لرسمه.",
+        "انقر نقراً مزدوجاً على أي عنصر لتعديل قيمته (المقاومة، والجهد، والسعة…).",
+        "النقاط الصفراء المتحركة تمثل التيار، والألوان تمثل الجهد: الأخضر موجب والأحمر سالب.",
+        "انقر بالزر الأيمن على عنصر واختر <b>عرض في راسم الإشارة</b> لرؤية الجهد والتيار مع الزمن.",
+        "استخدم زر <b>تشغيل / إيقاف</b> وشريط <b>سرعة المحاكاة</b> للتحكم في المحاكاة.",
+        "لحفظ دائرتك: قائمة <b>ملف</b> ثم <b>تصدير كرابط</b>، واحتفظ بالرابط لتفتحها لاحقاً."
+      ],
+      groups: { basics: "الأساسيات", ac: "التيار المتردد والقدرة", power: "التقويم والتغذية", elec: "الإلكترونيات", digital: "الإلكترونيات الرقمية" }
+    },
+    en: {
+      tagline: "Electrical circuit simulator", home: "Home", tools: "Calculators", courses: "Courses",
+      library: "📚 Ready-made circuits", search: "Search circuits…", showLib: "📚 Show circuit library", hideLib: "Hide library",
+      "new": "➕ New circuit", howto: "❔ How to use", full: "⛶ Full screen", newtab: "↗ Open in new tab",
+      blank: "Blank circuit", blankDesc: "Start from scratch: pick components from the <b>Draw</b> menu or the toolbar and drag them onto the canvas.",
+      credit: "Open-source simulation engine:", doc: "3ENG CAD — Online Electrical Circuit Simulator | 3ENG.s",
+      tips: [
+        "Pick a component from the <b>Draw</b> menu or the toolbar, then drag on the canvas to place it.",
+        "Double-click any component to edit its value (resistance, voltage, capacitance…).",
+        "Moving yellow dots show current; colours show voltage: green is positive, red is negative.",
+        "Right-click a component and choose <b>View in Scope</b> to see voltage and current over time.",
+        "Use <b>RUN / Stop</b> and the <b>Simulation Speed</b> slider to control the simulation.",
+        "To keep your circuit: <b>File</b> → <b>Export As Link…</b>, and save the link to reopen it later."
+      ],
+      groups: { basics: "Basics", ac: "AC & Power", power: "Rectifiers & Supplies", elec: "Electronics", digital: "Digital Electronics" }
+    }
+  };
+  // ───────── مكتبة الدوائر: [ملف، رمز، مجموعة، عنوان عربي، عنوان إنجليزي، شرح عربي، شرح إنجليزي] ─────────
+  var LIB = [
+    ["ohms.txt", "Ω", "basics", "قانون أوم", "Ohm's Law", "غيّر قيمة المقاومة أو الجهد ولاحظ كيف يتغير التيار وفق العلاقة <b>V = I × R</b>.", "Change the resistance or voltage and watch the current follow <b>V = I × R</b>."],
+    ["resistors.txt", "🔗", "basics", "المقاومات على التوالي والتوازي", "Series & parallel resistors", "قارن توزيع الجهد والتيار في المقاومات الموصولة على التوالي وعلى التوازي.", "Compare how voltage and current split in series and parallel resistors."],
+    ["voltdivide.txt", "➗", "basics", "مقسّم الجهد", "Voltage divider", "مقاومتان على التوالي تقسمان الجهد بنسبة قيمتيهما. <a href=\"/tools/voltage-divider/\">احسبه بالحاسبة</a>.", "Two series resistors split the voltage by their ratio. <a href=\"/tools/voltage-divider/\">Try the calculator</a>."],
+    ["capac.txt", "⏱️", "basics", "شحن المكثف وتفريغه", "Capacitor charging", "شاهد جهد المكثف يرتفع وينخفض أُسّياً حسب ثابت الزمن <b>τ = R × C</b>.", "Watch the capacitor voltage rise and fall exponentially with <b>τ = R × C</b>."],
+    ["filt-lopass.txt", "〰️", "basics", "مرشح تمرير منخفض (RC)", "RC low-pass filter", "يمرر الترددات المنخفضة ويضعف المرتفعة، وتردد القطع <b>fc = 1 ÷ (2πRC)</b>.", "Passes low frequencies and attenuates high ones; cut-off <b>fc = 1 ÷ (2πRC)</b>."],
+    ["lrc.txt", "🔁", "basics", "دائرة RLC والرنين", "RLC circuit & resonance", "تبادل الطاقة بين الملف والمكثف، وتخامد الاهتزاز بسبب المقاومة.", "Energy swings between inductor and capacitor, damped by the resistance."],
+    ["transformerdown.txt", "🔌", "ac", "المحوّل الخافض", "Step-down transformer", "يخفض المحوّل الجهد المتردد حسب نسبة عدد اللفات بين الملفين.", "A transformer steps the AC voltage down by its turns ratio."],
+    ["3phasewye.txt", "🔺", "ac", "النظام ثلاثي الطور (نجمة)", "Three-phase wye load", "ثلاثة أطوار متساوية بفرق 120° تغذي حِملاً متوازناً بتوصيل النجمة. <a href=\"/tools/three-phase-power/\">حاسبة ثلاثي الطور</a>.", "Three phases 120° apart feeding a balanced wye load. <a href=\"/tools/three-phase-power/\">3-phase calculator</a>."],
+    ["powerfactor2.txt", "📈", "ac", "تحسين معامل القدرة", "Power factor correction", "مكثف على التوازي مع حِمل حثي يقلل التيار المسحوب من المصدر. <a href=\"/tools/power-factor-correction/\">الحاسبة</a>.", "A parallel capacitor reduces the current drawn by an inductive load. <a href=\"/tools/power-factor-correction/\">Calculator</a>."],
+    ["3way.txt", "💡", "ac", "مفتاح الإنارة الدرج", "3-way light switch", "التحكم في مصباح واحد من مكانين، كما في الدرج والممرات.", "Control one lamp from two places, as on stairs and corridors."],
+    ["rectify.txt", "➰", "power", "مقوّم نصف موجة", "Half-wave rectifier", "يمرر الثنائي نصف الموجة الموجب فقط من التيار المتردد.", "A diode passes only the positive half of the AC wave."],
+    ["fullrectf.txt", "🔋", "power", "مقوّم موجة كاملة مع مكثف تنعيم", "Full-wave rectifier with filter", "قنطرة ثنائيات ومكثف يحوّلان التيار المتردد إلى مستمر شبه ثابت، مع ملاحظة التموج.", "A diode bridge and capacitor turn AC into nearly smooth DC — notice the ripple."],
+    ["zenerref.txt", "⚡", "power", "جهد مرجعي بثنائي زينر", "Zener voltage reference", "يثبّت ثنائي زينر الجهد على قيمة شبه ثابتة رغم تغير جهد الدخل.", "A Zener diode holds a nearly constant voltage as the input changes."],
+    ["conv-buck.txt", "⬇️", "power", "محوّل خافض (Buck)", "Buck converter", "يخفض الجهد المستمر بكفاءة عالية بالتبديل السريع وملف ومكثف.", "Steps DC voltage down efficiently using fast switching, an inductor and a capacitor."],
+    ["conv-boost.txt", "⬆️", "power", "محوّل رافع (Boost)", "Boost converter", "يرفع الجهد المستمر بتخزين الطاقة في الملف وتفريغها في الخرج.", "Steps DC voltage up by storing energy in the inductor and releasing it to the output."],
+    ["transswitch.txt", "🔀", "elec", "الترانزستور كمفتاح", "Transistor as a switch", "تيار صغير في القاعدة يتحكم في تيار أكبر في المجمّع لتشغيل حِمل.", "A small base current controls a larger collector current to drive a load."],
+    ["amp-invert.txt", "🔺", "elec", "مضخم عاكس بمضخم العمليات", "Op-amp inverting amplifier", "الكسب يساوي سالب نسبة مقاومة التغذية الراجعة إلى مقاومة الدخل.", "Gain equals minus the ratio of the feedback resistor to the input resistor."],
+    ["555square.txt", "⏲️", "elec", "المؤقت 555: موجة مربعة", "555 timer: square wave", "المؤقت 555 في الوضع المهتز يولد موجة مربعة مستمرة. <a href=\"/tools/timer-555/\">حاسبة 555</a>.", "A 555 timer in astable mode generates a continuous square wave. <a href=\"/tools/timer-555/\">555 calculator</a>."],
+    ["555monostable.txt", "⏱️", "elec", "المؤقت 555: نبضة واحدة", "555 timer: monostable", "عند الإطلاق يعطي المؤقت نبضة واحدة مدتها <b>1.1 × R × C</b>.", "On trigger the 555 outputs a single pulse lasting <b>1.1 × R × C</b>."],
+    ["ledflasher.txt", "💡", "elec", "وامض LED", "LED flasher", "دائرة بسيطة تجعل الثنائي الباعث للضوء يومض تلقائياً.", "A simple circuit that makes an LED blink on its own."],
+    ["relay.txt", "🧲", "elec", "المرحّل (الريليه)", "Relay", "ملف مغناطيسي يفتح ويغلق تلامساً منفصلاً كهربائياً عن دائرة التحكم.", "An electromagnet opens and closes a contact isolated from the control circuit."],
+    ["traffic.txt", "🚦", "digital", "إشارة مرور", "Traffic light", "دائرة منطقية تتحكم في تسلسل أضواء الإشارة.", "Logic circuitry sequencing the traffic-light lamps."],
+    ["counter.txt", "🔢", "digital", "عدّاد ثنائي 4 بِت", "4-bit ripple counter", "قلّابات متتالية تعدّ النبضات بالنظام الثنائي.", "Cascaded flip-flops count pulses in binary."],
+    ["7segdecoder.txt", "8️⃣", "digital", "شاشة سبع قطع", "7-segment decoder", "تحويل رقم ثنائي إلى إضاءة القطع المناسبة على الشاشة.", "Turns a binary number into the right segments on the display."]
+  ];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var LS = { get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
+  var qs = new URLSearchParams(location.search);
+  var lang = qs.get("lang") === "en" || qs.get("lang") === "ar" ? qs.get("lang") : (LS.get("cad-lang") || "ar");
+  var cur = qs.get("c") && LIB.some(function (x) { return x[0] === qs.get("c"); }) ? qs.get("c") : "voltdivide.txt";
+
+  function simUrl(file) { return "/cad/sim/circuitjs.html?lang=" + lang + "&startCircuit=" + encodeURIComponent(file); }
+  function entry(file) { return LIB.find(function (x) { return x[0] === file; }); }
+
+  function renderLib() {
+    var q = $("q").value.trim().toLowerCase(), t = T[lang], html = "";
+    Object.keys(t.groups).forEach(function (g) {
+      var items = LIB.filter(function (x) { return x[2] === g && (!q || (x[3] + " " + x[4]).toLowerCase().indexOf(q) >= 0); });
+      if (!items.length) return;
+      html += '<div class="grp">' + t.groups[g] + "</div>";
+      items.forEach(function (x) {
+        var title = lang === "ar" ? x[3] : x[4], sub = lang === "ar" ? x[4] : x[3];
+        html += '<button type="button" class="item' + (x[0] === cur ? " on" : "") + '" data-file="' + x[0] + '"><span class="e">' + x[1] + "</span><span><b>" + title + "</b><small>" + sub + "</small></span></button>";
+      });
+    });
+    $("lib").innerHTML = html;
+  }
+  function renderInfo() {
+    var t = T[lang], x = entry(cur);
+    $("curTitle").textContent = x ? (lang === "ar" ? x[3] : x[4]) : t.blank;
+    $("desc").innerHTML = x ? (lang === "ar" ? x[5] : x[6]) : t.blankDesc;
+    $("tips").innerHTML = t.tips.map(function (s) { return "<li>" + s + "</li>"; }).join("");
+  }
+  function load(file) {
+    cur = file;
+    $("sim").src = simUrl(file);
+    $("tabBtn").href = simUrl(file);
+    var u = new URL(location.href); u.searchParams.set("c", file); u.searchParams.set("lang", lang);
+    history.replaceState(null, "", u.pathname + u.search);
+    renderLib(); renderInfo();
+  }
+  function setLang(l) {
+    lang = l; LS.set("cad-lang", l);
+    var t = T[l];
+    document.documentElement.lang = l;
+    document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    document.title = t.doc;
+    document.querySelectorAll("[data-t]").forEach(function (el) { el.textContent = t[el.dataset.t] || ""; });
+    $("q").placeholder = t.search;
+    document.querySelectorAll(".lang button").forEach(function (b) { b.classList.toggle("on", b.dataset.lang === l); });
+    $("libBtn").textContent = $("side").classList.contains("open") ? t.hideLib : t.showLib;
+    load(cur); // إعادة تحميل المحاكي بلغة الواجهة الجديدة
+  }
+
+  $("lib").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-file]"); if (!b) return;
+    load(b.dataset.file);
+    if (matchMedia("(max-width:860px)").matches) { $("side").classList.remove("open"); $("libBtn").textContent = T[lang].showLib; $("frame").scrollIntoView({ behavior: "smooth" }); }
+  });
+  $("q").addEventListener("input", renderLib);
+  document.querySelectorAll(".lang button").forEach(function (b) { b.onclick = function () { if (b.dataset.lang !== lang) setLang(b.dataset.lang); }; });
+  $("newBtn").onclick = function () { load("blank.txt"); };
+  $("tipsBtn").onclick = function () { $("info").classList.toggle("tips-on"); };
+  $("fullBtn").onclick = function () { var f = $("frame"); (f.requestFullscreen || f.webkitRequestFullscreen || function () {}).call(f); };
+  $("libBtn").onclick = function () { var s = $("side"); s.classList.toggle("open"); this.textContent = s.classList.contains("open") ? T[lang].hideLib : T[lang].showLib; };
+
+  setLang(lang);
+})();
+</script>
+</body>
+</html>
