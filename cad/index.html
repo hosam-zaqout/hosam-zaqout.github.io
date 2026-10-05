@@ -163,7 +163,7 @@ footer a{color:var(--acc)}
       groups: { basics: "الأساسيات", ac: "التيار المتردد والقدرة", power: "التقويم والتغذية", elec: "الإلكترونيات", digital: "الإلكترونيات الرقمية" },
       partsTab: "🧰 العناصر", libTab: "📚 دوائر جاهزة", searchParts: "ابحث عن عنصر أو دائرة…",
       partHint: "انقر على العنصر ليُضاف بجانب الدائرة، ثم اسحبه إلى مكانه. وانقر عليه نقراً مزدوجاً لتعديل قيمته.",
-      pgroups: { wire: "التوصيل", passive: "العناصر الخاملة", sources: "مصادر الجهد والتيار", semi: "أشباه الموصلات", sw: "المفاتيح والمرحّلات", meter: "أجهزة القياس", logic: "البوابات المنطقية" }
+      pgroups: { basic: "العناصر الأساسية", power: "مصادر الطاقة والإشارة", semi: "أشباه الموصلات", ic: "الدوائر المتكاملة", out: "المخرجات والمحركات", sw: "المفاتيح والمرحّلات", meter: "أجهزة القياس", logic: "الإلكترونيات الرقمية", wire: "التوصيل والتسميات" }
     },
     en: {
       tagline: "Electrical circuit simulator", home: "Home", tools: "Calculators", courses: "Courses",
@@ -182,89 +182,200 @@ footer a{color:var(--acc)}
       groups: { basics: "Basics", ac: "AC & Power", power: "Rectifiers & Supplies", elec: "Electronics", digital: "Digital Electronics" },
       partsTab: "🧰 Components", libTab: "📚 Circuits", searchParts: "Search components or circuits…",
       partHint: "Click a component to add it next to your circuit, then drag it into place. Double-click it to edit its value.",
-      pgroups: { wire: "Wiring", passive: "Passive components", sources: "Voltage & current sources", semi: "Semiconductors", sw: "Switches & relays", meter: "Meters", logic: "Logic gates" }
+      pgroups: { basic: "Basic components", power: "Power & signal sources", semi: "Semiconductors", ic: "Integrated circuits", out: "Outputs & motors", sw: "Switches & relays", meter: "Meters", logic: "Digital logic", wire: "Wiring & labels" }
     }
   };
-  // ───────── رموز العناصر (SVG) ─────────
+  // ───────── رموز العناصر (SVG 48×24) ─────────
+  var chip = function (t, fs) { return '<rect x="9" y="2" width="30" height="20" rx="2.5"/><text x="24" y="15.5" text-anchor="middle" font-size="' + (fs || 8) + '" font-weight="700" fill="currentColor" stroke="none">' + t + "</text><path d=\"M3 7H9M3 17H9M39 12H45\"/>"; };
+  var meter = function (t) { return '<path d="M2 12H14M34 12H46"/><circle cx="24" cy="12" r="10"/><text x="24" y="16.5" text-anchor="middle" font-size="' + (t.length > 1 ? 9 : 12) + '" font-weight="700" fill="currentColor" stroke="none">' + t + "</text>"; };
+  var RZ = "M2 12H11l2.2-6 4.4 12 4.4-12 4.4 12 4.4-12 4.4 12 2.2-6H46";
+  var DI = '<path d="M2 12H17M31 12H46"/><path d="M17 4V20L31 12Z" fill="currentColor" fill-opacity=".15"/>';
   var ICON = {
     wire: '<path d="M4 12H44"/><circle cx="4" cy="12" r="2.5" fill="currentColor"/><circle cx="44" cy="12" r="2.5" fill="currentColor"/>',
     gnd: '<path d="M24 1V11M13 11H35M17 16H31M21 21H27"/>',
+    label: '<path d="M4 12H14M14 6H36L42 12L36 18H14Z"/><text x="27" y="15" text-anchor="middle" font-size="7" font-weight="700" fill="currentColor" stroke="none">A</text>',
     text: '<text x="24" y="18" text-anchor="middle" font-size="17" font-weight="700" fill="currentColor" stroke="none">Aa</text>',
-    res: '<path d="M2 12H11l2.2-6 4.4 12 4.4-12 4.4 12 4.4-12 4.4 12 2.2-6H46"/>',
+    box: '<rect x="6" y="3" width="36" height="18" rx="2" stroke-dasharray="4 3"/>',
+    res: '<path d="' + RZ + '"/>',
+    pot: '<path d="' + RZ + '"/><path d="M24 23V15M21 18l3-4 3 4"/>',
+    ldr: '<path d="' + RZ + '"/><path d="M14 0l5 4M20 0l5 4" stroke-width="1.5"/><path d="M19 4l-3-.3 1 2.6M25 4l-3-.3 1 2.6" stroke-width="1.2"/>',
+    therm: '<path d="' + RZ + '"/><path d="M12 22 34 2M34 2H39" stroke-width="1.5"/>',
     cap: '<path d="M2 12H21M27 12H46"/><path d="M21 3V21M27 3V21" stroke-width="3"/>',
     capp: '<path d="M2 12H21M28 12H46"/><path d="M21 3V21" stroke-width="3"/><path d="M30 3Q25 12 30 21" stroke-width="3"/><path d="M14 4V10M11 7H17" stroke-width="1.6"/>',
     ind: '<path d="M2 12H8a4 4 0 0 1 8 0a4 4 0 0 1 8 0a4 4 0 0 1 8 0a4 4 0 0 1 8 0H46"/>',
-    pot: '<path d="M2 12H11l2.2-6 4.4 12 4.4-12 4.4 12 4.4-12 4.4 12 2.2-6H46"/><path d="M24 23V15M21 18l3-4 3 4"/>',
-    lamp: '<path d="M2 12H15M33 12H46"/><circle cx="24" cy="12" r="9"/><path d="M17.5 5.5 30.5 18.5M30.5 5.5 17.5 18.5"/>',
+    fuse: '<path d="M2 12H12M36 12H46"/><rect x="12" y="7" width="24" height="10" rx="2"/><path d="M12 12H36" stroke-width="1.4"/>',
+    crystal: '<path d="M2 12H15M33 12H46M15 4V20M33 4V20"/><rect x="19" y="5" width="10" height="14"/>',
     xfmr: '<path d="M2 4H12M2 20H12M36 4H46M36 20H46"/><path d="M12 4a4 4 0 0 1 0 8a4 4 0 0 1 0 8M36 4a4 4 0 0 0 0 8a4 4 0 0 0 0 8"/><path d="M22 2V22M26 2V22"/>',
+    txfmr: '<path d="M2 4H12M2 20H12M36 4H46M36 20H46M36 12H46"/><path d="M12 4a4 4 0 0 1 0 8a4 4 0 0 1 0 8M36 4a4 4 0 0 0 0 8a4 4 0 0 0 0 8"/><path d="M22 2V22M26 2V22"/>',
     dc: '<path d="M2 12H20M28 12H46"/><path d="M20 3V21" stroke-width="2.5"/><path d="M28 7V17" stroke-width="4"/><path d="M13 3V9M10 6H16" stroke-width="1.6"/>',
+    battery: '<path d="M2 12H12M36 12H46"/><path d="M12 4V20M20 4V20" stroke-width="2"/><path d="M16 8V16M24 8V16" stroke-width="4"/><path d="M28 12H36" stroke-dasharray="2 2"/>',
     ac: '<path d="M2 12H14M34 12H46"/><circle cx="24" cy="12" r="10"/><path d="M17 12q3.5-7 7 0t7 0"/>',
     sq: '<path d="M2 12H14M34 12H46"/><circle cx="24" cy="12" r="10"/><path d="M17 15h4v-6h6v6h4"/>',
+    sweep: '<path d="M2 12H14M34 12H46"/><circle cx="24" cy="12" r="10"/><path d="M16 12q2-6 3 0t2 0q1.3-6 2.6 0t2 0q1-6 2 0t1.6 0"/>',
     rail: '<path d="M24 23V9M16 9H32"/><path d="M20 5H28M24 1V9" stroke-width="1.6"/>',
+    varrail: '<path d="M24 23V9M16 9H32"/><path d="M34 22 42 4M42 4l-4 1M42 4l1 4" stroke-width="1.5"/>',
     isrc: '<path d="M2 12H14M34 12H46"/><circle cx="24" cy="12" r="10"/><path d="M18 12H30M26 8l4 4-4 4"/>',
+    clock: '<rect x="4" y="5" width="22" height="14" rx="3"/><path d="M8 15h3v-6h4v6h4v-6h3M26 12H44"/>',
     lin: '<rect x="4" y="5" width="20" height="14" rx="3"/><text x="14" y="16.5" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor" stroke="none">1</text><path d="M24 12H44"/>',
-    diode: '<path d="M2 12H17M31 12H46"/><path d="M17 4V20L31 12Z" fill="currentColor" fill-opacity=".15"/><path d="M31 4V20"/>',
-    zener: '<path d="M2 12H17M31 12H46"/><path d="M17 4V20L31 12Z" fill="currentColor" fill-opacity=".15"/><path d="M27 2 31 4V20L35 22"/>',
+    diode: DI + '<path d="M31 4V20"/>',
+    zener: DI + '<path d="M27 2 31 4V20L35 22"/>',
     led: '<path d="M2 12H15M29 12H46"/><path d="M15 4V20L29 12Z" fill="currentColor" fill-opacity=".15"/><path d="M29 4V20"/><path d="M31 5l6-4M34 9l6-4" stroke-width="1.5"/>',
+    varactor: '<path d="M2 12H15M33 12H46"/><path d="M15 4V20L27 12Z" fill="currentColor" fill-opacity=".15"/><path d="M27 4V20M32 4V20"/>',
+    scr: DI + '<path d="M31 4V20M31 15 38 22"/>',
+    triac: '<path d="M2 12H17M31 12H46M17 2V22M31 2V22"/><path d="M17 3 31 10 17 10ZM31 14 17 21 31 21Z" fill="currentColor" fill-opacity=".15"/><path d="M17 22 10 23" stroke-width="1.5"/>',
+    diac: '<path d="M2 12H17M31 12H46M17 2V22M31 2V22"/><path d="M17 3 31 10 17 10ZM31 14 17 21 31 21Z" fill="currentColor" fill-opacity=".15"/>',
     npn: '<circle cx="27" cy="12" r="10.5"/><path d="M4 12H21M21 5V19M21 9 31 2M21 15 31 22M27 21l4 1-1.5-4"/>',
     pnp: '<circle cx="27" cy="12" r="10.5"/><path d="M4 12H21M21 5V19M21 9 31 2M21 15 31 22M24 11l-3-2 3.5-.5"/>',
+    dar: '<circle cx="27" cy="12" r="10.5"/><path d="M4 12H21M21 5V19M21 9 31 2M21 15 31 22"/><text x="31" y="15" font-size="8" font-weight="700" fill="currentColor" stroke="none">2</text>',
     nmos: '<path d="M4 18H17M17 6V18M21 4V20M21 6H32V1M21 18H32V23M21 12H32"/><path d="M25 9l-4 3 4 3"/>',
     pmos: '<path d="M4 18H17M17 6V18M21 4V20M21 6H32V1M21 18H32V23M21 12H32"/><path d="M28 9l4 3-4 3"/>',
+    opto: '<rect x="3" y="2" width="42" height="20" rx="2" stroke-dasharray="3 2"/><path d="M9 6V18M9 6 15 12 9 18" fill="currentColor" fill-opacity=".15"/><path d="M15 6V18"/><path d="M19 9h6M19 15h6M23 7l2 2-2 2M23 13l2 2-2 2" stroke-width="1.3"/><path d="M31 6V18M31 9 39 4M31 15 39 20"/>',
     opamp: '<path d="M13 2V22L37 12Z"/><path d="M3 7H13M3 17H13M37 12H46"/><path d="M15 7H19M15 17H19M17 15V19" stroke-width="1.4"/>',
-    t555: '<rect x="11" y="3" width="26" height="18" rx="2"/><text x="24" y="16" text-anchor="middle" font-size="9" font-weight="700" fill="currentColor" stroke="none">555</text><path d="M3 8H11M3 16H11M37 12H45"/>',
+    comp: '<path d="M13 2V22L37 12Z"/><path d="M3 7H13M3 17H13M37 12H46"/><path d="M19 15h4v-6h4" stroke-width="1.4"/>',
+    schmitt: '<path d="M12 2V22L34 12Z"/><path d="M3 12H12M34 12H46"/><path d="M16 15H22V9M19 15V9H25" stroke-width="1.3"/>',
+    t555: chip("555", 9), dac: chip("DAC"), adc: chip("ADC"), vco: chip("VCO"), mono: chip("1-SHOT", 6.5),
+    dff: chip("D FF"), jkff: chip("JK FF"), tff: chip("T FF"), ctr: chip("CTR"), mux: chip("MUX"), dmux: chip("DEMUX", 7), latch: chip("LATCH", 7),
+    half: chip("½ Σ", 9), full: chip("Σ", 11), sipo: chip("SIPO", 7), dec7: chip("7SEG", 7),
+    lamp: '<path d="M2 12H15M33 12H46"/><circle cx="24" cy="12" r="9"/><path d="M17.5 5.5 30.5 18.5M30.5 5.5 17.5 18.5"/>',
+    seg7: '<rect x="13" y="1" width="22" height="22" rx="2"/><path d="M19 4H29M18 6V11M30 6V11M19 12H29M18 13V18M30 13V18M19 20H29" stroke-width="2.2"/>',
+    ddisp: '<rect x="6" y="3" width="36" height="18" rx="2"/><text x="24" y="16.5" text-anchor="middle" font-size="11" font-weight="700" fill="currentColor" stroke="none">123</text>',
+    ledarr: '<rect x="8" y="1" width="32" height="22" rx="2"/><g fill="currentColor" stroke="none"><circle cx="15" cy="7" r="2"/><circle cx="24" cy="7" r="2"/><circle cx="33" cy="7" r="2"/><circle cx="15" cy="17" r="2"/><circle cx="24" cy="17" r="2"/><circle cx="33" cy="17" r="2"/></g>',
+    buzz: '<path d="M2 12H12M12 7H18L26 2V22L18 17H12Z"/><path d="M31 7q4 5 0 10M35 4q6 8 0 16" stroke-width="1.6"/>',
+    motor: meter("M"), motor3: '<path d="M2 12H14M34 12H46"/><circle cx="24" cy="12" r="10"/><text x="24" y="15.5" text-anchor="middle" font-size="7.5" font-weight="700" fill="currentColor" stroke="none">M3~</text>',
     sw: '<path d="M2 12H15M33 12H46M15 12 31 4"/><circle cx="15" cy="12" r="2"/><circle cx="33" cy="12" r="2"/>',
     push: '<path d="M2 16H15M33 16H46M13 9H35M24 9V3"/><circle cx="15" cy="16" r="2"/><circle cx="33" cy="16" r="2"/>',
     spdt: '<path d="M2 12H14M14 12 32 5M34 5H46M34 19H46"/><circle cx="14" cy="12" r="2"/><circle cx="34" cy="5" r="2"/><circle cx="34" cy="19" r="2"/>',
+    dpdt: '<path d="M2 7H12M12 7 30 2M2 19H12M12 19 30 14M32 2H46M32 14H46"/><path d="M20 4V18" stroke-dasharray="2 2" stroke-width="1.2"/><circle cx="12" cy="7" r="1.8"/><circle cx="12" cy="19" r="1.8"/>',
     relay: '<rect x="3" y="7" width="13" height="10" rx="1.5"/><path d="M5 7 14 17" stroke-width="1.4"/><path d="M16 12H20M20 12 34 5M36 5H46M36 19H46" /><path d="M10 17V21H27V10" stroke-dasharray="2 2" stroke-width="1.2"/>',
-    volt: '<path d="M2 12H14M34 12H46"/><circle cx="24" cy="12" r="10"/><text x="24" y="16.5" text-anchor="middle" font-size="12" font-weight="700" fill="currentColor" stroke="none">V</text>',
-    amm: '<path d="M2 12H14M34 12H46"/><circle cx="24" cy="12" r="10"/><text x="24" y="16.5" text-anchor="middle" font-size="12" font-weight="700" fill="currentColor" stroke="none">A</text>',
+    tdrelay: '<rect x="3" y="7" width="13" height="10" rx="1.5"/><path d="M16 12H20M20 12 34 5M36 5H46M36 19H46"/><circle cx="9.5" cy="12" r="3.2" stroke-width="1.2"/><path d="M9.5 10V12H11" stroke-width="1.1"/>',
+    aswitch: '<path d="M2 14H15M33 14H46M15 14 31 6"/><circle cx="15" cy="14" r="2"/><circle cx="33" cy="14" r="2"/><path d="M24 23V12" stroke-dasharray="2 2" stroke-width="1.2"/>',
+    volt: meter("V"), amm: meter("A"), ohm: meter("Ω"), watt: meter("W"),
+    probe: '<path d="M24 1V7M24 17V23"/><circle cx="24" cy="12" r="5"/><path d="M28 3 40 3M36 1v4" stroke-width="1.4"/>',
+    tp: '<path d="M2 12H18"/><circle cx="24" cy="12" r="6"/><circle cx="24" cy="12" r="2" fill="currentColor"/>',
     lout: '<path d="M2 12H22"/><circle cx="32" cy="12" r="9"/><path d="M28 12h8M32 8v8" stroke-width="1.4"/>',
     and: '<path d="M2 7H14M2 17H14M34 12H46M14 3H24a9 9 0 0 1 0 18H14Z"/>',
     nand: '<path d="M2 7H12M2 17H12M37 12H46M12 3H22a9 9 0 0 1 0 18H12Z"/><circle cx="34" cy="12" r="2.6"/>',
     or: '<path d="M2 7H15M2 17H15M36 12H46M11 3Q17 12 11 21Q27 21 36 12Q27 3 11 3Z"/>',
+    nor: '<path d="M2 7H13M2 17H13M39 12H46M9 3Q15 12 9 21Q25 21 34 12Q25 3 9 3Z"/><circle cx="36.6" cy="12" r="2.6"/>',
     xor: '<path d="M2 7H14M2 17H14M38 12H46M14 3Q20 12 14 21Q29 21 38 12Q29 3 14 3ZM9 3Q15 12 9 21"/>',
-    not: '<path d="M2 12H12M38 12H46M12 3V21L32 12Z"/><circle cx="35" cy="12" r="2.6"/>'
+    xnor: '<path d="M2 7H13M2 17H13M41 12H46M13 3Q19 12 13 21Q27 21 35 12Q27 3 13 3ZM8 3Q14 12 8 21"/><circle cx="38" cy="12" r="2.6"/>',
+    not: '<path d="M2 12H12M38 12H46M12 3V21L32 12Z"/><circle cx="35" cy="12" r="2.6"/>',
+    tri: '<path d="M2 12H12M34 12H46M12 3V21L32 12Z"/><path d="M22 23V17" stroke-width="1.4"/>'
   };
-  // ───────── لوحة العناصر: [مفتاح الرمز، المجموعة، عربي، إنجليزي، قالب XML عند (x,y)] ─────────
+  // ───────── لوحة العناصر على نمط Tinkercad ─────────
+  // [مفتاح الرمز، المجموعة، عربي، إنجليزي، وسم XML، خصائص إضافية، الشكل الهندسي]
+  // الشكل: h = أفقي 64، h32 / h96 = أفقي بطول آخر، v16 = أرضي، v64 = عمودي، up = رأسي للأعلى (مصدر بطرف واحد)، back = طرف للخلف (مدخل منطقي)، xf = محوّل
   var PARTS = [
-    ["wire", "wire", "سلك", "Wire", function (x, y) { return '<w x="' + [x, y, x + 64, y].join(" ") + '" f="0"/>'; }],
-    ["gnd", "wire", "أرضي", "Ground", function (x, y) { return '<g x="' + [x, y, x, y + 16].join(" ") + '" f="0"/>'; }],
-    ["text", "wire", "نص", "Text", function (x, y) { return '<x x="' + [x, y, x + 54, y + 3].join(" ") + '" f="0" si="20" te="3ENG"/>'; }],
-    ["res", "passive", "مقاومة", "Resistor", function (x, y) { return '<r x="' + [x, y, x + 64, y].join(" ") + '" f="0" r="1000"/>'; }],
-    ["pot", "passive", "مقاومة متغيرة", "Potentiometer", function (x, y) { return '<pt x="' + [x, y, x + 64, y].join(" ") + '" f="1" ma="10000" po="0.5" sl="Resistance"/>'; }],
-    ["cap", "passive", "مكثف", "Capacitor", function (x, y) { return '<c x="' + [x, y, x + 64, y].join(" ") + '" f="0" c="0.00001" iv="0.001" sr="0" vd="0"/>'; }],
-    ["capp", "passive", "مكثف إلكتروليتي", "Electrolytic cap", function (x, y) { return '<pc x="' + [x, y, x + 64, y].join(" ") + '" f="0" c="0.0001" iv="0.001" sr="0" mv="1" vd="0"/>'; }],
-    ["ind", "passive", "ملف", "Inductor", function (x, y) { return '<l x="' + [x, y, x + 64, y].join(" ") + '" f="0" l="0.001" ic="0" i="0"/>'; }],
-    ["lamp", "passive", "مصباح", "Lamp", function (x, y) { return '<Lamp x="' + [x, y, x + 64, y].join(" ") + '" f="0" te="300" np="100" nv="120" wa="0.4" co="0.4"/>'; }],
-    ["xfmr", "passive", "محوّل", "Transformer", function (x, y) { return '<T x="' + [x, y, x + 64, y + 48].join(" ") + '" f="0" in="4" ra="1" co="0.999" wi="48" c0="0" c1="0"/>'; }],
-    ["dc", "sources", "مصدر مستمر / بطارية", "DC source", function (x, y) { return '<v x="' + [x, y, x + 64, y].join(" ") + '" f="0" wf="0" maxv="5"/>'; }],
-    ["ac", "sources", "مصدر متردد", "AC source", function (x, y) { return '<v x="' + [x, y, x + 64, y].join(" ") + '" f="0" wf="1" fr="50" maxv="10"/>'; }],
-    ["sq", "sources", "موجة مربعة", "Square wave", function (x, y) { return '<v x="' + [x, y, x + 64, y].join(" ") + '" f="0" wf="2" fr="50" maxv="5"/>'; }],
-    ["rail", "sources", "جهد +V", "Voltage rail", function (x, y) { return '<R x="' + [x, y + 32, x, y].join(" ") + '" f="0" wf="0" maxv="5"/>'; }],
-    ["isrc", "sources", "مصدر تيار", "Current source", function (x, y) { return '<i x="' + [x, y, x + 64, y].join(" ") + '" f="0" cu="0.01"/>'; }],
-    ["lin", "sources", "مدخل منطقي", "Logic input", function (x, y) { return '<L x="' + [x + 32, y, x, y].join(" ") + '" f="0"/>'; }],
-    ["diode", "semi", "ثنائي", "Diode", function (x, y) { return '<d x="' + [x, y, x + 64, y].join(" ") + '" f="2" mo="default"/>'; }],
-    ["zener", "semi", "ثنائي زينر", "Zener diode", function (x, y) { return '<z x="' + [x, y, x + 64, y].join(" ") + '" f="2" mo="default-zener"/>'; }],
-    ["led", "semi", "LED", "LED", function (x, y) { return '<LED x="' + [x, y, x + 64, y].join(" ") + '" f="2" mo="default-led" cr="1" cg="0" cb="0" mbc="0.01"/>'; }],
-    ["npn", "semi", "ترانزستور NPN", "NPN transistor", function (x, y) { return '<t x="' + [x, y, x + 32, y].join(" ") + '" f="0" pn="1" be="100" mo="default" vbe="0" vbc="0"/>'; }],
-    ["pnp", "semi", "ترانزستور PNP", "PNP transistor", function (x, y) { return '<t x="' + [x, y, x + 32, y].join(" ") + '" f="0" pn="-1" be="100" mo="default" vbe="0" vbc="0"/>'; }],
-    ["nmos", "semi", "موسفت N", "N-MOSFET", function (x, y) { return '<f x="' + [x, y, x + 32, y].join(" ") + '" f="0" mo="default"/>'; }],
-    ["pmos", "semi", "موسفت P", "P-MOSFET", function (x, y) { return '<f x="' + [x, y, x + 32, y].join(" ") + '" f="1" mo="default"/>'; }],
-    ["opamp", "semi", "مضخم عمليات", "Op-amp", function (x, y) { return '<a x="' + [x, y, x + 96, y].join(" ") + '" f="8" ma="15" mi="-15" ga="100000"/>'; }],
-    ["t555", "semi", "مؤقت 555", "555 timer", function (x, y) { return '<Timer x="' + [x, y, x + 48, y].join(" ") + '" f="0"/>'; }],
-    ["sw", "sw", "مفتاح", "Switch", function (x, y) { return '<s x="' + [x, y, x + 64, y].join(" ") + '" f="0" p="1"/>'; }],
-    ["push", "sw", "مفتاح ضاغط", "Push button", function (x, y) { return '<s x="' + [x, y, x + 64, y].join(" ") + '" f="0" p="1" mm="true"/>'; }],
-    ["spdt", "sw", "مفتاح ثنائي", "SPDT switch", function (x, y) { return '<S x="' + [x, y, x + 64, y].join(" ") + '" f="0" p="1" li="0" th="2"/>'; }],
-    ["relay", "sw", "مرحّل", "Relay", function (x, y) { return '<rl x="' + [x, y, x + 96, y].join(" ") + '" f="0" mo="old-relay" i="0" ip="0"/>'; }],
-    ["volt", "meter", "فولتميتر", "Voltmeter", function (x, y) { return '<p x="' + [x, y, x, y + 64].join(" ") + '" f="1" me="0" sc="0" re="0"/>'; }],
-    ["amm", "meter", "أميتر", "Ammeter", function (x, y) { return '<Ammeter x="' + [x, y, x + 64, y].join(" ") + '" f="1" me="0" sc="0"/>'; }],
-    ["lout", "meter", "مخرج منطقي", "Logic output", function (x, y) { return '<M x="' + [x, y, x + 32, y].join(" ") + '" f="0"/>'; }],
-    ["and", "logic", "AND", "AND", function (x, y) { return '<And x="' + [x, y, x + 64, y].join(" ") + '" f="0"/>'; }],
-    ["or", "logic", "OR", "OR", function (x, y) { return '<Or x="' + [x, y, x + 64, y].join(" ") + '" f="0"/>'; }],
-    ["not", "logic", "NOT", "NOT", function (x, y) { return '<I x="' + [x, y, x + 64, y].join(" ") + '" f="0" sl="0.5" hi="5"/>'; }],
-    ["nand", "logic", "NAND", "NAND", function (x, y) { return '<Nand x="' + [x, y, x + 64, y].join(" ") + '" f="0"/>'; }],
-    ["xor", "logic", "XOR", "XOR", function (x, y) { return '<Xor x="' + [x, y, x + 64, y].join(" ") + '" f="0"/>'; }]
+    ["wire", "wire", "سلك", "Wire", "w", "", "h"],
+    ["gnd", "wire", "أرضي", "Ground", "g", "", "v16"],
+    ["label", "wire", "عقدة مسمّاة", "Labeled node", "ln", 'te="A"', "h32"],
+    ["text", "wire", "نص", "Text", "x", 'si="20" te="3ENG"', "text"],
+    ["box", "wire", "إطار", "Box", "b", "", "box"],
+
+    ["res", "basic", "مقاومة", "Resistor", "r", 'r="1000"', "h"],
+    ["pot", "basic", "مقاومة متغيرة", "Potentiometer", "pt", 'f="1" ma="10000" po="0.5" sl="Resistance"', "h"],
+    ["ldr", "basic", "مقاومة ضوئية", "Photoresistor", "LDR", "", "h"],
+    ["therm", "basic", "مقاومة حرارية", "Thermistor", "ThermistorNTC", "", "h"],
+    ["cap", "basic", "مكثف", "Capacitor", "c", 'c="0.00001" iv="0.001" sr="0" vd="0"', "h"],
+    ["capp", "basic", "مكثف إلكتروليتي", "Electrolytic cap", "pc", 'c="0.0001" iv="0.001" sr="0" mv="1" vd="0"', "h"],
+    ["ind", "basic", "ملف", "Inductor", "l", 'l="0.001" ic="0" i="0"', "h"],
+    ["fuse", "basic", "منصهر (فيوز)", "Fuse", "Fuse", "", "h"],
+    ["crystal", "basic", "كريستال", "Crystal", "cr", "", "h"],
+    ["xfmr", "basic", "محوّل", "Transformer", "T", 'in="4" ra="1" co="0.999" wi="48" c0="0" c1="0"', "xf"],
+    ["txfmr", "basic", "محوّل بنقطة وسطى", "Center-tap transformer", "tt", "", "xf"],
+
+    ["battery", "power", "بطارية", "Battery", "Battery", "", "h"],
+    ["dc", "power", "مصدر تغذية مستمر", "DC power supply", "v", 'wf="0" maxv="5"', "h"],
+    ["ac", "power", "مصدر متردد", "AC source", "v", 'wf="1" fr="50" maxv="10"', "h"],
+    ["sweep", "power", "مولّد إشارات", "Function generator", "sw", "", "h"],
+    ["sq", "power", "موجة مربعة", "Square wave", "v", 'wf="2" fr="50" maxv="5"', "h"],
+    ["clock", "power", "نبضات ساعة", "Clock", "R", 'wf="2" fr="100" maxv="5" bias="0" dutyCycle="0.5"', "back"],
+    ["rail", "power", "جهد +V", "Voltage rail", "R", 'wf="0" maxv="5"', "up"],
+    ["varrail", "power", "جهد متغير (منزلق)", "Adjustable voltage", "VarRail", "", "up"],
+    ["isrc", "power", "مصدر تيار", "Current source", "i", 'cu="0.01"', "h"],
+
+    ["diode", "semi", "ثنائي", "Diode", "d", 'f="2" mo="default"', "h"],
+    ["zener", "semi", "ثنائي زينر", "Zener diode", "z", 'f="2" mo="default-zener"', "h"],
+    ["led", "semi", "LED", "LED", "LED", 'f="2" mo="default-led" cr="1" cg="0" cb="0" mbc="0.01"', "h"],
+    ["varactor", "semi", "ثنائي متغير السعة", "Varactor", "Varactor", "", "h"],
+    ["npn", "semi", "ترانزستور NPN", "NPN transistor", "t", 'pn="1" be="100" mo="default" vbe="0" vbc="0"', "h32"],
+    ["pnp", "semi", "ترانزستور PNP", "PNP transistor", "t", 'pn="-1" be="100" mo="default" vbe="0" vbc="0"', "h32"],
+    ["dar", "semi", "دارلنجتون", "Darlington pair", "dar", "", "h32"],
+    ["nmos", "semi", "موسفت N", "N-MOSFET", "f", 'mo="default"', "h32"],
+    ["pmos", "semi", "موسفت P", "P-MOSFET", "f", 'f="1" mo="default"', "h32"],
+    ["scr", "semi", "ثايرستور SCR", "SCR", "SCR", "", "h"],
+    ["triac", "semi", "ترياك", "TRIAC", "Triac", "", "h"],
+    ["diac", "semi", "دياك", "DIAC", "Diac", "", "h"],
+    ["opto", "semi", "عازل ضوئي", "Optocoupler", "Optocoupler", "", "h"],
+
+    ["opamp", "ic", "مضخم عمليات", "Op-amp", "a", 'f="8" ma="15" mi="-15" ga="100000"', "h96"],
+    ["opreal", "ic", "مضخم LM741", "Op-amp (741)", "OpAmpReal", "", "h96"],
+    ["comp", "ic", "مقارن", "Comparator", "Comparator", "", "h96"],
+    ["schmitt", "ic", "قادح شميت", "Schmitt trigger", "Schmitt", "", "h"],
+    ["t555", "ic", "مؤقت 555", "555 timer", "Timer", "", "h48"],
+    ["mono", "ic", "مهتز أحادي", "Monostable", "Monostable", "", "h"],
+    ["vco", "ic", "مذبذب VCO", "VCO", "VCO", "", "h"],
+    ["dac", "ic", "محوّل DAC", "DAC", "DAC", "", "h"],
+    ["adc", "ic", "محوّل ADC", "ADC", "ADC", "", "h"],
+
+    ["lamp", "out", "مصباح", "Light bulb", "Lamp", 'te="300" np="100" nv="120" wa="0.4" co="0.4"', "h"],
+    ["seg7", "out", "شاشة سبع قطع", "7-segment display", "ssd", "", "h"],
+    ["ddisp", "out", "شاشة أرقام", "Number display", "dd", "", "h"],
+    ["ledarr", "out", "مصفوفة LED", "LED matrix", "LEDArray", "", "h"],
+    ["buzz", "out", "سماعة / طنّان", "Speaker / buzzer", "aout", "", "h"],
+    ["motor", "out", "محرك تيار مستمر", "DC motor", "DCMotor", "", "h"],
+    ["motor3", "out", "محرك ثلاثي الطور", "3-phase motor", "ThreePhaseMotor", "", "h"],
+
+    ["sw", "sw", "مفتاح منزلق", "Slide switch", "s", 'p="1"', "h"],
+    ["push", "sw", "زر ضاغط", "Pushbutton", "s", 'p="1" mm="true"', "h"],
+    ["spdt", "sw", "مفتاح ثنائي SPDT", "SPDT switch", "S", 'p="1" li="0" th="2"', "h"],
+    ["dpdt", "sw", "مفتاح DPDT", "DPDT switch", "dpdt", "", "h"],
+    ["relay", "sw", "مرحّل", "Relay", "rl", 'mo="old-relay" i="0" ip="0"', "h96"],
+    ["tdrelay", "sw", "مرحّل زمني", "Time-delay relay", "TimeDelayRelay", "", "h"],
+    ["aswitch", "sw", "مفتاح تماثلي", "Analog switch", "as", "", "h"],
+
+    ["volt", "meter", "فولتميتر / راسم", "Voltmeter / probe", "p", 'f="1" me="0" sc="0" re="0"', "v64"],
+    ["amm", "meter", "أميتر", "Ammeter", "Ammeter", 'f="1" me="0" sc="0"', "h"],
+    ["ohm", "meter", "أوميتر", "Ohmmeter", "OhmMeter", "", "h"],
+    ["watt", "meter", "واطميتر", "Wattmeter", "WattmeterTrue", "", "h"],
+    ["tp", "meter", "نقطة اختبار", "Test point", "TestPoint", "", "h"],
+
+    ["lin", "logic", "مدخل منطقي", "Logic input", "L", "", "back"],
+    ["lout", "logic", "مخرج منطقي", "Logic output", "M", "", "h32"],
+    ["and", "logic", "AND", "AND", "And", "", "h"],
+    ["or", "logic", "OR", "OR", "Or", "", "h"],
+    ["not", "logic", "NOT", "NOT", "I", 'sl="0.5" hi="5"', "h"],
+    ["nand", "logic", "NAND", "NAND", "Nand", "", "h"],
+    ["nor", "logic", "NOR", "NOR", "Nor", "", "h"],
+    ["xor", "logic", "XOR", "XOR", "Xor", "", "h"],
+    ["xnor", "logic", "XNOR", "XNOR", "Xnor", "", "h"],
+    ["tri", "logic", "عازل ثلاثي الحالة", "Tri-state buffer", "ts", "", "h"],
+    ["dff", "logic", "قلّاب D", "D flip-flop", "DFlipFlop", "", "h"],
+    ["jkff", "logic", "قلّاب JK", "JK flip-flop", "JKFlipFlop", "", "h"],
+    ["tff", "logic", "قلّاب T", "T flip-flop", "TFlipFlop", "", "h"],
+    ["ctr", "logic", "عدّاد", "Counter", "ctr", "", "h"],
+    ["dec7", "logic", "مفكك سبع قطع", "7-seg decoder", "SevenSegDecoder", "", "h"],
+    ["mux", "logic", "مُجمِّع MUX", "Multiplexer", "mux", "", "h"],
+    ["dmux", "logic", "مُوزِّع DEMUX", "Demultiplexer", "dmux", "", "h"],
+    ["half", "logic", "جامع نصفي", "Half adder", "HalfAdder", "", "h"],
+    ["full", "logic", "جامع كامل", "Full adder", "FullAdder", "", "h"],
+    ["latch", "logic", "ماسك", "Latch", "Latch", "", "h"],
+    ["sipo", "logic", "مسجّل إزاحة", "Shift register", "SipoShift", "", "h"]
   ];
+  // إحداثيات العنصر حسب شكله الهندسي
+  function partXml(p, x, y) {
+    var g = p[6], c;
+    if (g === "v16") c = [x, y, x, y + 16];
+    else if (g === "v64") c = [x, y, x, y + 64];
+    else if (g === "up") c = [x, y + 32, x, y];
+    else if (g === "back") c = [x + 32, y, x, y];
+    else if (g === "xf") c = [x, y, x + 64, y + 48];
+    else if (g === "text") c = [x, y, x + 54, y + 3];
+    else if (g === "box") c = [x, y, x + 96, y + 48];
+    else c = [x, y, x + ({ h32: 32, h48: 48, h96: 96 }[g] || 64), y];
+    var attrs = p[5] || "";
+    return "<" + p[4] + ' x="' + c.join(" ") + '"' + (/(^| )f="/.test(attrs) ? "" : ' f="0"') + (attrs ? " " + attrs : "") + "/>";
+  }
   var RELAY_MODEL = '<rlm nm="old-relay" f="0" in="0.2" ron="0.05" rof="1000000" on="0.02" of="0.02" coR="20" sw="0" cs="1"/>';
   // ───────── مكتبة الدوائر: [ملف، رمز، مجموعة، عنوان عربي، عنوان إنجليزي، شرح عربي، شرح إنجليزي] ─────────
   var LIB = [
@@ -344,7 +455,7 @@ footer a{color:var(--acc)}
     }
     var X = base.x + Math.floor(addCount / 6) * 160, Y = base.y + (addCount % 6) * 64;
     addCount++;
-    var el = p[4](X, Y);
+    var el = partXml(p, X, Y);
     if (key === "relay" && xml.indexOf('nm="old-relay"') < 0) el = RELAY_MODEL + "\n" + el;
     if (/<cir[^>]*\/>\s*$/.test(xml)) xml = xml.replace(/\/>\s*$/, ">\n</cir>\n");
     var i = xml.search(/\n\s*<o[ >]/); if (i < 0) i = xml.lastIndexOf("</cir>");
