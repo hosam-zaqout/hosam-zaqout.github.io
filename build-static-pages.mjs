@@ -952,6 +952,9 @@ function teamHub(list) {
 }
 
 // ---------------- الحاسبات /tools/ ----------------
+// المعادلات والقيم اللاتينية داخل النص العربي ← <bdi> عشان ترتيبها ما يخرب (بدون لمس الوسوم والـ entities)
+const LTR_RUN = /[A-Za-z0-9(Ͱ-Ͽ√⌊][A-Za-z0-9 ()+−×÷=/.,²³√·^_≈≤≥%Ωµ∥⌊⌋⅓Ͱ-Ͽ-]*[A-Za-z0-9)²³%Ωµ⌋Ͱ-Ͽ]|[A-Za-z0-9Ωµ]/g;
+const ltr = (html) => String(html).split(/(<[^>]+>|&[a-z#0-9]+;)/).map((p, i) => (i % 2 ? p : p.replace(LTR_RUN, (m) => (/[A-Za-zͰ-Ͽ√]/.test(m) && /[=+×÷−/^]/.test(m) ? `<bdi dir="ltr">${m}</bdi>` : m)))).join("");
 const TOOLS_DISCLAIMER = `<p class="warn">⚠️ النتائج للتعلّم والتقدير المبدئي. التمديدات الكهربائية والمنظومات الحقيقية لازم يصممها أو يراجعها مهندس كهربائي مرخّص حسب الكود المحلي.</p>`;
 function toolPage(t, all) {
   const url = `/tools/${t.slug}/`;
@@ -966,12 +969,12 @@ function toolPage(t, all) {
   const siblings = TOOLS.filter((x) => x.slug !== t.slug);
   const body = `${bc.html}
 <h1>${esc(t.emoji)} ${esc(t.title)}</h1>
-<section class="box answer"><h2>✅ باختصار</h2><p>${t.answer}</p></section>
+<section class="box answer"><h2>✅ باختصار</h2><p>${ltr(t.answer)}</p></section>
 <section class="box calc" data-tool="${t.slug}"><h2>🧮 الحاسبة</h2>${t.form}<div class="out" aria-live="polite"></div></section>
 ${t.warn ? TOOLS_DISCLAIMER : ""}
-<section class="box"><h2>📐 طريقة الحساب</h2>${t.how}</section>
-<section class="box"><h2>📝 مثال</h2><p>${t.example}</p></section>
-<section class="box faq"><h2>❓ أسئلة شائعة</h2>${t.faq.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}</section>
+<section class="box"><h2>📐 طريقة الحساب</h2>${ltr(t.how)}</section>
+<section class="box"><h2>📝 مثال</h2><p>${ltr(t.example)}</p></section>
+<section class="box faq"><h2>❓ أسئلة شائعة</h2>${t.faq.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${ltr(esc(a))}</p></details>`).join("")}</section>
 ${related.length ? `<h2 class="sec-title">📚 تعلّم أكثر</h2><div class="cards">${related.map((w) => card(w._sec, w, true)).join("")}</div>` : ""}
 <h2 class="sec-title">🧮 حاسبات أخرى</h2>
 <div class="tlinks">${siblings.map((x) => `<a href="/tools/${x.slug}/">${esc(x.emoji)} ${esc(x.name)}</a>`).join("")}</div>

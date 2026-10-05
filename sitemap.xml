@@ -73,6 +73,11 @@
     <image:image><image:loc>https://www.3engs.com/img/products/AX88UPXucTD67WRfMkRY.webp</image:loc><image:title>CP210 Driver</image:title></image:image>
   </url>
   <url>
+    <loc>https://www.3engs.com/products/advanced-tools/</loc>
+    <lastmod>2026-10-05</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.3engs.com/products/ltspice/</loc>
     <lastmod>2026-10-04</lastmod>
     <priority>0.8</priority>
