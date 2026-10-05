@@ -677,7 +677,7 @@ const DEFAULT_RECEIPT = {
   receiptSubject: "🧾 إيصال الدفع — طلب {invoice}",
   receiptTitle: "🧾 إيصال الدفع",
   receiptIntro: "أهلاً {name}،\nشكراً لك! تم استلام دفعتك بنجاح ✅",
-  receiptFooter: "لأي استفسار رد على هذا الإيميل مع رقم الطلب.",
+  receiptFooter: "لأي استفسار، يُرجى الرد على هذا البريد مع ذكر رقم الطلب.",
 };
 async function receiptTemplate() {
   const c = (await db.collection("site_config").doc("emails").get()).data() || {};
