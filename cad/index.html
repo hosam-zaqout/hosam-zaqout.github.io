@@ -114,7 +114,7 @@ footer a{color:var(--acc)}
 <header>
   <a class="brand" href="/cad/"><img src="/logo.jpg" alt="3ENG.s" width="34" height="34"><div><b>3ENG <span>CAD</span></b><small data-t="tagline"></small></div></a>
   <div class="spacer"></div>
-  <nav class="top-links"><a href="/" data-t="home"></a><a href="/tools/" data-t="tools"></a><a href="/courses/" data-t="courses"></a></nav>
+  <nav class="top-links"><a href="/cad/breadboard/" data-t="bb"></a><a href="/" data-t="home"></a><a href="/tools/" data-t="tools"></a><a href="/courses/" data-t="courses"></a></nav>
   <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="ar">عربي</button><button type="button" data-lang="en">English</button></div>
 </header>
 <main>
@@ -130,6 +130,7 @@ footer a{color:var(--acc)}
   <section class="stage">
     <div class="bar">
       <span class="title" id="curTitle"></span>
+      <a class="btn" href="/cad/breadboard/" data-t="bbBtn"></a>
       <button type="button" class="btn" id="newBtn" data-t="new"></button>
       <button type="button" class="btn" id="tipsBtn" data-t="howto"></button>
       <button type="button" class="btn" id="fullBtn" data-t="full"></button>
@@ -147,7 +148,7 @@ footer a{color:var(--acc)}
   // ───────── النصوص بالعربية والإنجليزية ─────────
   var T = {
     ar: {
-      tagline: "محاكي الدوائر الكهربائية", home: "الرئيسية", tools: "الحاسبات", courses: "الدورات",
+      tagline: "محاكي الدوائر الكهربائية", bb: "لوحة التجارب", bbBtn: "🧪 لوحة التجارب", home: "الرئيسية", tools: "الحاسبات", courses: "الدورات",
       library: "📚 مكتبة الدوائر الجاهزة", search: "ابحث عن دائرة…", showLib: "🧰 العناصر والدوائر الجاهزة", hideLib: "إخفاء القائمة",
       "new": "➕ دائرة جديدة", howto: "❔ طريقة الاستخدام", full: "⛶ ملء الشاشة", newtab: "↗ نافذة مستقلة",
       blank: "دائرة فارغة", blankDesc: "ابدأ من الصفر: اختر العناصر من قائمة <b>رسم</b> أو من شريط الأدوات، وارسمها على اللوحة.",
@@ -166,7 +167,7 @@ footer a{color:var(--acc)}
       pgroups: { basic: "العناصر الأساسية", power: "مصادر الطاقة والإشارة", semi: "أشباه الموصلات", ic: "الدوائر المتكاملة", out: "المخرجات والمحركات", sw: "المفاتيح والمرحّلات", meter: "أجهزة القياس", logic: "الإلكترونيات الرقمية", wire: "التوصيل والتسميات" }
     },
     en: {
-      tagline: "Electrical circuit simulator", home: "Home", tools: "Calculators", courses: "Courses",
+      tagline: "Electrical circuit simulator", bb: "Breadboard", bbBtn: "🧪 Breadboard", home: "Home", tools: "Calculators", courses: "Courses",
       library: "📚 Ready-made circuits", search: "Search circuits…", showLib: "🧰 Components & circuits", hideLib: "Hide panel",
       "new": "➕ New circuit", howto: "❔ How to use", full: "⛶ Full screen", newtab: "↗ Open in new tab",
       blank: "Blank circuit", blankDesc: "Start from scratch: pick components from the <b>Draw</b> menu or the toolbar and drag them onto the canvas.",

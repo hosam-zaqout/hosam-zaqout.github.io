@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>لوحة التجارب (Breadboard) — 3ENG CAD | 3ENG.s</title>
+<meta name="description" content="لوحة تجارب إلكترونية (Breadboard) تفاعلية بالعربية والإنجليزية: ركّب المقاومات والثنائيات الضوئية والأزرار والترانزستورات على اللوحة وشاهد الدائرة تعمل مباشرة في المتصفح.">
+<link rel="canonical" href="https://www.3engs.com/cad/breadboard/">
+<link rel="icon" href="/logo.jpg">
+<meta name="theme-color" content="#F59E0B">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="3ENG.s">
+<meta property="og:url" content="https://www.3engs.com/cad/breadboard/">
+<meta property="og:title" content="لوحة التجارب التفاعلية — 3ENG CAD">
+<meta property="og:description" content="ركّب دائرتك على لوحة تجارب افتراضية وشاهدها تعمل مباشرة.">
+<meta property="og:image" content="https://www.3engs.com/og-image.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"3ENG CAD Breadboard","alternateName":"لوحة التجارب التفاعلية","url":"https://www.3engs.com/cad/breadboard/","applicationCategory":"EducationalApplication","operatingSystem":"Any","inLanguage":["ar","en"],"isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"publisher":{"@id":"https://www.3engs.com/#organization"}}</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GZJCYL5YM8"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-GZJCYL5YM8');</script>
+<style>
+:root{--bg:#0b1020;--card:#131a2e;--line:#232c47;--txt:#e9edf7;--mut:#98a2bf;--acc:#F59E0B;--acc2:#fbbf24;--ok:#34d399;--er:#f87171}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:Cairo,system-ui,Tahoma,sans-serif;background:var(--bg);color:var(--txt);display:flex;flex-direction:column}
+a{color:inherit;text-decoration:none}
+button,select,input{font:inherit}
+header{display:flex;align-items:center;gap:14px;padding:0 16px;height:58px;border-bottom:1px solid var(--line);flex-shrink:0}
+.brand{display:flex;align-items:center;gap:10px}
+.brand img{width:34px;height:34px;border-radius:9px}
+.brand b{font-size:1.1rem;font-weight:800}
+.brand b span{color:var(--acc)}
+.brand small{display:block;font-size:.72rem;color:var(--mut);margin-top:-3px}
+.spacer{flex:1}
+.top-links{display:flex;gap:16px;font-size:.88rem;color:var(--mut)}
+.top-links a:hover{color:var(--acc)}
+.lang{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.lang button{background:none;border:0;color:var(--mut);padding:5px 12px;font-size:.85rem;font-weight:700;cursor:pointer}
+.lang button.on{background:var(--acc);color:#1a1200}
+main{flex:1;display:grid;grid-template-columns:250px 1fr 270px;min-height:0}
+aside{background:var(--card);overflow-y:auto;padding:10px}
+aside.parts{border-inline-end:1px solid var(--line)}
+aside.props{border-inline-start:1px solid var(--line)}
+.grp{font-size:.74rem;color:var(--mut);font-weight:800;margin:10px 4px 6px}
+.pal{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.tool{display:flex;flex-direction:column;align-items:center;gap:2px;background:#0f1528;border:1px solid var(--line);border-radius:12px;padding:7px 4px;color:var(--txt);font-size:.76rem;font-weight:700;cursor:pointer;min-height:64px;text-align:center;line-height:1.3}
+.tool svg{width:54px;height:30px}
+.tool:hover{border-color:var(--acc)}
+.tool.on{border-color:var(--acc);background:#1c2542;box-shadow:0 0 0 2px #F59E0B44}
+.stage{display:flex;flex-direction:column;min-width:0;min-height:0}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line)}
+.bar .status{margin-inline-end:auto;font-size:.86rem;color:var(--mut)}
+.bar .status b{color:var(--acc2)}
+.btn{background:#1c2542;border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:6px 12px;font-size:.84rem;font-weight:700;cursor:pointer}
+.btn:hover{border-color:var(--acc);color:var(--acc2)}
+.btn.danger:hover{border-color:var(--er);color:var(--er)}
+.btn.main{background:var(--acc);color:#1a1200;border-color:var(--acc)}
+.canvas{flex:1;overflow:auto;padding:14px;display:flex;align-items:flex-start;justify-content:center;background:radial-gradient(circle at 30% 20%,#141c36,#0b1020)}
+#board{width:100%;max-width:1100px;height:auto;user-select:none;touch-action:none;direction:ltr}
+.hole{fill:#3a3f46;cursor:pointer}
+.hole:hover,.hole.hi{fill:#F59E0B}
+.hole.used{fill:#1f2328}
+.part{cursor:pointer}
+.part .hl{fill:transparent;stroke:none}
+.part.sel .hl{stroke:#F59E0B;stroke-width:2.5;stroke-dasharray:4 3}
+.warn{position:absolute}
+.props h2{font-size:.95rem;margin:4px 2px 10px}
+.prow{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;font-size:.84rem;color:var(--mut)}
+.prow input,.prow select{background:#0a0f1d;border:1px solid var(--line);border-radius:9px;padding:7px 10px;color:var(--txt)}
+.read{background:#0f1528;border:1px solid var(--line);border-radius:12px;padding:10px;margin:8px 0;font-size:.86rem;line-height:1.9}
+.read b{color:var(--acc2);direction:ltr;unicode-bidi:isolate}
+.hint{font-size:.8rem;color:var(--mut);line-height:1.8}
+.alert{background:#3b1d1d;border:1px solid #f8717155;border-radius:10px;padding:8px 10px;color:#fecaca;font-size:.82rem;margin:8px 0}
+.alert.ok{background:#11301f;border-color:#34d39955;color:#bbf7d0}
+.examples{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+footer{font-size:.72rem;color:var(--mut);padding:6px 14px;border-top:1px solid var(--line);text-align:center}
+footer a{color:var(--acc)}
+#sim{position:fixed;left:0;bottom:0;width:480px;height:320px;border:0;opacity:0;pointer-events:none;z-index:-1}
+.tip{position:fixed;pointer-events:none;background:#0f1528;border:1px solid var(--acc);color:var(--txt);border-radius:8px;padding:3px 9px;font-size:.8rem;z-index:20;display:none;direction:ltr}
+@media(max-width:1000px){main{grid-template-columns:1fr;grid-template-rows:auto 1fr auto}aside.parts{border:0;border-bottom:1px solid var(--line);max-height:34vh}.pal{grid-template-columns:repeat(4,1fr)}aside.props{border:0;border-top:1px solid var(--line)}.top-links{display:none}.brand small{display:none}.canvas{min-height:55vh}}
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="/cad/"><img src="/logo.jpg" alt="3ENG.s" width="34" height="34"><div><b>3ENG <span>CAD</span></b><small data-t="tagline"></small></div></a>
+  <div class="spacer"></div>
+  <nav class="top-links"><a href="/cad/" data-t="schem"></a><a href="/tools/" data-t="tools"></a><a href="/" data-t="home"></a></nav>
+  <div class="lang"><button type="button" data-lang="ar">عربي</button><button type="button" data-lang="en">English</button></div>
+</header>
+<main>
+  <aside class="parts" id="palette"></aside>
+  <section class="stage">
+    <div class="bar">
+      <span class="status" id="status"></span>
+      <button type="button" class="btn" id="undoBtn" data-t="undo"></button>
+      <button type="button" class="btn danger" id="clearBtn" data-t="clear"></button>
+    </div>
+    <div class="canvas"><svg id="board" xmlns="http://www.w3.org/2000/svg"></svg></div>
+  </section>
+  <aside class="props" id="props"></aside>
+</main>
+<footer><span data-t="credit"></span> <a href="https://github.com/pfalstad/circuitjs1" target="_blank" rel="noopener">CircuitJS1</a> — GPL v2</footer>
+<iframe id="sim" title="engine" src="/cad/sim/circuitjs.html?lang=en&running=1&startCircuit=blank.txt" tabindex="-1" aria-hidden="true"></iframe>
+<div class="tip" id="tip"></div>
+
+<script>
+(function () {
+  "use strict";
+  var NS = "http://www.w3.org/2000/svg";
+  var $ = function (id) { return document.getElementById(id); };
+  var LS = { get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
+
+  // ───────── النصوص ─────────
+  var T = {
+    ar: {
+      tagline: "لوحة التجارب التفاعلية", schem: "محاكي المخططات", tools: "الحاسبات", home: "الرئيسية",
+      undo: "↶ تراجع", clear: "🗑️ مسح اللوحة", credit: "محرك المحاكاة مفتوح المصدر:",
+      doc: "لوحة التجارب (Breadboard) — 3ENG CAD | 3ENG.s",
+      gParts: "القطع", gTools: "الأدوات", select: "تحديد وتشغيل",
+      res: "مقاومة", led: "ثنائي ضوئي LED", button: "زر ضاغط", sw: "مفتاح منزلق", pot: "مقاومة متغيرة", cap: "مكثف",
+      diode: "ثنائي", npn: "ترانزستور NPN", pnp: "ترانزستور PNP", motor: "محرك", buzzer: "طنّان", wire: "سلك توصيل",
+      stSelect: "انقر على قطعة لتحديدها، أو اضغط على الزر لتشغيله.",
+      st2a: "انقر على الثقب الأول لـ", st2b: "ثم على الثقب الثاني.", st2c: "انقر على الثقب الثاني.",
+      st3: "انقر على ثقب لوضع", st3b: "(تأخذ ثلاثة ثقوب متجاورة في الصف نفسه).",
+      busy: "الثقب مشغول، اختر ثقباً آخر.", noRoom: "لا يوجد مكان كافٍ هنا.", loading: "جاري تحميل محرك المحاكاة…",
+      props: "الخصائص", none: "لم تُحدَّد أي قطعة.",
+      battery: "البطارية", volts: "الجهد", value: "القيمة", color: "اللون", position: "موضع المؤشر", state: "الحالة",
+      on: "مغلق (يعمل)", off: "مفتوح", del: "🗑️ حذف القطعة", pressHint: "اضغط مطولاً على الزر في اللوحة لتشغيله.",
+      reading: "القراءات", vAcross: "الجهد عبر القطعة", current: "التيار",
+      short: "⚠️ دائرة قصر! البطارية موصولة مباشرة دون حِمل.", burned: "⚠️ احترق الثنائي الضوئي: التيار أكبر من المسموح. أضف مقاومة على التوالي.",
+      allGood: "✅ الدائرة تعمل.", hover: "مرّر الفأرة على أي ثقب لقراءة جهده بالنسبة للسالب.",
+      examples: "أمثلة جاهزة", ex1: "💡 LED مع مقاومة", ex2: "🔘 زر يشغّل LED", ex3: "🔀 ترانزستور كمفتاح", ex4: "🎛️ تحكم بالسطوع",
+      railNote: "خطّا التغذية العلوي والسفلي موصولان بالبطارية: الأحمر موجب والأزرق سالب.",
+      red: "أحمر", green: "أخضر", blue: "أزرق", yellow: "أصفر", white: "أبيض",
+      wireColor: "لون السلك", black: "أسود", orange: "برتقالي"
+    },
+    en: {
+      tagline: "Interactive breadboard", schem: "Schematic simulator", tools: "Calculators", home: "Home",
+      undo: "↶ Undo", clear: "🗑️ Clear board", credit: "Open-source simulation engine:",
+      doc: "Breadboard — 3ENG CAD | 3ENG.s",
+      gParts: "Parts", gTools: "Tools", select: "Select & operate",
+      res: "Resistor", led: "LED", button: "Pushbutton", sw: "Slide switch", pot: "Potentiometer", cap: "Capacitor",
+      diode: "Diode", npn: "NPN transistor", pnp: "PNP transistor", motor: "DC motor", buzzer: "Buzzer", wire: "Jumper wire",
+      stSelect: "Click a part to select it, or press a button to operate it.",
+      st2a: "Click the first hole for the", st2b: "then the second hole.", st2c: "Click the second hole.",
+      st3: "Click a hole to place the", st3b: "(it takes three adjacent holes in the same row).",
+      busy: "That hole is taken — choose another.", noRoom: "Not enough room here.", loading: "Loading the simulation engine…",
+      props: "Properties", none: "No part selected.",
+      battery: "Battery", volts: "Voltage", value: "Value", color: "Colour", position: "Wiper position", state: "State",
+      on: "Closed (on)", off: "Open", del: "🗑️ Delete part", pressHint: "Press and hold the button on the board to operate it.",
+      reading: "Readings", vAcross: "Voltage across", current: "Current",
+      short: "⚠️ Short circuit! The battery is connected with no load.", burned: "⚠️ The LED burned out: too much current. Add a series resistor.",
+      allGood: "✅ Circuit is running.", hover: "Hover over any hole to read its voltage relative to negative.",
+      examples: "Examples", ex1: "💡 LED with resistor", ex2: "🔘 Button lights an LED", ex3: "🔀 Transistor switch", ex4: "🎛️ Brightness control",
+      railNote: "The top and bottom power rails are connected to the battery: red is positive, blue is negative.",
+      red: "Red", green: "Green", blue: "Blue", yellow: "Yellow", white: "White",
+      wireColor: "Wire colour", black: "Black", orange: "Orange"
+    }
+  };
+  var qs = new URLSearchParams(location.search);
+  var lang = qs.get("lang") === "en" || qs.get("lang") === "ar" ? qs.get("lang") : (LS.get("cad-lang") || "ar");
+  var t = function (k) { return T[lang][k] || k; };
+
+  // ───────── هندسة اللوحة ─────────
+  var COLS = 30, P = 20, X0 = 150, Y = { "rt-": 34, "rt+": 54, a: 96, b: 116, c: 136, d: 156, e: 176, f: 216, g: 236, h: 256, i: 276, j: 296, "rb+": 338, "rb-": 358 };
+  var ROWS = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"], RAILS = ["rt-", "rt+", "rb+", "rb-"];
+  var W = X0 + (COLS - 1) * P + 50, H = 392;
+  var hx = function (c) { return X0 + (c - 1) * P; };
+  var hasRail = function (c) { return c % 6 !== 0; };
+  function holeXY(id) { var m = id.match(/^(rt-|rt\+|rb\+|rb-|[a-j])(\d+)$/); return { x: hx(+m[2]), y: Y[m[1]], row: m[1], col: +m[2] }; }
+  // كل ثقب ينتمي لشبكة: أعمدة a-e موصولة، و f-j موصولة، وخطوط التغذية موصولة بطولها
+  function holeNet(id) { var h = holeXY(id); if (RAILS.indexOf(h.row) >= 0) return h.row.indexOf("+") >= 0 ? "VCC" : "GND"; return (ROWS.indexOf(h.row) < 5 ? "T" : "B") + h.col; }
+
+  // ───────── القطع ─────────
+  var KINDS = {
+    res: { leads: 2, def: { v: 330 } }, led: { leads: 2, def: { color: "red" } }, button: { leads: 2, def: {} }, sw: { leads: 2, def: { on: true } },
+    pot: { leads: 3, def: { v: 10000, pos: 0.5 } }, cap: { leads: 2, def: { v: 100 } }, diode: { leads: 2, def: {} },
+    npn: { leads: 3, def: {} }, pnp: { leads: 3, def: {} }, motor: { leads: 2, def: {} }, buzzer: { leads: 2, def: {} }, wire: { leads: 2, def: { color: "green" } }
+  };
+  var ORDER = ["res", "led", "button", "sw", "pot", "cap", "diode", "npn", "pnp", "motor", "buzzer", "wire"];
+  var LED_RGB = { red: "#ef4444", green: "#22c55e", blue: "#3b82f6", yellow: "#facc15", white: "#f8fafc" };
+  var WIRE_RGB = { green: "#16a34a", red: "#dc2626", black: "#1f2937", blue: "#2563eb", yellow: "#eab308", orange: "#ea580c", white: "#e5e7eb" };
+  var BAND = ["#000", "#7b3f00", "#d32f2f", "#f57c00", "#fbc02d", "#388e3c", "#1976d2", "#7b1fa2", "#9e9e9e", "#fff"];
+
+  var state = { parts: [], battery: 9, nextId: 1 };
+  var history = [], tool = "select", pending = [], selId = null, pressed = {};
+  var sim = { api: null, map: [], netIdx: {}, ready: false, gen: 0 };
+  var live = {}; // قراءات القطع
+  var motorAngle = {};
+
+  function save() { LS.set("bb-state", JSON.stringify(state)); }
+  function snapshot() { history.push(JSON.stringify(state)); if (history.length > 50) history.shift(); }
+  function load() { try { var s = JSON.parse(LS.get("bb-state") || "null"); if (s && s.parts) state = s; } catch (e) {} }
+
+  // ───────── رسم اللوحة ─────────
+  var svg = $("board");
+  svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+  function el(tag, attrs, parent) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+  var gBoard = el("g", {}, svg), gParts = el("g", {}, svg), gOver = el("g", {}, svg);
+
+  function drawBoard() {
+    gBoard.innerHTML = "";
+    // البطارية
+    var bx = 18, by = 120;
+    el("rect", { x: bx, y: by, width: 70, height: 120, rx: 8, fill: "#1f2937", stroke: "#111827" }, gBoard);
+    el("rect", { x: bx, y: by, width: 70, height: 34, rx: 8, fill: "#F59E0B" }, gBoard);
+    el("rect", { x: bx + 14, y: by - 10, width: 14, height: 12, rx: 2, fill: "#9ca3af" }, gBoard);
+    el("rect", { x: bx + 42, y: by - 10, width: 14, height: 12, rx: 2, fill: "#9ca3af" }, gBoard);
+    var vt = el("text", { x: bx + 35, y: by + 82, "text-anchor": "middle", "font-size": 22, "font-weight": 800, fill: "#F59E0B" }, gBoard); vt.textContent = state.battery + "V";
+    var lt = el("text", { x: bx + 35, y: by + 23, "text-anchor": "middle", "font-size": 12, "font-weight": 800, fill: "#1a1200" }, gBoard); lt.textContent = "3ENG";
+    // أسلاك البطارية إلى خطوط التغذية
+    el("path", { d: "M" + (bx + 49) + " " + (by - 10) + " C " + (bx + 49) + " 60, 100 54, " + hx(1) + " 54", stroke: "#dc2626", "stroke-width": 4, fill: "none", "stroke-linecap": "round" }, gBoard);
+    el("path", { d: "M" + (bx + 21) + " " + (by - 10) + " C " + (bx + 21) + " 40, 100 34, " + hx(1) + " 34", stroke: "#1f2937", "stroke-width": 4, fill: "none", "stroke-linecap": "round" }, gBoard);
+    el("path", { d: "M" + (bx + 49) + " " + (by + 120) + " C " + (bx + 49) + " 330, 100 338, " + hx(1) + " 338", stroke: "#dc2626", "stroke-width": 4, fill: "none", "stroke-linecap": "round" }, gBoard);
+    el("path", { d: "M" + (bx + 21) + " " + (by + 120) + " C " + (bx + 21) + " 370, 100 358, " + hx(1) + " 358", stroke: "#1f2937", "stroke-width": 4, fill: "none", "stroke-linecap": "round" }, gBoard);
+    // جسم اللوحة
+    el("rect", { x: X0 - 26, y: 14, width: W - X0 + 6, height: H - 28, rx: 10, fill: "#eceae4", stroke: "#cfccc3" }, gBoard);
+    el("rect", { x: X0 - 22, y: 190, width: W - X0 - 2, height: 12, rx: 3, fill: "#d9d6cd" }, gBoard);
+    // خطوط الألوان للتغذية
+    [["rt-", "#2563eb", 24], ["rt+", "#dc2626", 64], ["rb+", "#dc2626", 328], ["rb-", "#2563eb", 368]].forEach(function (r) { el("line", { x1: X0 - 10, x2: W - 30, y1: r[2], y2: r[2], stroke: r[1], "stroke-width": 1.6 }, gBoard); });
+    [["−", 34, "#2563eb"], ["+", 54, "#dc2626"], ["+", 338, "#dc2626"], ["−", 358, "#2563eb"]].forEach(function (r) { var s = el("text", { x: X0 - 16, y: r[1] + 5, "text-anchor": "middle", "font-size": 15, "font-weight": 800, fill: r[2] }, gBoard); s.textContent = r[0]; });
+    // أرقام الأعمدة وحروف الصفوف
+    for (var c = 1; c <= COLS; c++) if (c === 1 || c % 5 === 0) { [84, 312].forEach(function (yy) { var s = el("text", { x: hx(c), y: yy, "text-anchor": "middle", "font-size": 8, fill: "#8a877e" }, gBoard); s.textContent = c; }); }
+    ROWS.forEach(function (r) { var s = el("text", { x: X0 - 16, y: Y[r] + 3, "text-anchor": "middle", "font-size": 9, fill: "#8a877e" }, gBoard); s.textContent = r; });
+    // الثقوب
+    for (c = 1; c <= COLS; c++) {
+      ROWS.forEach(function (r) { el("rect", { x: hx(c) - 4, y: Y[r] - 4, width: 8, height: 8, rx: 1.5, class: "hole", "data-h": r + c }, gBoard); });
+      if (hasRail(c)) RAILS.forEach(function (r) { el("rect", { x: hx(c) - 4, y: Y[r] - 4, width: 8, height: 8, rx: 1.5, class: "hole", "data-h": r + c }, gBoard); });
+    }
+    markUsed();
+  }
+  function usedHoles() { var u = {}; state.parts.forEach(function (p) { p.holes.forEach(function (h) { u[h] = p.id; }); }); return u; }
+  function markUsed() { var u = usedHoles(); gBoard.querySelectorAll(".hole").forEach(function (e) { e.classList.toggle("used", !!u[e.dataset.h]); }); }
+
+  // ───────── رسم القطع ─────────
+  function bands(v) {
+    var exp = Math.floor(Math.log10(v)) - 1, sig = Math.round(v / Math.pow(10, exp));
+    if (sig >= 100) { sig = Math.round(sig / 10); exp++; }
+    var d = String(sig).padStart(2, "0");
+    return [BAND[+d[0]], BAND[+d[1]], exp >= 0 && exp <= 9 ? BAND[exp] : "#c9a227", "#c9a227"];
+  }
+  function lead(g, a, b, color) { el("line", { x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: color || "#9ca3af", "stroke-width": 2.2, "stroke-linecap": "round" }, g); }
+  function drawPart(p) {
+    var g = el("g", { class: "part" + (p.id === selId ? " sel" : ""), "data-id": p.id }, gParts);
+    var a = holeXY(p.holes[0]), b = holeXY(p.holes[p.holes.length - 1]);
+    var mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2, ang = Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI;
+    var L = live[p.id] || {};
+    if (p.kind === "wire") {
+      var dx = b.x - a.x, dy = b.y - a.y, lift = Math.min(28, Math.hypot(dx, dy) / 4);
+      el("path", { d: "M" + a.x + " " + a.y + " Q " + mx + " " + (my - lift) + " " + b.x + " " + b.y, stroke: WIRE_RGB[p.props.color] || "#16a34a", "stroke-width": 4.5, fill: "none", "stroke-linecap": "round" }, g);
+      el("circle", { cx: a.x, cy: a.y, r: 3, fill: "#6b7280" }, g); el("circle", { cx: b.x, cy: b.y, r: 3, fill: "#6b7280" }, g);
+      el("path", { class: "hl", d: "M" + a.x + " " + a.y + " Q " + mx + " " + (my - lift) + " " + b.x + " " + b.y }, g);
+      return;
+    }
+    if (KINDS[p.kind].leads === 3) {
+      var hs = p.holes.map(holeXY);
+      hs.forEach(function (h) { lead(g, h, { x: h.x, y: h.y - 14 }); });
+      var cx = hs[1].x, cy = hs[1].y - 22;
+      if (p.kind === "pot") {
+        el("rect", { x: cx - 26, y: cy - 16, width: 52, height: 30, rx: 4, fill: "#1e40af", stroke: "#1e3a8a" }, g);
+        var kn = el("g", { transform: "rotate(" + (-135 + 270 * p.props.pos) + " " + cx + " " + (cy - 1) + ")" }, g);
+        el("circle", { cx: cx, cy: cy - 1, r: 11, fill: "#e5e7eb", stroke: "#9ca3af" }, kn);
+        el("line", { x1: cx, y1: cy - 1, x2: cx, y2: cy - 11, stroke: "#111827", "stroke-width": 3, "stroke-linecap": "round" }, kn);
+      } else {
+        el("path", { d: "M" + (cx - 22) + " " + (cy + 10) + " V " + (cy - 6) + " A 22 18 0 0 1 " + (cx + 22) + " " + (cy - 6) + " V " + (cy + 10) + " Z", fill: "#111827", stroke: "#000" }, g);
+        var tt = el("text", { x: cx, y: cy + 4, "text-anchor": "middle", "font-size": 8, "font-weight": 700, fill: "#d1d5db" }, g); tt.textContent = p.kind.toUpperCase();
+        ["E", "B", "C"].forEach(function (s, i) { var q = el("text", { x: hs[i].x, y: hs[i].y + 14, "text-anchor": "middle", "font-size": 7, fill: "#6b7280" }, g); q.textContent = s; });
+      }
+      el("rect", { class: "hl", x: hs[0].x - 14, y: cy - 22, width: hs[2].x - hs[0].x + 28, height: hs[0].y - cy + 26, rx: 6 }, g);
+      return;
+    }
+    lead(g, a, b);
+    var body = el("g", { transform: "translate(" + mx + " " + my + ") rotate(" + ang + ")" }, g);
+    if (p.kind === "res") {
+      el("rect", { x: -15, y: -5.5, width: 30, height: 11, rx: 5, fill: "#e3c48f", stroke: "#b8955a" }, body);
+      bands(p.props.v).forEach(function (c, i) { el("rect", { x: -10 + i * 5 + (i === 3 ? 3 : 0), y: -5.5, width: 2.6, height: 11, fill: c }, body); });
+    } else if (p.kind === "led") {
+      var bright = Math.max(0, Math.min(1, Math.abs(L.i || 0) / 0.015)), col = LED_RGB[p.props.color] || "#ef4444";
+      if (L.burned) { el("circle", { cx: 0, cy: 0, r: 10, fill: "#3f3f46" }, body); var x2 = el("text", { x: 0, y: 4, "text-anchor": "middle", "font-size": 11, fill: "#f87171", transform: "rotate(" + (-ang) + ")" }, body); x2.textContent = "✖"; }
+      else {
+        if (bright > 0.02) el("circle", { cx: 0, cy: 0, r: 13 + 12 * bright, fill: col, opacity: 0.25 + 0.45 * bright, filter: "url(#glow)" }, body);
+        el("circle", { cx: 0, cy: 0, r: 9.5, fill: col, opacity: 0.45 + 0.55 * bright, stroke: "#00000055" }, body);
+        el("circle", { cx: -3, cy: -3, r: 2.5, fill: "#fff", opacity: 0.6 }, body);
+      }
+      var an = el("text", { x: -13, y: -12, "font-size": 9, "font-weight": 800, fill: "#16a34a", transform: "rotate(" + (-ang) + " -13 -12)" }, body); an.textContent = "+";
+    } else if (p.kind === "diode") {
+      el("rect", { x: -13, y: -4.5, width: 26, height: 9, rx: 3, fill: "#111827" }, body);
+      el("rect", { x: 7, y: -4.5, width: 3, height: 9, fill: "#d1d5db" }, body);
+    } else if (p.kind === "cap") {
+      el("rect", { x: -9, y: -11, width: 18, height: 22, rx: 4, fill: "#1d4ed8", stroke: "#1e3a8a" }, body);
+      el("rect", { x: 4, y: -11, width: 4, height: 22, fill: "#93c5fd" }, body);
+    } else if (p.kind === "button") {
+      var on = !!pressed[p.id];
+      el("rect", { x: -12, y: -12, width: 24, height: 24, rx: 3, fill: "#374151", stroke: "#111827" }, body);
+      el("circle", { cx: 0, cy: 0, r: on ? 6.5 : 8, fill: on ? "#F59E0B" : "#111827", stroke: "#000" }, body);
+    } else if (p.kind === "sw") {
+      el("rect", { x: -14, y: -7, width: 28, height: 14, rx: 3, fill: "#4b5563", stroke: "#111827" }, body);
+      el("rect", { x: p.props.on ? 1 : -12, y: -5, width: 11, height: 10, rx: 2, fill: p.props.on ? "#34d399" : "#9ca3af" }, body);
+    } else if (p.kind === "motor") {
+      el("circle", { cx: 0, cy: 0, r: 15, fill: "#9ca3af", stroke: "#4b5563", "stroke-width": 2 }, body);
+      var rot = el("g", { transform: "rotate(" + (motorAngle[p.id] || 0) + ")" }, body);
+      el("rect", { x: -2, y: -13, width: 4, height: 26, rx: 2, fill: "#F59E0B" }, rot);
+      el("circle", { cx: 0, cy: 0, r: 3.5, fill: "#374151" }, body);
+    } else if (p.kind === "buzzer") {
+      el("circle", { cx: 0, cy: 0, r: 12, fill: "#111827" }, body); el("circle", { cx: 0, cy: 0, r: 2.5, fill: "#374151" }, body);
+      if (Math.abs(L.i || 0) > 0.005) [16, 21].forEach(function (r) { el("path", { d: "M" + r * 0.7 + " " + (-r * 0.7) + " A " + r + " " + r + " 0 0 1 " + r * 0.7 + " " + r * 0.7, stroke: "#F59E0B", "stroke-width": 1.6, fill: "none" }, body); });
+    }
+    el("rect", { class: "hl", x: -18, y: -15, width: 36, height: 30, rx: 6 }, body);
+  }
+  function drawParts() {
+    gParts.innerHTML = "";
+    var defs = el("defs", {}, gParts), f = el("filter", { id: "glow", x: "-50%", y: "-50%", width: "200%", height: "200%" }, defs); el("feGaussianBlur", { stdDeviation: 4 }, f);
+    // الأسلاك أولاً ثم القطع فوقها
+    state.parts.filter(function (p) { return p.kind !== "wire"; }).forEach(drawPart);
+    state.parts.filter(function (p) { return p.kind === "wire"; }).forEach(drawPart);
+  }
+
+  // ───────── بناء الدائرة للمحرك ─────────
+  function buildCircuit() {
+    var parent = {};
+    var find = function (x) { while (parent[x] && parent[x] !== x) x = parent[x]; return x; };
+    var union = function (a, b) { a = find(a); b = find(b); if (a !== b) parent[a] = b; };
+    var netOf = function (h) { var n = holeNet(h); if (!parent[n]) parent[n] = n; return n; };
+    parent.VCC = "VCC"; parent.GND = "GND";
+    state.parts.forEach(function (p) {
+      var n = p.holes.map(netOf);
+      if (p.kind === "wire") union(n[0], n[1]);
+      if (p.kind === "sw" && p.props.on) union(n[0], n[1]);
+      if (p.kind === "button" && pressed[p.id]) union(n[0], n[1]);
+    });
+    var idx = {}, k = 0;
+    var ni = function (n) { n = find(n); if (!(n in idx)) idx[n] = k++; return idx[n]; };
+    ni("GND"); ni("VCC");
+    // نقاط الشبكات على قطع مكافئ — لا تقع ثلاث منها على خط واحد
+    var pt = function (i) { return [100 + i * 48, 100 + i * i * 6]; };
+    var xml = ['<cir f="1" ts="0.000005" ic="10" cb="50" pb="50" vr="5" mts="5e-11">'];
+    var add = function (s) { xml.push(s); return xml.length - 2; };
+    var seg = function (tag, a, b, attrs) { return "<" + tag + ' x="' + pt(a).concat(pt(b)).join(" ") + '"' + (/(^| )f="/.test(attrs || "") ? "" : ' f="0"') + " " + (attrs || "") + "/>"; };
+    var map = [];
+    var g = ni("GND"), v = ni("VCC");
+    map.push({ id: "battery", i: add(seg("v", g, v, 'wf="0" maxv="' + state.battery + '"')) });
+    add('<g x="' + pt(g).join(" ") + " " + pt(g)[0] + " " + (pt(g)[1] - 16) + '" f="0"/>');
+    var tcount = 0;
+    state.parts.forEach(function (p) {
+      var n = p.holes.map(function (h) { return ni(netOf(h)); });
+      if (p.kind === "res") map.push({ id: p.id, i: add(seg("r", n[0], n[1], 'r="' + p.props.v + '"')) });
+      else if (p.kind === "led") {
+        var c = { red: "1 0 0", green: "0 1 0", blue: "0 0 1", yellow: "1 1 0", white: "1 1 1" }[p.props.color] || "1 0 0";
+        c = c.split(" ");
+        map.push({ id: p.id, i: add(seg("LED", n[0], n[1], 'f="2" mo="default-led" cr="' + c[0] + '" cg="' + c[1] + '" cb="' + c[2] + '" mbc="0.01"')) });
+      }
+      else if (p.kind === "diode") map.push({ id: p.id, i: add(seg("d", n[0], n[1], 'f="2" mo="default"')) });
+      else if (p.kind === "cap") map.push({ id: p.id, i: add(seg("c", n[0], n[1], 'c="' + p.props.v * 1e-6 + '" iv="0.001" sr="0" vd="0"')) });
+      else if (p.kind === "motor") map.push({ id: p.id, i: add(seg("DCMotor", n[0], n[1], "")) });
+      else if (p.kind === "buzzer") map.push({ id: p.id, i: add(seg("r", n[0], n[1], 'r="150"')) });
+      else if (p.kind === "pot") {
+        var R = p.props.v, pos = p.props.pos;
+        map.push({ id: p.id, i: add(seg("r", n[0], n[1], 'r="' + Math.max(1, R * pos) + '"')) });
+        add(seg("r", n[1], n[2], 'r="' + Math.max(1, R * (1 - pos)) + '"'));
+      } else if (p.kind === "npn" || p.kind === "pnp") {
+        // الترانزستور في منطقة منفصلة، وأطرافه موصولة بأسلاك إلى شبكاتها (E B C)
+        var tx = 200 + tcount * 160, ty = -3000; tcount++;
+        var pnp = p.kind === "pnp", B = [tx, ty], C = [tx + 32, ty + (pnp ? 16 : -16)], E = [tx + 32, ty + (pnp ? -16 : 16)];
+        map.push({ id: p.id, i: add('<t x="' + tx + " " + ty + " " + (tx + 32) + " " + ty + '" f="0" pn="' + (pnp ? -1 : 1) + '" be="100" mo="default" vbe="0" vbc="0"/>') });
+        [[E, n[0]], [B, n[1]], [C, n[2]]].forEach(function (q) { add('<w x="' + q[0].join(" ") + " " + pt(q[1]).join(" ") + '" f="0"/>'); });
+      }
+    });
+    // عقدة مسمّاة لكل شبكة لقراءة جهدها
+    for (var nn in idx) { var q = pt(idx[nn]); add('<ln x="' + q[0] + " " + q[1] + " " + (q[0] + 16) + " " + (q[1] + 8) + '" f="0" te="N' + idx[nn] + '"/>'); }
+    xml.push("</cir>");
+    return { xml: xml.join("\n"), map: map, netIdx: idx, find: find };
+  }
+  var simTimer = null;
+  function runSim() {
+    if (!sim.api) return;
+    var c = buildCircuit();
+    sim.map = c.map; sim.netIdx = c.netIdx; sim.find = c.find;
+    try { sim.api.importCircuit(c.xml, false); } catch (e) { console.error(e); }
+    sim.gen++;
+  }
+  function readSim() {
+    if (!sim.api) return;
+    var els; try { els = sim.api.getElements(); } catch (e) { return; }
+    // المحرك قد يحمّل دائرته الافتراضية بعد دائرتنا عند بدء التشغيل — نعيد الإرسال
+    if (els.length < sim.map.length) { runSim(); return; }
+    var out = {};
+    sim.map.forEach(function (m) { var e = els[m.i]; if (!e) return; var i = 0, v = 0; try { i = e.getCurrent(); v = e.getVoltageDiff(); } catch (er) {} out[m.id] = { i: i, v: v }; });
+    state.parts.forEach(function (p) {
+      var o = out[p.id] || { i: 0, v: 0 };
+      if (p.kind === "led" && Math.abs(o.i) > 0.035) p.burned = true; // يحترق فوق 35 ملي أمبير
+      o.burned = !!p.burned;
+      live[p.id] = o;
+      if (p.kind === "motor") motorAngle[p.id] = ((motorAngle[p.id] || 0) + o.i * 600) % 360;
+    });
+    live.battery = out.battery || { i: 0, v: 0 };
+    drawParts(); updateLive();
+  }
+
+  // ───────── الواجهة ─────────
+  var ICONS = {
+    select: '<path d="M18 4 L18 26 L23 21 L27 29 L30 28 L26 20 L33 20 Z" fill="#e5e7eb" stroke="#111827" stroke-width="1.2"/>',
+    res: '<path d="M2 15H14M40 15H52" stroke="#9ca3af" stroke-width="2"/><rect x="14" y="9" width="26" height="12" rx="5" fill="#e3c48f" stroke="#b8955a"/><rect x="18" y="9" width="2.5" height="12" fill="#ef4444"/><rect x="23" y="9" width="2.5" height="12" fill="#ef4444"/><rect x="28" y="9" width="2.5" height="12" fill="#7b3f00"/><rect x="34" y="9" width="2.5" height="12" fill="#c9a227"/>',
+    led: '<path d="M22 22V30M32 22V30" stroke="#9ca3af" stroke-width="2"/><circle cx="27" cy="14" r="10" fill="#ef4444"/><circle cx="24" cy="11" r="2.5" fill="#fff" opacity=".6"/>',
+    button: '<rect x="15" y="5" width="22" height="22" rx="3" fill="#374151"/><circle cx="26" cy="16" r="7" fill="#111827"/>',
+    sw: '<rect x="12" y="9" width="30" height="14" rx="3" fill="#4b5563"/><rect x="27" y="11" width="12" height="10" rx="2" fill="#34d399"/>',
+    pot: '<rect x="12" y="6" width="30" height="22" rx="3" fill="#1e40af"/><circle cx="27" cy="16" r="8" fill="#e5e7eb"/><path d="M27 16V9" stroke="#111827" stroke-width="2.5"/>',
+    cap: '<path d="M27 24V30" stroke="#9ca3af" stroke-width="2"/><rect x="18" y="3" width="18" height="22" rx="4" fill="#1d4ed8"/><rect x="31" y="3" width="4" height="22" fill="#93c5fd"/>',
+    diode: '<path d="M2 15H14M40 15H52" stroke="#9ca3af" stroke-width="2"/><rect x="14" y="10" width="26" height="10" rx="3" fill="#111827"/><rect x="34" y="10" width="3" height="10" fill="#d1d5db"/>',
+    npn: '<path d="M14 22 V10 A13 10 0 0 1 40 10 V22 Z" fill="#111827"/><text x="27" y="19" text-anchor="middle" font-size="7" fill="#d1d5db" font-weight="700">NPN</text><path d="M19 22V30M27 22V30M35 22V30" stroke="#9ca3af" stroke-width="2"/>',
+    pnp: '<path d="M14 22 V10 A13 10 0 0 1 40 10 V22 Z" fill="#111827"/><text x="27" y="19" text-anchor="middle" font-size="7" fill="#d1d5db" font-weight="700">PNP</text><path d="M19 22V30M27 22V30M35 22V30" stroke="#9ca3af" stroke-width="2"/>',
+    motor: '<circle cx="27" cy="15" r="13" fill="#9ca3af" stroke="#4b5563" stroke-width="2"/><rect x="25" y="4" width="4" height="22" rx="2" fill="#F59E0B"/>',
+    buzzer: '<circle cx="24" cy="15" r="11" fill="#111827"/><path d="M38 9a9 9 0 0 1 0 12M42 5a14 14 0 0 1 0 20" stroke="#F59E0B" stroke-width="1.8" fill="none"/>',
+    wire: '<path d="M6 24 Q27 -2 48 24" stroke="#16a34a" stroke-width="4" fill="none" stroke-linecap="round"/>'
+  };
+  function renderPalette() {
+    var h = '<div class="grp">' + t("gTools") + '</div><div class="pal"><button type="button" class="tool' + (tool === "select" ? " on" : "") + '" data-tool="select"><svg viewBox="0 0 54 30">' + ICONS.select + "</svg>" + t("select") + "</button></div>";
+    h += '<div class="grp">' + t("gParts") + '</div><div class="pal">';
+    ORDER.forEach(function (k) { h += '<button type="button" class="tool' + (tool === k ? " on" : "") + '" data-tool="' + k + '"><svg viewBox="0 0 54 30">' + ICONS[k] + "</svg>" + t(k) + "</button>"; });
+    h += '</div><div class="grp">' + t("examples") + '</div><div class="examples">' + ["ex1", "ex2", "ex3", "ex4"].map(function (e) { return '<button type="button" class="btn" data-ex="' + e + '">' + t(e) + "</button>"; }).join("") + "</div>";
+    $("palette").innerHTML = h;
+  }
+  function renderStatus(msg) {
+    var s = msg;
+    if (!s) {
+      if (!sim.api) s = t("loading");
+      else if (tool === "select") s = t("stSelect");
+      else if (KINDS[tool].leads === 3) s = t("st3") + " <b>" + t(tool) + "</b> " + t("st3b");
+      else s = pending.length ? t("st2c") : t("st2a") + " <b>" + t(tool) + "</b>، " + t("st2b");
+    }
+    $("status").innerHTML = s;
+  }
+  var fmt = function (v, u) { var a = Math.abs(v); if (!isFinite(v)) return "—"; if (a >= 1) return (+v.toFixed(2)) + " " + u; if (a >= 1e-3) return (+(v * 1e3).toFixed(2)) + " m" + u; if (a >= 1e-6) return (+(v * 1e6).toFixed(1)) + " µ" + u; return "0 " + u; };
+  function renderProps() {
+    var p = state.parts.find(function (x) { return x.id === selId; });
+    var h = "<h2>⚙️ " + t("props") + "</h2>";
+    h += '<div class="prow">' + t("battery") + '<select id="pBat">' + [3, 5, 9, 12].map(function (v) { return "<option" + (v === state.battery ? " selected" : "") + ">" + v + "</option>"; }).join("") + "</select></div>";
+    h += '<div id="liveAlert"></div>';
+    if (!p) h += '<p class="hint">' + t("none") + "</p>";
+    else {
+      h += '<div class="read"><div style="color:var(--txt);font-weight:800;margin-bottom:4px">' + t(p.kind) + '</div><div id="liveRead"></div></div>';
+      if (p.kind === "res") h += '<div class="prow">' + t("value") + ' (Ω)<select id="pVal">' + [100, 220, 330, 470, 1000, 2200, 4700, 10000, 47000, 100000].map(function (v) { return '<option value="' + v + '"' + (v === p.props.v ? " selected" : "") + ">" + (v >= 1000 ? v / 1000 + "k" : v) + "</option>"; }).join("") + "</select></div>";
+      if (p.kind === "cap") h += '<div class="prow">' + t("value") + ' (µF)<select id="pVal">' + [1, 10, 47, 100, 470, 1000].map(function (v) { return '<option value="' + v + '"' + (v === p.props.v ? " selected" : "") + ">" + v + "</option>"; }).join("") + "</select></div>";
+      if (p.kind === "pot") h += '<div class="prow">' + t("value") + ' (Ω)<select id="pVal">' + [1000, 10000, 100000].map(function (v) { return '<option value="' + v + '"' + (v === p.props.v ? " selected" : "") + ">" + v / 1000 + "k</option>"; }).join("") + '</select></div><div class="prow">' + t("position") + ' <input id="pPos" type="range" min="0" max="1" step="0.01" value="' + p.props.pos + '"></div>';
+      if (p.kind === "led") h += '<div class="prow">' + t("color") + '<select id="pCol">' + ["red", "green", "blue", "yellow", "white"].map(function (c) { return '<option value="' + c + '"' + (c === p.props.color ? " selected" : "") + ">" + t(c) + "</option>"; }).join("") + "</select></div>";
+      if (p.kind === "wire") h += '<div class="prow">' + t("wireColor") + '<select id="pCol">' + Object.keys(WIRE_RGB).map(function (c) { return '<option value="' + c + '"' + (c === p.props.color ? " selected" : "") + ">" + t(c) + "</option>"; }).join("") + "</select></div>";
+      if (p.kind === "sw") h += '<div class="prow">' + t("state") + '<select id="pOn"><option value="1"' + (p.props.on ? " selected" : "") + ">" + t("on") + '</option><option value="0"' + (p.props.on ? "" : " selected") + ">" + t("off") + "</option></select></div>";
+      if (p.kind === "button") h += '<p class="hint">' + t("pressHint") + "</p>";
+      h += '<button type="button" class="btn danger" id="pDel" style="width:100%;margin-top:6px">' + t("del") + "</button>";
+    }
+    h += '<p class="hint" style="margin-top:12px">' + t("hover") + "<br>" + t("railNote") + "</p>";
+    $("props").innerHTML = h;
+    bindProps(p);
+    updateLive();
+  }
+  // تحديث القراءات والتنبيهات فقط (يُستدعى دورياً دون إعادة بناء عناصر التحكم)
+  function updateLive() {
+    var a = $("liveAlert"); if (!a) return;
+    var bi = (live.battery || {}).i || 0, h = "";
+    if (Math.abs(bi) > 2) h = '<div class="alert">' + t("short") + "</div>";
+    else if (state.parts.some(function (x) { return x.burned; })) h = '<div class="alert">' + t("burned") + "</div>";
+    else if (sim.api && Math.abs(bi) > 1e-5) h = '<div class="alert ok">' + t("allGood") + "</div>";
+    if (a.innerHTML !== h) a.innerHTML = h;
+    var r = $("liveRead"), p = state.parts.find(function (x) { return x.id === selId; });
+    if (r && p) { var L = live[p.id]; r.innerHTML = L && p.kind !== "wire" ? t("vAcross") + ": <b>" + fmt(Math.abs(L.v), "V") + "</b><br>" + t("current") + ": <b>" + fmt(Math.abs(L.i), "A") + "</b>" : ""; }
+  }
+  function bindProps(p) {
+    var on = function (id, ev, fn) { var e = $(id); if (e) e.addEventListener(ev, fn); };
+    on("pBat", "change", function () { snapshot(); state.battery = +this.value; changed(true); });
+    if (!p) return;
+    on("pVal", "change", function () { snapshot(); p.props.v = +this.value; changed(); });
+    on("pPos", "input", function () { p.props.pos = +this.value; changed(); });
+    on("pPos", "change", function () { this.blur(); });
+    on("pCol", "change", function () { snapshot(); p.props.color = this.value; changed(); });
+    on("pOn", "change", function () { snapshot(); p.props.on = this.value === "1"; changed(); });
+    on("pDel", "click", function () { snapshot(); state.parts = state.parts.filter(function (x) { return x.id !== p.id; }); selId = null; changed(); });
+  }
+  function changed(redrawBoard) {
+    state.parts.forEach(function (x) { delete x.burned; }); // إعادة التقييم بعد كل تعديل
+    save();
+    if (redrawBoard) drawBoard(); else markUsed();
+    drawParts(); renderProps(); renderStatus(); runSim();
+  }
+
+  // ───────── التفاعل مع اللوحة ─────────
+  function holeAt(target) { return target && target.classList && target.classList.contains("hole") ? target.dataset.h : null; }
+  function place(h) {
+    var used = usedHoles();
+    if (KINDS[tool].leads === 3) {
+      var hp = holeXY(h);
+      if (RAILS.indexOf(hp.row) >= 0 || hp.col + 2 > COLS) return renderStatus(t("noRoom"));
+      var hs = [h, hp.row + (hp.col + 1), hp.row + (hp.col + 2)];
+      if (hs.some(function (x) { return used[x]; })) return renderStatus(t("busy"));
+      snapshot();
+      state.parts.push({ id: "p" + state.nextId++, kind: tool, holes: hs, props: JSON.parse(JSON.stringify(KINDS[tool].def)) });
+      changed(); return;
+    }
+    if (used[h] || pending.indexOf(h) >= 0) return renderStatus(t("busy"));
+    pending.push(h);
+    if (pending.length === 2) {
+      snapshot();
+      state.parts.push({ id: "p" + state.nextId++, kind: tool, holes: pending.slice(), props: JSON.parse(JSON.stringify(KINDS[tool].def)) });
+      pending = []; gOver.innerHTML = "";
+      changed();
+    } else renderStatus();
+  }
+  svg.addEventListener("pointerdown", function (e) {
+    var h = holeAt(e.target);
+    if (tool !== "select") { if (h) place(h); return; }
+    var g = e.target.closest && e.target.closest(".part");
+    if (!g) { selId = null; drawParts(); renderProps(); return; }
+    var p = state.parts.find(function (x) { return x.id === g.dataset.id; });
+    selId = p.id;
+    if (p.kind === "button") { pressed[p.id] = true; runSim(); var up = function () { pressed[p.id] = false; runSim(); drawParts(); window.removeEventListener("pointerup", up); }; window.addEventListener("pointerup", up); }
+    if (p.kind === "sw" && e.detail >= 2) { snapshot(); p.props.on = !p.props.on; changed(); return; }
+    drawParts(); renderProps();
+  });
+  svg.addEventListener("pointermove", function (e) {
+    var h = holeAt(e.target), tip = $("tip");
+    gBoard.querySelectorAll(".hole.hi").forEach(function (x) { x.classList.remove("hi"); });
+    if (h) {
+      // تمييز الثقوب الموصولة بنفس الشريط
+      var net = holeNet(h);
+      gBoard.querySelectorAll(".hole").forEach(function (x) { if (holeNet(x.dataset.h) === net) x.classList.add("hi"); });
+      var vv = null;
+      if (sim.api && sim.find && sim.netIdx) { var root = sim.find(net); if (root in sim.netIdx) { try { vv = sim.api.getNodeVoltage("N" + sim.netIdx[root]); } catch (er) {} } }
+      tip.style.display = "block"; tip.style.left = e.clientX + 14 + "px"; tip.style.top = e.clientY + 14 + "px";
+      tip.textContent = h.toUpperCase() + (vv != null && isFinite(vv) ? "  •  " + (+vv.toFixed(2)) + " V" : "");
+    } else tip.style.display = "none";
+    // معاينة السلك/القطعة أثناء الوضع
+    gOver.innerHTML = "";
+    if (pending.length === 1) {
+      var a = holeXY(pending[0]), pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+      var q = pt.matrixTransform(svg.getScreenCTM().inverse());
+      el("line", { x1: a.x, y1: a.y, x2: q.x, y2: q.y, stroke: "#F59E0B", "stroke-width": 2.5, "stroke-dasharray": "5 4" }, gOver);
+    }
+  });
+  svg.addEventListener("pointerleave", function () { $("tip").style.display = "none"; });
+  $("palette").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-tool]");
+    if (b) { tool = b.dataset.tool; pending = []; gOver.innerHTML = ""; renderPalette(); renderStatus(); return; }
+    var x = e.target.closest("[data-ex]"); if (x) { snapshot(); loadExample(x.dataset.ex); }
+  });
+  window.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") { pending = []; gOver.innerHTML = ""; tool = "select"; renderPalette(); renderStatus(); }
+    if ((e.key === "Delete" || e.key === "Backspace") && selId && !/INPUT|SELECT/.test(document.activeElement.tagName)) { snapshot(); state.parts = state.parts.filter(function (x) { return x.id !== selId; }); selId = null; changed(); }
+  });
+  $("undoBtn").onclick = function () { var s = history.pop(); if (s) { state = JSON.parse(s); selId = null; changed(true); } };
+  $("clearBtn").onclick = function () { if (!state.parts.length) return; snapshot(); state.parts = []; selId = null; changed(); };
+
+  // ───────── أمثلة جاهزة ─────────
+  var mk = function (kind, holes, props) { return { id: "p" + state.nextId++, kind: kind, holes: holes, props: Object.assign(JSON.parse(JSON.stringify(KINDS[kind].def)), props || {}) }; };
+  function loadExample(ex) {
+    var P2 = [];
+    if (ex === "ex1") P2 = [mk("res", ["rt+4", "a4"], { v: 330 }), mk("led", ["c4", "c7"]), mk("wire", ["a7", "rt-7"], { color: "black" })];
+    if (ex === "ex2") P2 = [mk("button", ["rt+3", "a3"]), mk("res", ["b3", "b8"], { v: 330 }), mk("led", ["d8", "d11"], { color: "green" }), mk("wire", ["a11", "rt-11"], { color: "black" })];
+    if (ex === "ex3") P2 = [mk("npn", ["h14", "h15", "h16"]), mk("wire", ["j14", "rb-14"], { color: "black" }), mk("res", ["f15", "f19"], { v: 10000 }), mk("sw", ["g19", "rb+19"]), mk("res", ["rb+22", "j22"], { v: 330 }), mk("led", ["g22", "g16"], { color: "yellow" })];
+    if (ex === "ex4") P2 = [mk("pot", ["e8", "e9", "e10"], { v: 10000 }), mk("wire", ["a8", "rt+8"], { color: "red" }), mk("wire", ["a10", "rt-10"], { color: "black" }), mk("res", ["c9", "c13"], { v: 220 }), mk("led", ["d13", "d16"], { color: "blue" }), mk("wire", ["a16", "rt-16"], { color: "black" })];
+    state.parts = P2; selId = null; state.battery = 9; changed(true);
+  }
+
+  // ───────── اللغة والتشغيل ─────────
+  function setLang(l) {
+    lang = l; LS.set("cad-lang", l);
+    document.documentElement.lang = l; document.documentElement.dir = l === "ar" ? "rtl" : "ltr"; document.title = t("doc");
+    document.querySelectorAll("[data-t]").forEach(function (e) { e.textContent = t(e.dataset.t); });
+    document.querySelectorAll(".lang button").forEach(function (b) { b.classList.toggle("on", b.dataset.lang === l); });
+    renderPalette(); renderProps(); renderStatus();
+  }
+  document.querySelectorAll(".lang button").forEach(function (b) { b.onclick = function () { setLang(b.dataset.lang); }; });
+
+  load();
+  if (!state.parts.length) loadExample("ex1");
+  drawBoard(); drawParts(); setLang(lang);
+  // انتظار محرك المحاكاة داخل الإطار المخفي
+  var wait = setInterval(function () {
+    var w = $("sim").contentWindow;
+    if (w && w.CircuitJS1 && w.CircuitJS1.importCircuit) { clearInterval(wait); sim.api = w.CircuitJS1; runSim(); renderStatus(); setInterval(readSim, 200); }
+  }, 300);
+})();
+</script>
+</body>
+</html>

@@ -1364,6 +1364,7 @@ async function main() {
   if (await writeFile("tools/index.html", toolsHub())) changed.push(`${SITE}/tools/`);
   entries.push({ loc: "/tools/", priority: 0.8 });
   entries.push({ loc: "/cad/", priority: 0.8 }); // 3ENG CAD — صفحة ثابتة مكتوبة يدوياً
+  entries.push({ loc: "/cad/breadboard/", priority: 0.7 });
   for (const t of TOOLS) {
     if (await writeFile(`tools/${t.slug}/index.html`, toolPage(t, all))) changed.push(`${SITE}/tools/${t.slug}/`);
     entries.push({ loc: `/tools/${t.slug}/`, priority: 0.7 });
