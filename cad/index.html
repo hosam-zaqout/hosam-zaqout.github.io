@@ -17,6 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/cad-pro.css?v=1">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"3ENG CAD","alternateName":"محاكي الدوائر الكهربائية 3ENG CAD","url":"https://www.3engs.com/cad/","description":"محاكي دوائر كهربائية وإلكترونية مجاني يعمل في المتصفح بالعربية والإنجليزية، مع مكتبة دوائر جاهزة مشروحة.","applicationCategory":"EducationalApplication","operatingSystem":"Any","inLanguage":["ar","en"],"isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"publisher":{"@id":"https://www.3engs.com/#organization"}}</script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-GZJCYL5YM8"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-GZJCYL5YM8');</script>
@@ -134,6 +135,7 @@ footer a{color:var(--acc)}
       <button type="button" class="btn" id="newBtn" data-t="new"></button>
       <button type="button" class="btn" id="tipsBtn" data-t="howto"></button>
       <button type="button" class="btn" id="fullBtn" data-t="full"></button>
+      <span class="pro-slot" id="proSlot"></span>
       <a class="btn main" id="tabBtn" target="_blank" rel="noopener" data-t="newtab"></a>
     </div>
     <div class="frame" id="frame"><iframe id="sim" title="3ENG CAD" allow="fullscreen; clipboard-write"></iframe></div>
@@ -410,9 +412,10 @@ footer a{color:var(--acc)}
   var LS = { get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
   var qs = new URLSearchParams(location.search);
   var lang = qs.get("lang") === "en" || qs.get("lang") === "ar" ? qs.get("lang") : (LS.get("cad-lang") || "ar");
-  var cur = qs.get("c") && LIB.some(function (x) { return x[0] === qs.get("c"); }) ? qs.get("c") : "voltdivide.txt";
+  var ctz = qs.get("ctz"); // دائرة مشاركة عبر رابط
+  var cur = qs.get("c") && LIB.some(function (x) { return x[0] === qs.get("c"); }) ? qs.get("c") : (ctz ? "ctz" : "voltdivide.txt");
 
-  function simUrl(file) { return "/cad/sim/circuitjs.html?lang=" + lang + "&startCircuit=" + encodeURIComponent(file); }
+  function simUrl(file) { return "/cad/sim/circuitjs.html?lang=" + lang + (file === "ctz" && ctz ? "&ctz=" + encodeURIComponent(ctz) : "&startCircuit=" + encodeURIComponent(file)); }
   function entry(file) { return LIB.find(function (x) { return x[0] === file; }); }
 
   function renderLib() {
@@ -518,5 +521,45 @@ footer a{color:var(--acc)}
   setLang(lang);
 })();
 </script>
+<script>
+// ───────── الحفظ والتصدير (الأدوات المتقدمة) ─────────
+(function () {
+  var frame = document.getElementById("sim");
+  var api = function () { return frame.contentWindow && frame.contentWindow.CircuitJS1; };
+  var isPro = false;
+  // إظهار قائمة "ملف" داخل المحاكي للمشتركين فقط
+  function applyPro() { try { frame.contentDocument.body.classList.toggle("pro", isPro); } catch (e) {} }
+  frame.addEventListener("load", function () { setTimeout(applyPro, 50); setTimeout(applyPro, 1500); });
+  var fname = function () { return (document.getElementById("curTitle").textContent || "3eng-cad").trim().replace(/[\/:*?"<>|]+/g, "").replace(/\s+/g, "-") || "3eng-cad"; };
+  function getSvg() {
+    return new Promise(function (res, rej) {
+      var a = api(); if (!a) return rej(new Error("sim"));
+      var t = setTimeout(function () { rej(new Error("timeout")); }, 8000);
+      a.onsvgrendered = function (sim, svg) { clearTimeout(t); res(svg); };
+      a.getCircuitAsSVG();
+    });
+  }
+  function svgSize(s) { var m = s.match(/width="(\d+(?:\.\d+)?)[^"]*"[^>]*height="(\d+(?:\.\d+)?)/); return m ? [+m[1], +m[2]] : [1200, 800]; }
+  window.CadProConfig = {
+    kind: "schematic", slot: "proSlot", fileAccept: ".txt,.xml,text/plain",
+    title: function () { return document.getElementById("curTitle").textContent || "3ENG CAD"; },
+    getData: function () { return api().exportCircuit(); },
+    setData: function (s) { api().importCircuit(s, false); },
+    onPro: function (p) { isPro = p; applyPro(); },
+    formats: [
+      { ar: "📄 ملف الدائرة (.txt) — يُفتح لاحقاً من «دوائري»", en: "📄 Circuit file (.txt) — reopen from “My circuits”", run: function () { CadProUtil.download(fname() + ".txt", api().exportCircuit()); } },
+      { ar: "🖼️ صورة SVG (للطباعة والتقارير)", en: "🖼️ SVG image (for print and reports)", run: function () { return getSvg().then(function (s) { CadProUtil.download(fname() + ".svg", s, "image/svg+xml"); }); } },
+      { ar: "🖼️ صورة PNG", en: "🖼️ PNG image", run: function () { return getSvg().then(function (s) { var z = svgSize(s); return CadProUtil.svgToPng(s, z[0], z[1], "#ffffff"); }).then(function (b) { CadProUtil.download(fname() + ".png", b); }); } },
+      { ar: "🔗 رابط مشاركة (يُنسخ تلقائياً)", en: "🔗 Share link (copied automatically)", run: function () {
+          var z = frame.contentWindow.LZString.compressToEncodedURIComponent(api().exportCircuit());
+          var url = "https://www.3engs.com/cad/?ctz=" + z + "&lang=" + document.documentElement.lang;
+          return navigator.clipboard.writeText(url).then(function () { alert(document.documentElement.lang === "en" ? "Link copied." : "نُسخ الرابط."); }, function () { prompt("URL", url); });
+        } }
+    ]
+  };
+})();
+</script>
+<script type="module" src="/assets/cad-pro.js?v=1"></script>
+
 </body>
 </html>

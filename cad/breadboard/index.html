@@ -17,6 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/cad-pro.css?v=1">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"3ENG CAD Breadboard","alternateName":"لوحة التجارب التفاعلية","url":"https://www.3engs.com/cad/breadboard/","applicationCategory":"EducationalApplication","operatingSystem":"Any","inLanguage":["ar","en"],"isAccessibleForFree":true,"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"publisher":{"@id":"https://www.3engs.com/#organization"}}</script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-GZJCYL5YM8"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-GZJCYL5YM8');</script>
@@ -109,6 +110,7 @@ footer a{color:var(--acc)}
   <section class="stage">
     <div class="bar">
       <span class="status" id="status"></span>
+      <span class="pro-slot" id="proSlot"></span>
       <button type="button" class="btn" id="undoBtn" data-t="undo"></button>
       <button type="button" class="btn" id="zoomOut" aria-label="−">−</button>
       <button type="button" class="btn" id="zoomIn" aria-label="+">+</button>
@@ -636,6 +638,18 @@ footer a{color:var(--acc)}
   }
   document.querySelectorAll(".lang button").forEach(function (b) { b.onclick = function () { setLang(b.dataset.lang); }; });
 
+  window.BB = {
+    get: function () { return JSON.stringify({ app: "3eng-breadboard", v: 1, battery: state.battery, parts: state.parts }); },
+    set: function (s) {
+      var d = JSON.parse(s);
+      if (!d || !Array.isArray(d.parts)) throw new Error("bad file");
+      snapshot();
+      state.parts = d.parts.filter(function (p) { return p && KINDS[p.kind] && Array.isArray(p.holes); });
+      state.battery = [3, 5, 9, 12].indexOf(d.battery) >= 0 ? d.battery : 9;
+      state.nextId = state.parts.reduce(function (m, p) { var n = +String(p.id).replace(/D/g, ""); return Math.max(m, n + 1); }, 1);
+      selId = null; changed(true);
+    }
+  };
   load();
   if (!state.parts.length) loadExample("ex1");
   drawBoard(); drawParts(); setLang(lang); applyZoom();
@@ -646,5 +660,33 @@ footer a{color:var(--acc)}
   }, 300);
 })();
 </script>
+<script>
+// ───────── الحفظ والتصدير (الأدوات المتقدمة) ─────────
+(function () {
+  var stamp = function () { return new Date().toISOString().slice(0, 10); };
+  // صورة اللوحة: نسخة من SVG بألوان صريحة بدل أصناف CSS
+  function boardSvg() {
+    var src = document.getElementById("board"), c = src.cloneNode(true), vb = src.viewBox.baseVal;
+    c.setAttribute("width", vb.width); c.setAttribute("height", vb.height); c.removeAttribute("style");
+    c.querySelectorAll(".hole").forEach(function (h) { h.setAttribute("fill", h.classList.contains("used") ? "#1f2328" : "#3a3f46"); });
+    c.querySelectorAll(".hl").forEach(function (h) { h.remove(); });
+    var bg = document.createElementNS("http://www.w3.org/2000/svg", "rect"); bg.setAttribute("width", "100%"); bg.setAttribute("height", "100%"); bg.setAttribute("fill", "#0b1020"); c.insertBefore(bg, c.firstChild);
+    return { svg: new XMLSerializer().serializeToString(c), w: vb.width, h: vb.height };
+  }
+  window.CadProConfig = {
+    kind: "breadboard", slot: "proSlot", fileAccept: ".json,application/json",
+    title: function () { return (document.documentElement.lang === "en" ? "Breadboard " : "لوحة تجارب ") + stamp(); },
+    getData: function () { return window.BB.get(); },
+    setData: function (s) { window.BB.set(s); },
+    formats: [
+      { ar: "📄 ملف اللوحة (.json) — يُفتح لاحقاً من «دوائري»", en: "📄 Board file (.json) — reopen from “My circuits”", run: function () { CadProUtil.download("3eng-breadboard-" + stamp() + ".json", window.BB.get(), "application/json"); } },
+      { ar: "🖼️ صورة PNG للوحة", en: "🖼️ PNG image of the board", run: function () { var b = boardSvg(); return CadProUtil.svgToPng(b.svg, b.w, b.h, "#0b1020").then(function (png) { CadProUtil.download("3eng-breadboard-" + stamp() + ".png", png); }); } },
+      { ar: "🖼️ صورة SVG للوحة", en: "🖼️ SVG image of the board", run: function () { CadProUtil.download("3eng-breadboard-" + stamp() + ".svg", boardSvg().svg, "image/svg+xml"); } }
+    ]
+  };
+})();
+</script>
+<script type="module" src="/assets/cad-pro.js?v=1"></script>
+
 </body>
 </html>

@@ -28,10 +28,19 @@ body{font-family:Tahoma,Arial,sans-serif}
 /* النصوص العربية: اتجاه تلقائي حسب المحتوى حتى لا تُقص في الشريط الجانبي */
 .gwt-Label,.gwt-HTML,.gwt-CheckBox label,.gwt-RadioButton label,.gwt-MenuItem,.gwt-Button{unicode-bidi:plaintext}
 .gwt-Label,.gwt-HTML{text-align:start;overflow-wrap:anywhere}
+/* قائمة "ملف" (الحفظ والتصدير) لمشتركي الأدوات المتقدمة فقط — الصفحة الأم تضيف class="pro" */
+body:not(.pro) .gwt-MenuBar-horizontal > table > tbody > tr > td.gwt-MenuItem:first-child{display:none}
 </style>
 <link rel="stylesheet" href="font/fontello.css">
 </head>
 <body>
+<script>
+// اختصارات الحفظ والطباعة لمشتركي الأدوات المتقدمة فقط
+document.addEventListener("keydown", function (e) {
+  if (document.body.classList.contains("pro")) return;
+  if ((e.ctrlKey || e.metaKey) && /^[sp]$/i.test(e.key)) { e.preventDefault(); e.stopImmediatePropagation(); }
+}, true);
+</script>
 <script src="lz-string.min.js"></script>
 <script src="circuitjs110/circuitjs1.nocache.js"></script>
 <iframe src="javascript:''" id="__gwt_historyFrame" style="width:0;height:0;border:0"></iframe>
