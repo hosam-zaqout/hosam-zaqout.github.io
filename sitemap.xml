@@ -11,6 +11,12 @@
     <priority>0.9</priority>
   </url>
   <url>
+    <loc>https://www.3engs.com/courses/arduino-course/</loc>
+    <lastmod>2026-09-27</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/courses/ppgf4S766bSU8H1BO85r.webp</image:loc><image:title>برمجة الاردوينو روبوتيكس</image:title></image:image>
+  </url>
+  <url>
     <loc>https://www.3engs.com/courses/electronic-pcb-course/</loc>
     <lastmod>2026-09-27</lastmod>
     <priority>0.8</priority>
@@ -27,12 +33,6 @@
     <lastmod>2026-09-27</lastmod>
     <priority>0.8</priority>
     <image:image><image:loc>https://www.3engs.com/img/courses/ZxzNfCmOOXnEQUOWJDaI.webp</image:loc><image:title>انترنت الاشياء والانظمة المدمجة (iot)</image:title></image:image>
-  </url>
-  <url>
-    <loc>https://www.3engs.com/courses/arduino-course/</loc>
-    <lastmod>2026-09-27</lastmod>
-    <priority>0.8</priority>
-    <image:image><image:loc>https://www.3engs.com/img/courses/ppgf4S766bSU8H1BO85r.webp</image:loc><image:title>برمجة الاردوينو روبوتيكس</image:title></image:image>
   </url>
   <url>
     <loc>https://www.3engs.com/projects/</loc>
