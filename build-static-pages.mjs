@@ -192,6 +192,13 @@ function youtubeId(url = "") {
   const m = String(url).match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);
   return m ? m[1] : null;
 }
+// رابط التضمين: يوتيوب أو ملف Google Drive (لازم يكون مشاركاً لأي شخص لديه الرابط)
+function videoEmbed(url = "") {
+  const yt = youtubeId(url);
+  if (yt) return `https://www.youtube-nocookie.com/embed/${yt}`;
+  const d = String(url).match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]{20,})/);
+  return d ? `https://drive.google.com/file/d/${d[1]}/preview` : null;
+}
 function paragraphs(text = "") {
   return String(text).split(/\n{2,}|\r\n\r\n/).map((p) => p.trim()).filter(Boolean)
     .map((p) => `<p>${esc(p).replace(/\n/g, "<br>")}</p>`).join("\n");
@@ -605,7 +612,7 @@ function itemPage(sec, item, siblings, all) {
   const orig = item.imageUrl || item.coverUrl || item.image || "";
   const img = item._img || orig;
   const imgAbs = absUrl(img);
-  const yt = youtubeId(item.videoUrl);
+  const yt = videoEmbed(item.videoUrl);
   const updated = isoDate(item._updated);
   const topics = itemTopics(item);
   const audience = arr(item.audience).map(clean);
@@ -807,7 +814,7 @@ ${item.desc ? `<section class="box"><h2>📖 التفاصيل</h2><div class="pr
   ${list("📝 المتطلبات المسبقة", item.requirements, "•")}
 </div>
 ${list("📚 محاور الدورة", item.topics, "▸")}
-${yt ? `<section class="box"><h2>🎬 فيديو ${esc(sec.one)}</h2><div class="video"><iframe src="https://www.youtube-nocookie.com/embed/${yt}" title="${esc(title)}" loading="lazy" allowfullscreen></iframe></div></section>` : ""}
+${yt ? `<section class="box"><h2>🎬 فيديو ${esc(sec.one)}</h2><div class="video"><iframe src="${yt}" allow="autoplay; fullscreen" title="${esc(title)}" loading="lazy" allowfullscreen></iframe></div></section>` : ""}
 ${reviews.length ? `<section class="box"><h2>⭐ آراء الطلاب${rating ? ` <span style="font-size:.85rem;color:var(--mut)">(${rating.avg.toFixed(1)} من 5)</span>` : ""}</h2>${reviews.map((r) => { const st = Math.min(5, Math.max(1, Number(r.rating) || 5)); return `<blockquote class="rv"><div style="color:var(--acc)">${"★".repeat(st)}${"☆".repeat(5 - st)}</div><p>${esc(clean(r.text))}</p><footer>— <b>${esc(clean(r.name))}</b>${clean(r.role) ? "، " + esc(clean(r.role)) : ""}</footer></blockquote>`; }).join("")}</section>` : ""}
 ${faqs.length ? `<section class="box faq"><h2>❓ أسئلة عن ${esc(sec.one)}</h2>${faqs.map((f) => `<details><summary>${esc(clean(f.q))}</summary><p>${esc(clean(f.a))}</p></details>`).join("")}</section>` : ""}
 ${license}
@@ -859,7 +866,7 @@ function articlePage(sec, item, all) {
   const faqs = (Array.isArray(item.faqs) ? item.faqs : []).filter((f) => f && clean(f.q) && clean(f.a));
   const author = clean(item.author);
   const minutes = md.readingMinutes(item.body);
-  const yt = youtubeId(item.videoUrl);
+  const yt = videoEmbed(item.videoUrl);
 
   const bc = crumbs([{ name: "الرئيسية", url: "/" }, { name: sec.label, url: `/${sec.dir}/` }, { name: cut(title, 60), url }]);
   const schemas = [{
@@ -904,7 +911,7 @@ ${bc.html}
   ${img ? `<img class="cover" src="${esc(img)}" alt="${esc(title)}" width="${item._w || 1200}" height="${item._h || 675}" fetchpriority="high" decoding="async">` : ""}
   ${item.desc ? `<p class="lead">${esc(clean(item.desc))}</p>` : ""}
   <div class="prose">${md.render(item.body)}</div>
-  ${yt ? `<section class="box" style="margin-top:20px"><h2>🎬 فيديو</h2><div class="video"><iframe src="https://www.youtube-nocookie.com/embed/${yt}" title="${esc(title)}" loading="lazy" allowfullscreen></iframe></div></section>` : ""}
+  ${yt ? `<section class="box" style="margin-top:20px"><h2>🎬 فيديو</h2><div class="video"><iframe src="${yt}" allow="autoplay; fullscreen" title="${esc(title)}" loading="lazy" allowfullscreen></iframe></div></section>` : ""}
   ${faqs.length ? `<section class="box faq" style="margin-top:20px"><h2>❓ أسئلة شائعة</h2>${faqs.map((f) => `<details><summary>${esc(clean(f.q))}</summary><p>${esc(clean(f.a))}</p></details>`).join("")}</section>` : ""}
   <section class="box" style="margin-top:20px"><h2>👷 عن ${BRAND}</h2><p>${BRAND} (${BRAND_AR}) منصة عربية من فلسطين يديرها مهندسون كهربائيون ومدربون جامعيون، تقدّم دورات ومشاريع جاهزة وكتباً ومقالات في الهندسة الكهربائية والأنظمة المدمجة وإنترنت الأشياء. <a href="/#about" style="color:var(--acc)">تعرّف على الفريق</a> • <a href="/courses/" style="color:var(--acc)">الدورات</a> • <a href="/projects/" style="color:var(--acc)">المشاريع</a></p></section>
 </article>
