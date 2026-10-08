@@ -142,7 +142,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:300;display:flex;align-items:cen
 .logo-img{width:40px;height:40px;border-radius:50%;background:white;padding:3px;object-fit:contain;box-shadow:0 0 0 2px rgba(245,158,11,.5);}
 .lname{font-size:1.1rem;font-weight:900;color:var(--p);}
 .lslogan{font-size:.6rem;color:var(--mt);font-weight:700;letter-spacing:1.5px;text-transform:uppercase;display:block;}
-.nav-links{display:flex;gap:20px;list-style:none;align-items:center;}
+.nav-links{display:flex;gap:16px;list-style:none;align-items:center;}
 .nav-links a{color:var(--mt);text-decoration:none;font-size:.85rem;font-weight:700;transition:color .25s;position:relative;cursor:pointer;}
 .nav-links a::after{content:'';position:absolute;bottom:-4px;right:0;width:0;height:1px;background:var(--p);transition:width .3s;}
 .nav-links a:hover{color:var(--p);}
@@ -177,6 +177,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:300;display:flex;align-items:cen
 .mob-menu.open{display:flex;}
 .mob-menu a{color:var(--tx);text-decoration:none;font-size:.93rem;font-weight:700;padding:10px 0;border-bottom:1px solid var(--b2);transition:color .2s;cursor:pointer;}
 .mob-menu a:hover{color:var(--p);}
+#mobLinks{display:flex;flex-direction:column;gap:10px;}
 .mob-cta{background:var(--p)!important;color:#0F172A!important;text-align:center;padding:13px!important;border-radius:8px;border-bottom:none!important;margin-top:6px;font-weight:900!important;}
 
 /* CART DRAWER */
@@ -566,6 +567,7 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
   }
 }
 </script>
+<script src="/assets/visit.js" defer></script>
 </head>
 <body>
 
@@ -666,14 +668,15 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
     <img class="logo-img" src="logo.jpg" alt="3ENG.s Logo" onerror="this.style.display='none'">
     <div><span class="lname" id="bname">3ENG.s</span></div>
   </a>
-  <ul class="nav-links">
-    <li><a onclick="scrollToSec('products')">المنتجات</a></li>
-    <li><a onclick="scrollToSec('courses')">الدورات</a></li>
-    <li><a onclick="scrollToSec('projects')">المشاريع</a></li>
-    <li><a onclick="scrollToSec('books')">الكتب</a></li>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="/courses/">الدورات</a></li>
+    <li><a href="/projects/">المشاريع</a></li>
+    <li><a href="/products/">المنتجات الرقمية</a></li>
+    <li><a href="/books/">الكتب</a></li>
     <li><a href="/tools/">الحاسبات</a></li>
     <li><a href="/cad/">3ENG CAD</a></li>
-    <li><a onclick="scrollToSec('contact')">تواصل</a></li>
+    <li><a href="/team/">الفريق</a></li>
+    <li><a href="#contact" onclick="scrollToSec('contact');return false">تواصل</a></li>
   </ul>
   <div class="nav-right">
     <button class="tm-toggle" id="tmToggle" onclick="cycleTheme()" title="تغيير المظهر">🌙</button>
@@ -695,13 +698,16 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
 </nav>
 
 <div class="mob-menu" id="mobMenu">
-  <a onclick="scrollToSec('products');closeMob()">المنتجات</a>
-  <a onclick="scrollToSec('courses');closeMob()">الدورات</a>
-  <a onclick="scrollToSec('projects');closeMob()">المشاريع</a>
-  <a onclick="scrollToSec('books');closeMob()">الكتب</a>
-  <a href="/tools/">الحاسبات</a>
-  <a href="/cad/">3ENG CAD — محاكي الدوائر</a>
-  <a onclick="scrollToSec('contact');closeMob()">تواصل معنا</a>
+  <div id="mobLinks">
+  <a href="/courses/">🎓 الدورات</a>
+  <a href="/projects/">🛠️ المشاريع</a>
+  <a href="/products/">📦 المنتجات الرقمية</a>
+  <a href="/books/">📚 الكتب</a>
+  <a href="/tools/">🧮 الحاسبات</a>
+  <a href="/cad/">🛠️ 3ENG CAD — محاكي الدوائر</a>
+  <a href="/team/">👷 الفريق</a>
+  <a href="#contact" onclick="scrollToSec('contact');closeMob();return false">✉️ تواصل معنا</a>
+  </div>
   <a href="auth.html" class="mob-cta">تسجيل الدخول ⚡</a>
 </div>
 
@@ -713,7 +719,7 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
   <div class="hero-logo"><img src="/logo.jpg" alt="شعار 3ENG.s — المهندسون الثلاثة" width="120" height="120" onerror="this.parentElement.innerHTML='<span style=font-size:2.8rem>💡</span>'"></div>
   <h1 class="hh" id="htitle">تعلّم. ابنِ. <span class="g">تميّز.</span><span class="hh-sub">دورات ومشاريع وكتب في الهندسة الكهربائية، ESP32، أردوينو وإنترنت الأشياء</span></h1>
   <p class="hero-sub" id="hsub">منصة 3ENG.s — رفيقك في الهندسة الكهربائية والأنظمة المدمجة. دورات، مشاريع، كتب من مهندسين لمهندسين.</p>
-  <div class="hero-tags">
+  <div class="hero-tags" id="heroTags">
     <div class="htag">⚡ الهندسة الكهربائية</div>
     <div class="htag">🔧 الأنظمة المدمجة</div>
     <div class="htag">💡 ESP32 & Arduino</div>
@@ -721,20 +727,20 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
     <div class="htag">📡 IoT</div>
   </div>
   <div class="hbtns">
-    <button class="bp" onclick="scrollToSec('products')">استعرض المنتجات ↓</button>
+    <button class="bp" onclick="scrollToSec('courses')">استعرض الدورات ↓</button>
     <button class="bo" onclick="scrollToSec('projects')">المشاريع الهندسية</button>
   </div>
 </section>
 
 <!-- أرقام وروابط سريعة -->
-<section class="x-sec" style="margin:30px auto 10px">
+<section class="x-sec" id="quick" style="margin:30px auto 10px">
   <div class="x-stats">
     <div><b>+300</b>طالب متدرب</div>
     <div><b><!--SSR:count-courses-->4<!--/SSR:count-courses--></b>دورة تدريبية</div>
     <div><b><!--SSR:count-projects-->3<!--/SSR:count-projects--></b>مشروع جاهز</div>
     <div><b><!--SSR:count-books-->4<!--/SSR:count-books--></b>كتاب هندسي</div>
   </div>
-  <div class="x-links">
+  <div class="x-links" id="quickLinks" style="display:none">
     <a href="/courses/">🎓 كل الدورات</a>
     <a href="/projects/">🛠️ كل المشاريع</a>
     <a href="/products/">📦 المنتجات الرقمية</a>
@@ -745,7 +751,15 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
   </div>
 </section>
 
-<div class="cats">
+<!-- COURSES -->
+<section id="courses">
+  <div class="shdr reveal">
+    <div><div class="stag">الدورات التعليمية</div><div class="gline"></div><h2 class="stitle">تعلّم من <span class="g">مهندسين حقيقيين</span></h2><p class="sdesc">اضغط على أي دورة لرؤية التفاصيل الكاملة</p></div>
+  </div>
+  <div class="cgrid" id="cGrid"><!--SSR:courses--><div class="ssr-list"><a href="/courses/electronic-pcb-course/">الإلكترونيات وتصميم الدوائر المطبوعة PCB<b>$48</b></a><a href="/courses/python-ai-course/">اساسيات البايثون والذكاء الاصطناعي<b>$48</b></a><a href="/courses/esp32-iot-course/">انترنت الاشياء والانظمة المدمجة (iot)<b>$48</b></a><a href="/courses/arduino-course/">برمجة الاردوينو روبوتيكس<b>$48</b></a></div><!--/SSR:courses--></div>
+</section>
+
+<div class="cats" id="prodCats">
   <button class="cat-btn active" onclick="fCat(this,'all')">الكل</button>
   <button class="cat-btn" onclick="fCat(this,'tool')">أدوات</button>
   <button class="cat-btn" onclick="fCat(this,'template')">قوالب</button>
@@ -761,7 +775,7 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
 </section>
 
 <!-- FEATURES -->
-<div class="fstrip">
+<div class="fstrip" id="features">
   <div class="fgrid">
     <div class="feat reveal"><div class="ficon">🔒</div><div class="ftext"><h4>دفع آمن 100%</h4><p>طرق دفع آمنة وموثوقة</p></div></div>
     <div class="feat reveal"><div class="ficon">⚡</div><div class="ftext"><h4>تسليم فوري</h4><p>احصل على منتجاتك فور الدفع</p></div></div>
@@ -770,13 +784,7 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
   </div>
 </div>
 
-<!-- COURSES -->
-<section id="courses">
-  <div class="shdr reveal">
-    <div><div class="stag">الدورات التعليمية</div><div class="gline"></div><h2 class="stitle">تعلّم من <span class="g">مهندسين حقيقيين</span></h2><p class="sdesc">اضغط على أي دورة لرؤية التفاصيل الكاملة</p></div>
-  </div>
-  <div class="cgrid" id="cGrid"><!--SSR:courses--><div class="ssr-list"><a href="/courses/electronic-pcb-course/">الإلكترونيات وتصميم الدوائر المطبوعة PCB<b>$48</b></a><a href="/courses/python-ai-course/">اساسيات البايثون والذكاء الاصطناعي<b>$48</b></a><a href="/courses/esp32-iot-course/">انترنت الاشياء والانظمة المدمجة (iot)<b>$48</b></a><a href="/courses/arduino-course/">برمجة الاردوينو روبوتيكس<b>$48</b></a></div><!--/SSR:courses--></div>
-</section>
+
 
 <!-- PROJECTS - new section -->
 <section id="projects">
@@ -886,7 +894,7 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
 </section>
 
 <!-- CTA -->
-<div class="cta-s">
+<div class="cta-s" id="ctaBlock">
   <h2>كن أول من يعرف <span class="g">جديد 3ENG.s</span></h2>
   <p>اشترك واحصل على خصم 20% على أول عملية شراء</p>
   <div class="nl-form">
@@ -1063,8 +1071,32 @@ async function loadConfig(){
     if(cfg.payment) window._payConfig=cfg.payment;
     buildPaymentButtons();
 
+    if(cfg.layout)applyLayout(cfg.layout);
     if(cfg.siteTitle&&!cfg.seo?.title)document.title=cfg.siteTitle;
   }catch(e){console.log('Config:',e.message);}
+}
+
+// ترتيب الصفحة والقائمة (لوحة التحكم ← 🧭 ترتيب الصفحة)
+const BLOCK_EL={quick:['quick'],courses:['courses'],products:['prodCats','products'],features:['features'],projects:['projects'],books:['books'],custom:['customSectionsHost'],testimonials:['testimonials'],about:['about'],faq:['faq'],contact:['contact'],cta:['ctaBlock']};
+function applyLayout(L){
+  const esc=t=>String(t||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const safeHref=h=>/^(\/|#|https?:\/\/)/.test(h||'')?h:'#';
+  if(Array.isArray(L.nav)&&L.nav.length){
+    const items=L.nav.filter(n=>n&&n.show!==false&&n.label);
+    const a=(n,mob)=>{const h=safeHref(n.href);const sec=/^#[\w-]+$/.test(h)?h.slice(1):'';
+      return `<a href="${esc(h)}"${sec?` onclick="scrollToSec('${sec}');${mob?'closeMob();':''}return false"`:''}>${mob&&n.emoji?esc(n.emoji)+' ':''}${esc(n.label)}</a>`;};
+    document.getElementById('navLinks').innerHTML=items.map(n=>'<li>'+a(n,0)+'</li>').join('');
+    document.getElementById('mobLinks').innerHTML=items.map(n=>a(n,1)).join('');
+  }
+  if(Array.isArray(L.blocks)&&L.blocks.length){
+    let anchor=document.querySelector('section.hero');const seen=new Set();
+    const order=[...L.blocks.filter(b=>b&&BLOCK_EL[b.k]),...Object.keys(BLOCK_EL).filter(k=>!L.blocks.some(b=>b&&b.k===k)).map(k=>({k,show:true}))];
+    order.forEach(b=>{if(seen.has(b.k))return;seen.add(b.k);
+      BLOCK_EL[b.k].forEach(id=>{const el=document.getElementById(id);if(!el)return;
+        el.style.display=b.show===false?'none':'';anchor.after(el);anchor=el;});});
+  }
+  if(L.quickLinks)document.getElementById('quickLinks').style.display='';
+  if(Array.isArray(L.heroTags)&&L.heroTags.length)document.getElementById('heroTags').innerHTML=L.heroTags.map(t=>`<div class="htag">${esc(t)}</div>`).join('');
 }
 
 // PAYMENT BUTTONS
@@ -1271,8 +1303,8 @@ async function loadProds(){
     const typeMap={tool:{cls:'tt',lbl:'أداة'},template:{cls:'tm',lbl:'قالب'},ebook:{cls:'te',lbl:'كتاب رقمي'}};
     const badgeMap={new:{cls:'bn',txt:'جديد'},best:{cls:'bb',txt:'الأكثر مبيعاً'},sale:{cls:'bs',txt:'خصم'},free:{cls:'bf',txt:'مجاني'}};
     let html='';
-    snap.forEach(d=>{
-      const p={id:d.id,...d.data()};const t=typeMap[p.type]||{cls:'tt',lbl:p.type||''};const bdg=badgeMap[p.badge];
+    const parr=[];snap.forEach(d=>parr.push({id:d.id,...d.data()}));parr.sort(byOrder);
+    parr.forEach(p=>{const t=typeMap[p.type]||{cls:'tt',lbl:p.type||''};const bdg=badgeMap[p.badge];
       const bdgHTML=bdg?`<div class="cbwrap"><span class="cbadge ${bdg.cls}">${bdg.txt}</span></div>`:'';
       const thumb=p.imageUrl?`<img src="${optImg('products',p.id,p.imageUrl,1)}" data-orig="${escAttr(p.imageUrl)}" alt="${escAttr(p.title)}" loading="lazy" decoding="async" onerror="imgFb(this)">`:`<span class="ef">${p.emoji||'📦'}</span>`;
       const oldP=p.oldPrice?`<span class="pold">$${p.oldPrice}</span>`:'';
@@ -1297,7 +1329,7 @@ async function loadCourses(){
     const snap=await getDocs(collection(db,'courses'));
     if(snap.empty){grid.innerHTML=defaultCourses();reObs();return;}
     const cls=['cv1','cv2','cv3'];let i=0;
-    const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()}));
+    const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()}));arr.sort(byOrder);
     window._coursesData=arr;
     let html='';
     arr.forEach((c,idx)=>{
@@ -1333,7 +1365,7 @@ async function loadProjects(){
   try{
     const snap=await getDocs(collection(db,'projects'));
     if(snap.empty){grid.innerHTML='<div class="loading-ph">لا توجد مشاريع حالياً — قريباً!</div>';return;}
-    const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()}));
+    const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()}));arr.sort(byOrder);
     window._projectsData=arr;
     let html='';
     arr.forEach((pr,idx)=>{
@@ -1467,8 +1499,8 @@ async function loadBooks(){
     if(snap.empty){grid.innerHTML=defaultBooks();reObs();return;}
     const cls=['bk1','bk2','bk3','bk4','bk5','bk6'];let i=0;
     let html='';
-    snap.forEach(d=>{
-      const b={id:d.id,...d.data()};const bFree=isFreeItem(b);
+    const barr=[];snap.forEach(d=>barr.push({id:d.id,...d.data()}));barr.sort(byOrder);
+    barr.forEach(b=>{const bFree=isFreeItem(b);
       const bTitle=(b.title||'').replace(/"/g,'&quot;');
       const cover=b.imageUrl?`<img src="${optImg('books',b.id,b.imageUrl,1)}" data-orig="${escAttr(b.imageUrl)}" alt="${bTitle}" loading="lazy" decoding="async" onerror="imgFb(this)">`:'';
       const action=bFree
@@ -1624,6 +1656,7 @@ window.scrollToSec=function(id){
 // العناصر القديمة (بدون col/id) تُحذف — السعر يُحسب على السيرفر
 let cart=[];
 try{cart=JSON.parse(localStorage.getItem('3engs_cart')||'[]').filter(i=>i&&i.col&&i.id);}catch(e){}
+const byOrder=(a,b)=>(a.order??1e9)-(b.order??1e9);
 function isFreeItem(d){return d.isFree===true||!(parseFloat(d.price)>0);}
 // صور WebP مضغوطة يولّدها سكربت البناء في /img/ — ولو مش موجودة بعد نرجع للأصلية
 function optImg(col,id,orig,small){return orig&&id?`/img/${col}/${id}${small?'-480':''}.webp`:(orig||'');}

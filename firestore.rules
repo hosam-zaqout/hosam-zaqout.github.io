@@ -177,6 +177,16 @@ service cloud.firestore {
     // ─────────────────────────────────────────
     // رفض أي شيء آخر
     // ─────────────────────────────────────────
+    // عدّاد الزوار (assets/visit.js): أي أحد يزيد 1 فقط، والقراءة للأدمن
+    match /site_stats/{id} {
+      allow read: if isAdmin();
+      allow create: if (id == 'total' || id.matches('d_[0-9]{4}-[0-9]{2}-[0-9]{2}'))
+        && request.resource.data.keys().hasOnly(['count'])
+        && request.resource.data.count == 1;
+      allow update: if request.resource.data.keys().hasOnly(['count'])
+        && request.resource.data.count == resource.data.count + 1;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

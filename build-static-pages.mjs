@@ -120,7 +120,27 @@ async function fetchDoc(p) {
   return decodeFields((await r.json()).fields || {});
 }
 
+// الترتيب من لوحة التحكم (الحقل order، الأصغر أولاً؛ بدون ترتيب = بالآخر)
+const byOrder = (a, b) => (a.order ?? 1e9) - (b.order ?? 1e9);
+// روابط القائمة العلوية من لوحة التحكم (🧭 ترتيب الصفحة) — تُضبط بعد تحميل البيانات
+let SITE_NAV = null;
+function navLinks() {
+  if (!SITE_NAV) return `${SECTIONS.map((s) => `<a href="/${s.dir}/">${s.label}</a>`).join("")}<a href="/tools/">الحاسبات</a><a href="/cad/">3ENG CAD</a><a href="/topics/">التصنيفات</a>`;
+  return SITE_NAV.map((n) => `<a href="${esc(n.href)}">${esc(n.label)}</a>`).join("");
+}
+
 async function loadData() {
+  const data = await loadRaw();
+  for (const s of SECTIONS) if (Array.isArray(data[s.col])) data[s.col].sort(byOrder);
+  const nav = data.config?.layout?.nav;
+  if (Array.isArray(nav) && nav.length) {
+    SITE_NAV = nav.filter((n) => n && n.show !== false && n.label && /^(\/|#|https?:\/\/)/.test(n.href || ""))
+      .map((n) => ({ label: String(n.label), href: n.href.startsWith("#") ? "/" + n.href : n.href }));
+  }
+  return data;
+}
+
+async function loadRaw() {
   if (process.env.MOCK_FILE) {
     const mock = JSON.parse(await fs.readFile(process.env.MOCK_FILE, "utf8"));
     for (const arr of Object.values(mock)) if (Array.isArray(arr)) for (const d of arr) stripPrivate(d);
@@ -332,11 +352,12 @@ ${schemas.map(jsonLd).join("\n")}
 <!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-GZJCYL5YM8"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-GZJCYL5YM8');</script>
+<script src="/assets/visit.js" defer></script>
 </head>
 <body>
 <header class="top"><div class="wrap">
   <a class="logo" href="/"><img src="/logo.jpg" alt="شعار 3ENG.s" width="36" height="36">${BRAND}</a>
-  <nav class="nav">${SECTIONS.map((s) => `<a href="/${s.dir}/">${s.label}</a>`).join("")}<a href="/tools/">الحاسبات</a><a href="/cad/">3ENG CAD</a><a href="/topics/">التصنيفات</a></nav>
+  <nav class="nav">${navLinks()}</nav>
 </div></header>
 <main class="wrap">
 ${body}

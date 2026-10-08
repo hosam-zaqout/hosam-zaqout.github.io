@@ -152,6 +152,7 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
   <div class="ni active" onclick="showP('dashboard',this)"><span class="ic">🏠</span> الرئيسية</div>
   <div class="ns">إدارة المحتوى</div>
   <div class="ni" onclick="showP('hero',this)"><span class="ic">🎯</span> القسم الرئيسي</div>
+  <div class="ni" onclick="showP('layout',this)"><span class="ic">🧭</span> ترتيب الصفحة والقائمة</div>
   <div class="ni" onclick="showP('products',this)"><span class="ic">📦</span> المنتجات <span class="nb" id="pc">0</span></div>
   <div class="ni" onclick="showP('courses',this)"><span class="ic">🎓</span> الدورات <span class="nb" id="cc">0</span></div>
   <div class="ni" onclick="showP('books',this)"><span class="ic">📚</span> الكتب <span class="nb" id="bc">0</span></div>
@@ -194,6 +195,9 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
         <div class="scard s5"><div class="si">🔧</div><div class="sn" id="ds-pr">0</div><div class="sl">المشاريع</div></div>
         <div class="scard s3"><div class="si">💬</div><div class="sn" id="ds-m">0</div><div class="sl">الرسائل</div></div>
         <div class="scard s4"><div class="si">📧</div><div class="sn" id="ds-s">0</div><div class="sl">المشتركون</div></div>
+        <div class="scard s1"><div class="si">👀</div><div class="sn" id="ds-vt">0</div><div class="sl">زوار اليوم</div></div>
+        <div class="scard s2"><div class="si">📅</div><div class="sn" id="ds-v30">0</div><div class="sl">زوار آخر 30 يوم</div></div>
+        <div class="scard s3"><div class="si">🌍</div><div class="sn" id="ds-vall">0</div><div class="sl">كل الزوار</div></div>
       </div>
       <div class="g2">
         <div class="pc"><h3>💬 آخر الرسائل</h3><div id="dMsgs"><div style="color:var(--mt);text-align:center;padding:20px;font-size:.83rem">جاري...</div></div></div>
@@ -220,6 +224,26 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
         </div>
         <button class="btn-sm" onclick="saveSec('hero')">💾 حفظ Hero</button>
       </div>
+    </div>
+
+    <!-- LAYOUT -->
+    <div class="panel" id="p-layout">
+      <div class="pc"><h3>🧭 القائمة العلوية</h3>
+        <p style="font-size:.78rem;color:var(--mt);margin-bottom:10px">رتّب الروابط بالأسهم، وشيل الصح عن أي رابط بدك تخفيه. الرابط إما صفحة (/courses/) أو قسم بالرئيسية (#contact) أو رابط خارجي.</p>
+        <div id="lyNav"></div>
+        <button class="btn-add" style="margin-top:8px" onclick="lyAddNav()">➕ رابط جديد</button>
+      </div>
+      <div class="pc"><h3>🧱 ترتيب أقسام الصفحة الرئيسية</h3>
+        <p style="font-size:.78rem;color:var(--mt);margin-bottom:10px">الترتيب من فوق لتحت بعد الواجهة الرئيسية. ترتيب الأقسام المخصصة (المقالات، الورش...) بينهم من صفحة "➕ أقسام مخصصة".</p>
+        <div id="lyBlocks"></div>
+        <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:.84rem;cursor:pointer"><input type="checkbox" id="ly-quickLinks" style="accent-color:var(--p)"> إظهار أزرار الروابط السريعة تحت الأرقام (🎓 كل الدورات ...)</label>
+      </div>
+      <div class="pc"><h3>🏷️ الوسوم تحت عنوان الواجهة</h3>
+        <div class="cg"><label>كل وسم بسطر</label><textarea class="cta" id="ly-heroTags" rows="5" placeholder="⚡ الهندسة الكهربائية"></textarea></div>
+        <p style="font-size:.76rem;color:var(--mt)">نصوص العنوان والشارة من صفحة "🎯 القسم الرئيسي".</p>
+      </div>
+      <button class="btn-sm" onclick="saveSec('layout')">💾 حفظ الترتيب</button>
+      <button class="btn-edit" style="margin-right:8px" onclick="lyReset()">↩️ الترتيب الافتراضي</button>
     </div>
 
     <!-- PRODUCTS -->
@@ -581,7 +605,7 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, setDoc, addDoc, deleteDoc, serverTimestamp, getDoc, updateDoc, query, where, deleteField } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, setDoc, addDoc, deleteDoc, serverTimestamp, getDoc, updateDoc, query, where, deleteField, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 const CFG={apiKey:"AIzaSyALJiF8l_wnk_6FU6etQpz44Z43lSORXQk",authDomain:"engs-website.firebaseapp.com",projectId:"engs-website",storageBucket:"engs-website.firebasestorage.app",messagingSenderId:"1028163586505",appId:"1:1028163586505:web:c09de00bb30a3369ca4018",measurementId:"G-GZJCYL5YM8"};
@@ -704,6 +728,20 @@ async function loadAll(){
 }
 
 // DASHBOARD
+// 👀 عدّاد الزوار (assets/visit.js) — زائر = متصفح واحد باليوم بتوقيت فلسطين
+async function loadVisits(){
+  try{
+    const fmt=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Gaza'});
+    const days=[...Array(30)].map((_,i)=>fmt.format(new Date(Date.now()-i*864e5)));
+    const snaps=await Promise.all([getDoc(doc(db,'site_stats','total')),...days.map(d=>getDoc(doc(db,'site_stats','d_'+d)))]);
+    const c=x=>x.exists()?(x.data().count||0):0;
+    const per=snaps.slice(1).map(c);
+    document.getElementById('ds-vall').textContent=c(snaps[0]).toLocaleString('en');
+    document.getElementById('ds-vt').textContent=per[0];
+    document.getElementById('ds-v30').textContent=per.reduce((a,b)=>a+b,0).toLocaleString('en');
+    document.getElementById('ds-v30').title=days.map((d,i)=>d+': '+per[i]).join('\n');
+  }catch(e){console.error('visits',e);}
+}
 async function loadDashboard(){
   try{
     const [us,ps,prs,ms,ss]=await Promise.all([
@@ -712,6 +750,7 @@ async function loadDashboard(){
       getDocs(collection(db,'newsletter_subscribers'))
     ]);
     const s=(id,v)=>document.getElementById(id).textContent=v;
+    loadVisits();
     s('ds-u',us.size);s('ds-p',ps.size);s('ds-pr',prs.size);s('ds-m',ms.size);s('ds-s',ss.size);
     s('uc',us.size);s('pc',ps.size);s('mc',ms.size);
     let mHTML='',mArr=[]; ms.forEach(d=>mArr.push(d.data()));
@@ -723,15 +762,27 @@ async function loadDashboard(){
   }catch(e){console.error(e);}
 }
 
+// ترتيب العناصر: الحقل order (الأصغر أولاً)، والعناصر بدون ترتيب بالآخر
+const byOrder=(a,b)=>(a.order??1e9)-(b.order??1e9);
+function moveBtns(col,arr,id,fn){return `<button class="btn-edit" title="لفوق" onclick="moveItem('${col}','${arr}','${id}',-1,'${fn}')">⬆️</button><button class="btn-edit" title="لتحت" onclick="moveItem('${col}','${arr}','${id}',1,'${fn}')">⬇️</button>`;}
+window.moveItem=async(col,arr,id,dir,fn)=>{
+  const a=window[arr];const i=a.findIndex(x=>x.id===id),j=i+dir;if(i<0||j<0||j>=a.length)return;
+  [a[i],a[j]]=[a[j],a[i]];
+  const b=writeBatch(db);let n=0;
+  a.forEach((x,k)=>{if(x.order!==k+1){x.order=k+1;b.update(doc(db,col,x.id),{order:k+1});n++;}});
+  try{if(n)await b.commit();toast('✅ تم تغيير الترتيب — الصفحات الثابتة بتتحدث خلال ساعة');}catch(e){toast('⚠️ '+e.message,'err');}
+  window[fn]();
+};
+
 // PRODUCTS
 window._prods=[];
 async function loadProducts(){
   const snap=await getDocs(collection(db,'products')); window._prods=[];
-  snap.forEach(d=>window._prods.push({id:d.id,...d.data()}));
+  snap.forEach(d=>window._prods.push({id:d.id,...d.data()}));window._prods.sort(byOrder);
   document.getElementById('pc').textContent=window._prods.length;
   const el=document.getElementById('prodList');
   if(!window._prods.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد منتجات</p>';return;}
-  el.innerHTML=window._prods.map(p=>`<div class="irow"><div class="iemoji">${p.emoji||'📦'}</div><div class="iinfo"><div class="ititle">${p.title||''}</div><div class="imeta">${p.type||''} • $${p.price||0}${fileBadge(p)}${isFreeItem(p)?' • <span style="color:var(--ok)">مجاني</span>':''}</div></div><div class="iacts"><button class="btn-edit" title="نسخ رابط الصفحة" onclick="copyItemLink('products','${p.id}')">🔗</button><button class="btn-edit" onclick="editItem('product','${p.id}')">✏️</button><button class="btn-del" onclick="delItem('products','${p.id}',loadProducts)">🗑️</button></div></div>`).join('');
+  el.innerHTML=window._prods.map(p=>`<div class="irow"><div class="iemoji">${p.emoji||'📦'}</div><div class="iinfo"><div class="ititle">${p.title||''}</div><div class="imeta">${p.type||''} • $${p.price||0}${fileBadge(p)}${isFreeItem(p)?' • <span style="color:var(--ok)">مجاني</span>':''}</div></div><div class="iacts">${moveBtns('products','_prods',p.id,'loadProducts')}<button class="btn-edit" title="نسخ رابط الصفحة" onclick="copyItemLink('products','${p.id}')">🔗</button><button class="btn-edit" onclick="editItem('product','${p.id}')">✏️</button><button class="btn-del" onclick="delItem('products','${p.id}',loadProducts)">🗑️</button></div></div>`).join('');
 }
 window.loadProducts=loadProducts;
 
@@ -739,11 +790,11 @@ window.loadProducts=loadProducts;
 window._courses=[];
 async function loadCourses(){
   const snap=await getDocs(collection(db,'courses')); window._courses=[];
-  snap.forEach(d=>window._courses.push({id:d.id,...d.data()}));
+  snap.forEach(d=>window._courses.push({id:d.id,...d.data()}));window._courses.sort(byOrder);
   document.getElementById('cc').textContent=window._courses.length;
   const el=document.getElementById('courseList');
   if(!window._courses.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد دورات</p>';return;}
-  el.innerHTML=window._courses.map(c=>`<div class="irow"><div class="iemoji">${c.emoji||'🎓'}</div><div class="iinfo"><div class="ititle">${c.title||''}</div><div class="imeta">${c.category||''} • $${c.price||0}${c.oldPrice?` <span style="text-decoration:line-through;color:var(--mt);font-size:.7rem">$${c.oldPrice}</span>`:''}${c.imageUrl?' • <span style="color:var(--ok)">🖼️</span>':''}${c.videoUrl?' • <span style="color:var(--ac)">▶️</span>':''}</div></div><div class="iacts"><button class="btn-edit" title="نسخ رابط الصفحة" onclick="copyItemLink('courses','${c.id}')">🔗</button><button class="btn-edit" onclick="editItem('course','${c.id}')">✏️</button><button class="btn-del" onclick="delItem('courses','${c.id}',loadCourses)">🗑️</button></div></div>`).join('');
+  el.innerHTML=window._courses.map(c=>`<div class="irow"><div class="iemoji">${c.emoji||'🎓'}</div><div class="iinfo"><div class="ititle">${c.title||''}</div><div class="imeta">${c.category||''} • $${c.price||0}${c.oldPrice?` <span style="text-decoration:line-through;color:var(--mt);font-size:.7rem">$${c.oldPrice}</span>`:''}${c.imageUrl?' • <span style="color:var(--ok)">🖼️</span>':''}${c.videoUrl?' • <span style="color:var(--ac)">▶️</span>':''}</div></div><div class="iacts">${moveBtns('courses','_courses',c.id,'loadCourses')}<button class="btn-edit" title="نسخ رابط الصفحة" onclick="copyItemLink('courses','${c.id}')">🔗</button><button class="btn-edit" onclick="editItem('course','${c.id}')">✏️</button><button class="btn-del" onclick="delItem('courses','${c.id}',loadCourses)">🗑️</button></div></div>`).join('');
 }
 window.loadCourses=loadCourses;
 
@@ -751,11 +802,11 @@ window.loadCourses=loadCourses;
 window._books=[];
 async function loadBooks(){
   const snap=await getDocs(collection(db,'books')); window._books=[];
-  snap.forEach(d=>window._books.push({id:d.id,...d.data()}));
+  snap.forEach(d=>window._books.push({id:d.id,...d.data()}));window._books.sort(byOrder);
   document.getElementById('bc').textContent=window._books.length;
   const el=document.getElementById('bookList');
   if(!window._books.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد كتب</p>';return;}
-  el.innerHTML=window._books.map(b=>`<div class="irow"><div class="iemoji">${b.emoji||'📚'}</div><div class="iinfo"><div class="ititle">${b.title||''}</div><div class="imeta">${b.author||''} • $${b.price||0}${isFreeItem(b)?' • <span style="color:var(--ok)">مجاني</span>':''}${fileBadge(b)}</div></div><div class="iacts"><button class="btn-edit" title="نسخ رابط الصفحة" onclick="copyItemLink('books','${b.id}')">🔗</button><button class="btn-edit" onclick="editItem('book','${b.id}')">✏️</button><button class="btn-del" onclick="delItem('books','${b.id}',loadBooks)">🗑️</button></div></div>`).join('');
+  el.innerHTML=window._books.map(b=>`<div class="irow"><div class="iemoji">${b.emoji||'📚'}</div><div class="iinfo"><div class="ititle">${b.title||''}</div><div class="imeta">${b.author||''} • $${b.price||0}${isFreeItem(b)?' • <span style="color:var(--ok)">مجاني</span>':''}${fileBadge(b)}</div></div><div class="iacts">${moveBtns('books','_books',b.id,'loadBooks')}<button class="btn-edit" title="نسخ رابط الصفحة" onclick="copyItemLink('books','${b.id}')">🔗</button><button class="btn-edit" onclick="editItem('book','${b.id}')">✏️</button><button class="btn-del" onclick="delItem('books','${b.id}',loadBooks)">🗑️</button></div></div>`).join('');
 }
 window.loadBooks=loadBooks;
 
@@ -763,11 +814,11 @@ window.loadBooks=loadBooks;
 window._projects=[];
 async function loadProjects(){
   const snap=await getDocs(collection(db,'projects')); window._projects=[];
-  snap.forEach(d=>window._projects.push({id:d.id,...d.data()}));
+  snap.forEach(d=>window._projects.push({id:d.id,...d.data()}));window._projects.sort(byOrder);
   document.getElementById('prc').textContent=window._projects.length;
   const el=document.getElementById('projList');
   if(!window._projects.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد مشاريع — اضغط "إضافة مشروع"</p>';return;}
-  el.innerHTML=window._projects.map(p=>`<div class="irow"><div class="iemoji">${p.emoji||'🔧'}</div><div class="iinfo"><div class="ititle">${p.title||''}</div><div class="imeta">${p.category||''} • ${isFreeItem(p)?'<span style="color:var(--ok)">مجاني</span>':'$'+(p.price||0)}${p.oldPrice&&!isFreeItem(p)?` <span style="text-decoration:line-through;color:var(--mt);font-size:.7rem">$${p.oldPrice}</span>`:''}${fileBadge(p)}${p.videoUrl?' • <span style="color:var(--er)">▶️ فيديو</span>':''}</div></div><div class="iacts"><button class="btn-edit" title="نسخ رابط الصفحة" onclick="copyItemLink('projects','${p.id}')">🔗</button><button class="btn-edit" onclick="editItem('project','${p.id}')">✏️</button><button class="btn-del" onclick="delItem('projects','${p.id}',loadProjects)">🗑️</button></div></div>`).join('');
+  el.innerHTML=window._projects.map(p=>`<div class="irow"><div class="iemoji">${p.emoji||'🔧'}</div><div class="iinfo"><div class="ititle">${p.title||''}</div><div class="imeta">${p.category||''} • ${isFreeItem(p)?'<span style="color:var(--ok)">مجاني</span>':'$'+(p.price||0)}${p.oldPrice&&!isFreeItem(p)?` <span style="text-decoration:line-through;color:var(--mt);font-size:.7rem">$${p.oldPrice}</span>`:''}${fileBadge(p)}${p.videoUrl?' • <span style="color:var(--er)">▶️ فيديو</span>':''}</div></div><div class="iacts">${moveBtns('projects','_projects',p.id,'loadProjects')}<button class="btn-edit" title="نسخ رابط الصفحة" onclick="copyItemLink('projects','${p.id}')">🔗</button><button class="btn-edit" onclick="editItem('project','${p.id}')">✏️</button><button class="btn-del" onclick="delItem('projects','${p.id}',loadProjects)">🗑️</button></div></div>`).join('');
 }
 window.loadProjects=loadProjects;
 
@@ -786,10 +837,10 @@ window.loadTestimonials=loadTestimonials;
 window._sections=[];
 async function loadCustomSections(){
   const snap=await getDocs(collection(db,'custom_sections')); window._sections=[];
-  snap.forEach(d=>window._sections.push({id:d.id,...d.data()}));
+  snap.forEach(d=>window._sections.push({id:d.id,...d.data()}));window._sections.sort(byOrder);
   const el=document.getElementById('sectionsList');
   if(!window._sections.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد أقسام مخصصة — اضغط "إضافة قسم جديد"</p>';return;}
-  el.innerHTML=window._sections.map(s=>`<div class="irow"><div class="iemoji">${s.emoji||'➕'}</div><div class="iinfo"><div class="ititle">${s.name||''}</div><div class="imeta">${s.type==='articles'?'📝 مقالات':'🛒 منتجات'}${s.active===false?' • <span style="color:var(--er)">معطّل</span>':''}${s.tagline?' • '+s.tagline:''}</div></div><div class="iacts"><button class="btn-edit" onclick="openSectionItems('${s.id}','${s.name||''}')">📋 العناصر</button><button class="btn-edit" onclick="editItem('section','${s.id}')">✏️</button><button class="btn-del" onclick="delItem('custom_sections','${s.id}',loadCustomSections)">🗑️</button></div></div>`).join('');
+  el.innerHTML=window._sections.map(s=>`<div class="irow"><div class="iemoji">${s.emoji||'➕'}</div><div class="iinfo"><div class="ititle">${s.name||''}</div><div class="imeta">${s.type==='articles'?'📝 مقالات':'🛒 منتجات'}${s.active===false?' • <span style="color:var(--er)">معطّل</span>':''}${s.tagline?' • '+s.tagline:''}</div></div><div class="iacts">${moveBtns('custom_sections','_sections',s.id,'loadCustomSections')}<button class="btn-edit" onclick="openSectionItems('${s.id}','${s.name||''}')">📋 العناصر</button><button class="btn-edit" onclick="editItem('section','${s.id}')">✏️</button><button class="btn-del" onclick="delItem('custom_sections','${s.id}',loadCustomSections)">🗑️</button></div></div>`).join('');
 }
 window.loadCustomSections=loadCustomSections;
 
@@ -1000,6 +1051,7 @@ async function loadConfig(){
     if(!snap.exists())return;
     const cfg=snap.data();
     if(cfg.hero){const h=cfg.hero;['l1','l2','sub','badge'].forEach(k=>{const el=document.getElementById('h-'+k);if(el&&h[k])el.value=h[k];});['1','2','3','4'].forEach(i=>{const s=h['stat'+i];if(s){const n=document.getElementById('s'+i+'n'),l=document.getElementById('s'+i+'l');if(n)n.value=s.num||'';if(l)l.value=s.label||'';}});}
+    lyLoad(cfg.layout||{});
     if(cfg.social){['wa','email','domain','ig','tt','fb','yt'].forEach(k=>{const el=document.getElementById('s-'+k);if(el&&cfg.social[k])el.value=cfg.social[k];});}
     if(cfg.brand){['name','slogan','logoUrl'].forEach(k=>{const el=document.getElementById('br-'+(k==='logoUrl'?'logo':k));if(el&&cfg.brand[k])el.value=cfg.brand[k];});}
     if(cfg.design?.colors){const c=cfg.design.colors;['primary','dark','card','text','accent'].forEach(k=>{const el=document.getElementById('col-'+k);if(el&&c[k])el.value=c[k];});}
@@ -1033,6 +1085,30 @@ async function loadConfig(){
   }catch(e){console.error(e);}
 }
 
+// 🧭 ترتيب الصفحة والقائمة — نفس المفاتيح في index.html (BLOCK_EL)
+const LY_NAV=[{k:'courses',label:'الدورات',href:'/courses/',emoji:'🎓'},{k:'projects',label:'المشاريع',href:'/projects/',emoji:'🛠️'},{k:'products',label:'المنتجات الرقمية',href:'/products/',emoji:'📦'},{k:'books',label:'الكتب',href:'/books/',emoji:'📚'},{k:'tools',label:'الحاسبات',href:'/tools/',emoji:'🧮'},{k:'cad',label:'3ENG CAD',href:'/cad/',emoji:'🛠️'},{k:'team',label:'الفريق',href:'/team/',emoji:'👷'},{k:'contact',label:'تواصل',href:'#contact',emoji:'✉️'}];
+const LY_BLOCKS={quick:'📊 الأرقام والروابط السريعة',courses:'🎓 الدورات',products:'📦 المنتجات الرقمية',features:'🔒 شريط المميزات (دفع آمن...)',projects:'🛠️ المشاريع',books:'📚 الكتب',custom:'➕ الأقسام المخصصة (مقالات، ورش)',testimonials:'⭐ آراء الطلاب',about:'👷 من نحن',faq:'❓ الأسئلة الشائعة',contact:'✉️ تواصل معنا',cta:'📧 الاشتراك بالنشرة'};
+const LY_DEF_TAGS=['⚡ الهندسة الكهربائية','🔧 الأنظمة المدمجة','💡 ESP32 & Arduino','🤖 الذكاء الاصطناعي','📡 IoT'];
+const _ly=window._ly={nav:[],blocks:[]};
+const lyEsc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function lyLoad(L){
+  _ly.nav=(Array.isArray(L.nav)&&L.nav.length?L.nav:LY_NAV).map(n=>({show:true,...n}));
+  const saved=(L.blocks||[]).filter(b=>LY_BLOCKS[b.k]);
+  _ly.blocks=[...saved,...Object.keys(LY_BLOCKS).filter(k=>!saved.some(b=>b.k===k)).map(k=>({k,show:true}))];
+  document.getElementById('ly-quickLinks').checked=!!L.quickLinks;
+  document.getElementById('ly-heroTags').value=(L.heroTags?.length?L.heroTags:LY_DEF_TAGS).join('\n');
+  lyRender();
+}
+function lyArrows(list,i){return `<button class="btn-edit" onclick="lyMove('${list}',${i},-1)">⬆️</button><button class="btn-edit" onclick="lyMove('${list}',${i},1)">⬇️</button>`;}
+function lyRender(){
+  document.getElementById('lyNav').innerHTML=_ly.nav.map((n,i)=>`<div class="irow"><input type="checkbox" ${n.show!==false?'checked':''} onchange="_ly.nav[${i}].show=this.checked" style="accent-color:var(--p)" title="إظهار"><input class="ci" style="width:54px" value="${lyEsc(n.emoji)}" oninput="_ly.nav[${i}].emoji=this.value" title="إيموجي (بقائمة الموبايل)"><input class="ci" value="${lyEsc(n.label)}" oninput="_ly.nav[${i}].label=this.value" placeholder="النص"><input class="ci" dir="ltr" value="${lyEsc(n.href)}" oninput="_ly.nav[${i}].href=this.value" placeholder="/courses/"><div class="iacts">${lyArrows('nav',i)}<button class="btn-del" onclick="_ly.nav.splice(${i},1);lyRender()">🗑️</button></div></div>`).join('');
+  document.getElementById('lyBlocks').innerHTML=_ly.blocks.map((b,i)=>`<div class="irow"><input type="checkbox" ${b.show!==false?'checked':''} onchange="_ly.blocks[${i}].show=this.checked" style="accent-color:var(--p)" title="إظهار"><div class="iinfo"><div class="ititle">${i+1}. ${LY_BLOCKS[b.k]}</div></div><div class="iacts">${lyArrows('blocks',i)}</div></div>`).join('');
+}
+window.lyMove=(list,i,d)=>{const a=list==='nav'?_ly.nav:_ly.blocks;const j=i+d;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];lyRender();};
+window.lyAddNav=()=>{_ly.nav.push({label:'',href:'/',emoji:'',show:true});lyRender();};
+window.lyReset=()=>{if(confirm('ترجع للترتيب الافتراضي؟ (لازم تضغط حفظ بعدها)'))lyLoad({});};
+lyLoad({});
+
 // SAVE SECTIONS
 window.saveSec=async(sec)=>{
   let data={};
@@ -1040,6 +1116,7 @@ window.saveSec=async(sec)=>{
   const gb=id=>document.getElementById(id)?.checked||false;
   if(sec==='hero')data.hero={l1:g('h-l1'),l2:g('h-l2'),sub:g('h-sub'),badge:g('h-badge'),stat1:{num:g('s1n'),label:g('s1l')},stat2:{num:g('s2n'),label:g('s2l')},stat3:{num:g('s3n'),label:g('s3l')},stat4:{num:g('s4n'),label:g('s4l')}};
   else if(sec==='social')data.social={wa:g('s-wa'),email:g('s-email'),domain:g('s-domain'),ig:g('s-ig'),tt:g('s-tt'),fb:g('s-fb'),yt:g('s-yt')};
+  else if(sec==='layout')data.layout={nav:_ly.nav.map(n=>({k:n.k||'',label:n.label.trim(),href:n.href.trim(),emoji:n.emoji||'',show:n.show!==false})).filter(n=>n.label&&n.href),blocks:_ly.blocks.map(b=>({k:b.k,show:b.show!==false})),quickLinks:gb('ly-quickLinks'),heroTags:g('ly-heroTags').split('\n').map(t=>t.trim()).filter(Boolean)};
   else if(sec==='brand')data.brand={name:g('br-name'),slogan:g('br-slogan'),logoUrl:g('br-logo')};
   else if(sec==='design')data.design={colors:{primary:g('col-primary'),dark:g('col-dark'),card:g('col-card'),text:g('col-text'),accent:g('col-accent')}};
   else if(sec==='siteConfig'){data.siteTitle=g('site-title');data.siteDesc=g('site-desc');}
@@ -1069,7 +1146,7 @@ window.saveSec=async(sec)=>{
   }
   if(sec==='payment')data.payment.lahza.publicKey=deleteField();
   await setDoc(doc(db,'site_config','main'),data,{merge:true});
-  toast('✅ تم حفظ '+({hero:'Hero',social:'الروابط',brand:'الهوية',design:'الألوان',siteConfig:'الإعدادات',payment:'إعدادات الدفع',seo:'إعدادات SEO'}[sec]||sec));
+  toast('✅ تم حفظ '+({hero:'Hero',social:'الروابط',brand:'الهوية',layout:'الترتيب',design:'الألوان',siteConfig:'الإعدادات',payment:'إعدادات الدفع',seo:'إعدادات SEO'}[sec]||sec));
 };
 window.saveAllSections=async()=>{await Promise.all(['hero','social','brand','design','siteConfig','payment','seo'].map(s=>window.saveSec(s)));toast('✅ تم حفظ الكل!');};
 
@@ -1658,7 +1735,7 @@ window.toast=toast;
 </script>
 
 <script>
-const panelTitles={workshops:'🎟️ الورشات',articles:'📝 المقالات',dashboard:'🏠 الرئيسية',hero:'🎯 القسم الرئيسي',products:'📦 المنتجات',courses:'🎓 الدورات',books:'📚 الكتب',projects:'🔧 المشاريع',testimonials:'⭐ آراء الطلاب',sections:'➕ أقسام مخصصة',orders:'🧾 الطلبات',users:'👥 المستخدمون',messages:'💬 الرسائل',newsletter:'📧 النشرة',payment:'💳 إعدادات الدفع',design:'🎨 التصميم',seo:'🔍 SEO',brand:'💡 الهوية',social:'🔗 التواصل'};
+const panelTitles={workshops:'🎟️ الورشات',articles:'📝 المقالات',dashboard:'🏠 الرئيسية',hero:'🎯 القسم الرئيسي',layout:'🧭 ترتيب الصفحة والقائمة',products:'📦 المنتجات',courses:'🎓 الدورات',books:'📚 الكتب',projects:'🔧 المشاريع',testimonials:'⭐ آراء الطلاب',sections:'➕ أقسام مخصصة',orders:'🧾 الطلبات',users:'👥 المستخدمون',messages:'💬 الرسائل',newsletter:'📧 النشرة',payment:'💳 إعدادات الدفع',design:'🎨 التصميم',seo:'🔍 SEO',brand:'💡 الهوية',social:'🔗 التواصل'};
 function showP(id,el){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
