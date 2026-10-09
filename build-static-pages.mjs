@@ -131,6 +131,7 @@ function navLinks() {
 
 async function loadData() {
   const data = await loadRaw();
+  mergeTeam(data.team);
   for (const s of SECTIONS) if (Array.isArray(data[s.col])) data[s.col].sort(byOrder);
   const nav = data.config?.layout?.nav;
   if (Array.isArray(nav) && nav.length) {
@@ -152,6 +153,7 @@ async function loadRaw() {
   out.custom_sections = await fetchCollection("custom_sections");
   out.section_items = await fetchCollection("section_items");
   out.config = await fetchDoc("site_config/main");
+  out.team = await fetchDoc("site_config/team");
   return out;
 }
 
@@ -407,13 +409,15 @@ function ratingOf(list) {
 }
 
 // ---------------- الفريق (E-E-A-T) ----------------
-// photo: ضع صورة في /img/team/{slug}.jpg وبتظهر تلقائياً
-const TEAM = [
+// القيم الافتراضية — لوحة التحكم (👷 الفريق ← site_config/team) تعدّل عليها أو تضيف أعضاء (mergeTeam)
+// photo: صورة من اللوحة (photoUrl) أو ملف يدوي في /img/team/{slug}.jpg
+let TEAM = [
   {
     slug: "hosam-zaqout", name: "م. حسام زقوت", en: "Hosam Zaqout", aliases: ["حسام زقوت", "hosam zaqout", "hosam"],
-    role: "مهندس كهربائي • مؤسس ومدرّب", jobTitle: "Electrical Engineer, Founder & Trainer", founder: true,
+    role: "مهندس كهربائي • مؤسس ومطوّر منصة 3ENG.s • مدرّب", jobTitle: "Electrical Engineer, Founder & Developer of the 3ENG.s Platform, Trainer", founder: true,
+    skills: ["ESP32", "IoT", "PCB Design", "Embedded AI", "Control Systems"],
     bio: [
-      "مهندس كهربائي ومؤسس منصة 3ENG.s. حاصل على بكالوريوس الهندسة الكهربائية من الجامعة الإسلامية بغزة، وعمل مساعد تدريس وبحث ومحاضراً زائراً في إنترنت الأشياء والحساسات.",
+      "مهندس كهربائي، مؤسس منصة 3ENG.s الإلكترونية ومطوّرها. حاصل على بكالوريوس الهندسة الكهربائية من الجامعة الإسلامية بغزة، وعمل مساعد تدريس وبحث ومحاضراً زائراً في إنترنت الأشياء والحساسات.",
       "متخصص في الأنظمة المدمجة وتصميم الدوائر المطبوعة PCB والعتاد المدمج بالذكاء الاصطناعي، ويدرّب على ESP32 و Arduino و Python ومعالجة الصور.",
     ],
     alumniOf: "Islamic University of Gaza", alumniAr: "الجامعة الإسلامية بغزة",
@@ -426,9 +430,10 @@ const TEAM = [
   },
   {
     slug: "israa-altaweel", name: "م. إسراء الطويل", en: "Israa Al-Taweel", aliases: ["إسراء الطويل", "اسراء الطويل", "israa"],
-    role: "مهندسة أنظمة مدمجة • مدرّبة", jobTitle: "Embedded Systems Engineer & Trainer",
+    role: "مؤسِّسة فريق المهندسون الثلاثة • مهندسة أنظمة مدمجة ومدرّبة", jobTitle: "Founder of the 3ENG.s Team, Embedded Systems Engineer & Trainer", founder: true,
+    skills: ["IoT", "Arduino", "Python", "Electronics"],
     bio: [
-      "مهندسة متخصصة في إنترنت الأشياء والأنظمة المدمجة، درّبت أكثر من 300 طالب.",
+      "مؤسِّسة فريق المهندسون الثلاثة (3ENG.s)، ومهندسة متخصصة في إنترنت الأشياء والأنظمة المدمجة، درّبت أكثر من 300 طالب.",
       "لها مشاريع عملية في الطاقة الشمسية والأتمتة والأجهزة الذكية.",
     ],
     knows: ["IoT", "Embedded Systems", "Arduino", "Python", "Electronics"],
@@ -437,6 +442,7 @@ const TEAM = [
   {
     slug: "furat-altaweel", name: "م. فرات الطويل", en: "Furat Al-Taweel", aliases: ["فرات الطويل", "furat"],
     role: "مهندسة أنظمة ذكية • تطوير المنتجات والتدريب", jobTitle: "Smart Systems Engineer, Product Development & Trainer",
+    skills: ["Smart Systems", "Product Development", "تعليم الأطفال", "CV & Interviews", "المنح الدراسية"],
     bio: [
       "مهندسة أنظمة ذكية مهتمة بتطوير المنتجات، وبتعليم الأطفال علوم الإلكترونيات واللغات.",
       "لديها خبرة كبيرة في إعداد السيرة الذاتية، وتدريب الطلاب على اجتياز المقابلات والتقدّم للمنح الدراسية.",
@@ -445,6 +451,30 @@ const TEAM = [
     sameAs: [],
   },
 ];
+function mergeTeam(doc) {
+  const list = Array.isArray(doc?.members) ? doc.members : [];
+  if (!list.length) return;
+  const lines = (v) => (Array.isArray(v) ? v : String(v || "").split(/\n+/)).map(clean).filter(Boolean);
+  const csv = (v) => (Array.isArray(v) ? v : String(v || "").split(/[,،]/)).map(clean).filter(Boolean);
+  TEAM = list.filter((m) => m && clean(m.name)).map((m) => {
+    const sl = (t) => String(t || "").toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
+    const slug = sl(m.slug) || sl(m.en) || "member-" + (list.indexOf(m) + 1);
+    const base = TEAM.find((t) => t.slug === slug) || { aliases: [], knows: [], sameAs: [], bio: [], skills: [] };
+    const links = [clean(m.linkedin), ...lines(m.links)].filter((u) => /^https?:\/\//.test(u));
+    return {
+      ...base, slug,
+      name: clean(m.name), en: clean(m.en) || base.en || clean(m.name),
+      aliases: [...new Set([...(base.aliases || []), clean(m.name).replace(/^م\.?\s*/, "")])],
+      role: clean(m.role) || base.role || "", jobTitle: clean(m.jobTitle) || base.jobTitle || clean(m.role),
+      bio: lines(m.bio).length ? lines(m.bio) : base.bio,
+      skills: csv(m.skills).length ? csv(m.skills) : base.skills || [],
+      knows: csv(m.skills).length ? csv(m.skills) : base.knows,
+      sameAs: links.length ? links : base.sameAs,
+      linkedin: clean(m.linkedin), photoUrl: clean(m.photoUrl),
+      founder: !!m.founder,
+    };
+  });
+}
 const normName = (t) => clean(t).replace(/^م\.?\s*/, "").replace(/\s+/g, " ").toLowerCase();
 function teamOf(name) {
   const n = normName(name);
@@ -456,6 +486,7 @@ function instructorOf(item) {
   const raw = clean(item.instructor) || ((String(item.desc || "").match(/المدرب\s*[:：]\s*([^\n]+)/) || [])[1] || "");
   return clean(raw);
 }
+const absPhoto = (p) => (/^https?:/.test(p) ? p : SITE + p);
 function personLd(name) {
   const m = teamOf(name);
   return m
@@ -467,6 +498,20 @@ function personLink(name) {
   return m ? `<a href="/team/${m.slug}/" style="color:var(--acc)">${esc(clean(name))}</a>` : esc(clean(name));
 }
 async function teamPhoto(m) {
+  if (m.photoUrl && /^https?:\/\//.test(m.photoUrl)) {
+    const out = path.join(OUT_DIR, "img", "team", `${m.slug}.webp`), mark = out + ".src";
+    try { if ((await fs.readFile(mark, "utf8")) === m.photoUrl) return `/img/team/${m.slug}.webp`; } catch {}
+    if (sharp) {
+      try {
+        const r = await fetch(m.photoUrl); if (!r.ok) throw new Error("HTTP " + r.status);
+        const buf = await sharp(Buffer.from(await r.arrayBuffer())).rotate().resize(480, 480, { fit: "cover" }).webp({ quality: 80 }).toBuffer();
+        await fs.mkdir(path.dirname(out), { recursive: true });
+        await fs.writeFile(out, buf); await fs.writeFile(mark, m.photoUrl);
+        return `/img/team/${m.slug}.webp`;
+      } catch (e) { console.warn(`⚠️  صورة ${m.slug}: ${e.message}`); }
+    }
+    return m.photoUrl;
+  }
   for (const ext of ["webp", "jpg", "png"]) {
     try { await fs.access(path.join(OUT_DIR, "img", "team", `${m.slug}.${ext}`)); return `/img/team/${m.slug}.${ext}`; } catch {}
   }
@@ -940,7 +985,7 @@ function teamPage(m, photo, works) {
     ...(m.alumniOf ? { alumniOf: { "@type": "CollegeOrUniversity", name: m.alumniOf } } : {}),
     knowsAbout: m.knows,
     knowsLanguage: ["ar", "en"],
-    ...(photo ? { image: SITE + photo } : {}),
+    ...(photo ? { image: absPhoto(photo) } : {}),
     ...(m.sameAs.length ? { sameAs: m.sameAs } : {}),
   };
   const profile = { "@context": "https://schema.org", "@type": "ProfilePage", url: SITE + url, mainEntity: { "@id": person["@id"] } };
@@ -958,7 +1003,7 @@ ${works.length ? `<h2 class="sec-title">📚 محتوى ${esc(m.name)}</h2><div 
     title: `${m.name} — ${m.role.split("•")[0].trim()} | ${BRAND}`,
     description: cut(`${m.name}: ${m.bio.join(" ")}`, 155),
     canonical: SITE + url,
-    image: photo ? SITE + photo : "",
+    image: photo ? absPhoto(photo) : "",
     ogType: "profile",
     schemas: [person, profile, bc.schema],
     body,
@@ -1032,7 +1077,7 @@ function aboutPage(list, counts) {
   const bc = crumbs([{ name: "الرئيسية", url: "/" }, { name: "من نحن", url }]);
   const about = { "@context": "https://schema.org", "@type": "AboutPage", url: SITE + url, name: `من نحن — ${BRAND}`, mainEntity: { "@id": ORG_ID } };
   const org = { "@context": "https://schema.org", ...ORG, email: "info@3engs.com", telephone: "+" + WHATSAPP, areaServed: "Arab World",
-    founder: { "@id": `${SITE}/team/${TEAM.find((m) => m.founder)?.slug}/#person` },
+    founder: TEAM.filter((m) => m.founder).map((m) => ({ "@id": `${SITE}/team/${m.slug}/#person` })),
     employee: TEAM.map((m) => ({ "@id": `${SITE}/team/${m.slug}/#person` })) };
   const stat = (n, l) => (n ? `<div class="box" style="text-align:center;margin:0"><b style="font-size:1.6rem;color:var(--acc)">${n}</b><div style="color:var(--mut);font-size:.85rem">${l}</div></div>` : "");
   const body = `${bc.html}
@@ -1140,6 +1185,16 @@ function ssrTestimonials(list) {
     return `<div class="tcard"><div class="tstars">${"★".repeat(r)}${"☆".repeat(5 - r)}</div><div class="ttext">${esc(clean(t.text))}</div><div class="tauthor"><div class="tav">${esc(clean(t.name)[0])}</div><div><div class="taname">${esc(clean(t.name))}</div><div class="tarole">${esc(clean(t.role))}</div></div></div></div>`;
   }).join("");
 }
+// قسم "من نحن" بالرئيسية — نفس الشكل اللي بيرسمه index.html (renderTeam) من site_config/team
+async function ssrTeam() {
+  const out = [];
+  for (const m of TEAM) {
+    const photo = await teamPhoto(m);
+    const av = photo ? `<img src="${esc(photo)}" alt="${esc(m.name)}" width="84" height="84" loading="lazy">` : esc(m.name.replace(/^م\.\s*/, "")[0] || "");
+    out.push(`<div class="x-member"><div class="x-av">${av}</div><h3><a href="/team/${m.slug}/" style="color:inherit;text-decoration:none">${esc(m.name)}</a></h3><div class="x-role">${esc(m.role)}</div><p>${esc(m.bio.join(" "))}</p>${(m.skills || []).length ? `<div class="x-skills">${m.skills.map((k) => `<span>${esc(k)}</span>`).join("")}</div>` : ""}${m.sameAs.length ? `<div class="x-links2">${m.sameAs.map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener me">${/linkedin\.com/i.test(u) ? "in LinkedIn" : esc(u.replace(/^https?:\/\/(www\.)?/, "").split("/")[0])}</a>`).join("")}</div>` : ""}</div>`);
+  }
+  return out.join("");
+}
 async function updateHome(data) {
   const full = path.join(OUT_DIR, "index.html");
   let html;
@@ -1149,6 +1204,8 @@ async function updateHome(data) {
     html = ssrReplace(html, "count-" + sec.col, String((data[sec.col] || []).length));
   }
   html = ssrReplace(html, "testimonials", ssrTestimonials(data.testimonials));
+  html = ssrReplace(html, "team", await ssrTeam());
+  if (clean(data.team?.intro)) html = ssrReplace(html, "about-intro", esc(clean(data.team.intro)));
   html = ssrReplace(html, "custom", data.groups.filter((g) => g.sec.custom && g.items.length).map(({ sec, items }) =>
     `<section class="csec"><div class="shdr"><div><div class="stag">${esc(sec.emoji)} ${esc(sec.tagline || "")}</div><h2 class="stitle">${esc(sec.label)}</h2></div></div>${ssrItems(sec, items.slice(0, 4))}<div class="more-wrap"><a class="more-btn" href="/${sec.dir}/">اكتشف المزيد ←</a></div></section>`).join(""));
   const hero = data.config?.hero || {};
@@ -1211,9 +1268,7 @@ function llms(data) {
 - سياسة الخصوصية والإرجاع: ${SITE}/privacy.html
 
 ## الفريق (${SITE}/team/)
-- م. حسام زقوت (${SITE}/team/hosam-zaqout/) — مهندس كهربائي، مؤسس ومدرّب. بكالوريوس هندسة كهربائية من الجامعة الإسلامية بغزة، مساعد تدريس وبحث ومحاضر زائر في إنترنت الأشياء والحساسات. متخصص في الأنظمة المدمجة وتصميم PCB والعتاد المدمج بالذكاء الاصطناعي.
-- م. إسراء الطويل (${SITE}/team/israa-altaweel/) — مهندسة أنظمة مدمجة ومدرّبة، متخصصة في إنترنت الأشياء والأنظمة المدمجة، درّبت أكثر من 300 طالب.
-- م. فرات الطويل (${SITE}/team/furat-altaweel/) — مهندسة أنظمة ذكية مهتمة بتطوير المنتجات وبتعليم الأطفال علوم الإلكترونيات واللغات، ولديها خبرة كبيرة في إعداد السيرة الذاتية وتدريب الطلاب على اجتياز المقابلات والتقدّم للمنح الدراسية.
+${TEAM.map((m) => `- ${m.name} (${SITE}/team/${m.slug}/) — ${m.role.replace(/\s*•\s*/g, "، ")}. ${m.bio.join(" ")}`).join("\n")}
 
 ## أسئلة شائعة
 - هل الدورات مناسبة للمبتدئين؟ نعم، معظمها يبدأ من الأساسيات، ومستوى كل دورة مكتوب في صفحتها.

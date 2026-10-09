@@ -152,6 +152,7 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
   <div class="ni active" onclick="showP('dashboard',this)"><span class="ic">🏠</span> الرئيسية</div>
   <div class="ns">إدارة المحتوى</div>
   <div class="ni" onclick="showP('hero',this)"><span class="ic">🎯</span> القسم الرئيسي</div>
+  <div class="ni" onclick="showP('team',this)"><span class="ic">👷</span> الفريق (من نحن)</div>
   <div class="ni" onclick="showP('layout',this)"><span class="ic">🧭</span> ترتيب الصفحة والقائمة</div>
   <div class="ni" onclick="showP('products',this)"><span class="ic">📦</span> المنتجات <span class="nb" id="pc">0</span></div>
   <div class="ni" onclick="showP('courses',this)"><span class="ic">🎓</span> الدورات <span class="nb" id="cc">0</span></div>
@@ -224,6 +225,19 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
         </div>
         <button class="btn-sm" onclick="saveSec('hero')">💾 حفظ Hero</button>
       </div>
+    </div>
+
+    <!-- TEAM -->
+    <div class="panel" id="p-team">
+      <div class="pc"><h3>👷 نص "من نحن"</h3>
+        <div class="cg"><label>الفقرة اللي تحت عنوان "من نحن" بالرئيسية (فصحى)</label><textarea class="cta" id="tm-intro" rows="4"></textarea></div>
+      </div>
+      <div class="pc"><h3>👥 أعضاء الفريق</h3>
+        <p style="font-size:.78rem;color:var(--mt);margin-bottom:10px">التعديلات بتظهر بالرئيسية فوراً، وبصفحات الفريق (/team/) خلال ساعة. الصورة بتنقص مربعة تلقائياً. كل النصوص هون بيشوفها الزوار، فخليها بالفصحى.</p>
+        <div id="tmList"></div>
+        <button class="btn-add" style="margin-top:8px" onclick="tmAdd()">➕ عضو جديد</button>
+      </div>
+      <button class="btn-sm" onclick="saveTeam()">💾 حفظ الفريق</button>
     </div>
 
     <!-- LAYOUT -->
@@ -724,7 +738,7 @@ window.deleteArticle=async function(id){
 async function loadAll(){
   loadDashboard(); loadProducts(); loadCourses(); loadBooks();
   loadProjects(); loadTestimonials(); loadUsers(); loadMessages();
-  loadNewsletter(); loadConfig(); loadEmailTpl(); loadToolsPro().catch(console.error); loadWorkshops(); loadCustomSections().then(()=>loadArticles());
+  loadNewsletter(); loadConfig(); loadTeamCfg(); loadEmailTpl(); loadToolsPro().catch(console.error); loadWorkshops(); loadCustomSections().then(()=>loadArticles());
 }
 
 // DASHBOARD
@@ -1108,6 +1122,66 @@ window.lyMove=(list,i,d)=>{const a=list==='nav'?_ly.nav:_ly.blocks;const j=i+d;i
 window.lyAddNav=()=>{_ly.nav.push({label:'',href:'/',emoji:'',show:true});lyRender();};
 window.lyReset=()=>{if(confirm('ترجع للترتيب الافتراضي؟ (لازم تضغط حفظ بعدها)'))lyLoad({});};
 lyLoad({});
+
+// 👷 الفريق — site_config/team {intro, members[]}. سكربت البناء (mergeTeam) والرئيسية (loadTeam) بيقروا منه
+const TM_DEF={intro:'بدأت 3ENG.s كمبادرة تعليمية هدفها نقل الخبرة العملية في الهندسة الكهربائية والأنظمة المدمجة للطلاب والمهتمين في العالم العربي. نقدّم دورات تدريبية، مشاريع جاهزة، وكتباً هندسية مبسطة في مجالات ESP32 و Arduino و PIC وإنترنت الأشياء والذكاء الاصطناعي، وكل محتوانا مبني على تجربة حقيقية في التدريس الجامعي والمشاريع العملية.',members:[
+  {slug:'hosam-zaqout',name:'م. حسام زقوت',en:'Hosam Zaqout',role:'مهندس كهربائي • مؤسس ومطوّر منصة 3ENG.s • مدرّب',founder:true,bio:'مهندس كهربائي، مؤسس منصة 3ENG.s الإلكترونية ومطوّرها. حاصل على بكالوريوس الهندسة الكهربائية من الجامعة الإسلامية بغزة، وعمل مساعد تدريس وبحث ومحاضراً زائراً في إنترنت الأشياء والحساسات.\nمتخصص في الأنظمة المدمجة وتصميم الدوائر المطبوعة PCB والعتاد المدمج بالذكاء الاصطناعي، ويدرّب على ESP32 و Arduino و Python ومعالجة الصور.',skills:'ESP32, IoT, PCB Design, Embedded AI, Control Systems',linkedin:'https://www.linkedin.com/in/hosam-r-k-zaqout-142533202/',links:'https://www.researchgate.net/profile/Hosam-Zaqout/\nhttps://www.youtube.com/@hosam.zaqout',photoUrl:''},
+  {slug:'israa-altaweel',name:'م. إسراء الطويل',en:'Israa Al-Taweel',role:'مؤسِّسة فريق المهندسون الثلاثة • مهندسة أنظمة مدمجة ومدرّبة',founder:true,bio:'مؤسِّسة فريق المهندسون الثلاثة (3ENG.s)، ومهندسة متخصصة في إنترنت الأشياء والأنظمة المدمجة، درّبت أكثر من 300 طالب.\nلها مشاريع عملية في الطاقة الشمسية والأتمتة والأجهزة الذكية.',skills:'IoT, Arduino, Python, Electronics',linkedin:'',links:'',photoUrl:''},
+  {slug:'furat-altaweel',name:'م. فرات الطويل',en:'Furat Al-Taweel',role:'مهندسة أنظمة ذكية • تطوير المنتجات والتدريب',founder:false,bio:'مهندسة أنظمة ذكية مهتمة بتطوير المنتجات، وبتعليم الأطفال علوم الإلكترونيات واللغات.\nلديها خبرة كبيرة في إعداد السيرة الذاتية، وتدريب الطلاب على اجتياز المقابلات والتقدّم للمنح الدراسية.',skills:'Smart Systems, Product Development, تعليم الأطفال, CV & Interviews, المنح الدراسية',linkedin:'',links:'',photoUrl:''}
+]};
+const _tm=window._tm={members:[]};
+async function loadTeamCfg(){
+  let T={};
+  try{const s=await getDoc(doc(db,'site_config','team'));if(s.exists())T=s.data();}catch(e){console.error(e);}
+  document.getElementById('tm-intro').value=T.intro||TM_DEF.intro;
+  _tm.members=JSON.parse(JSON.stringify(T.members?.length?T.members:TM_DEF.members));
+  tmRender();
+}
+window.loadTeamCfg=loadTeamCfg;
+const tmEsc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function tmRender(){
+  document.getElementById('tmList').innerHTML=_tm.members.map((m,i)=>{
+    const f=(k,label,ph,ltr)=>`<div class="cg"><label>${label}</label><input class="ci" ${ltr?'dir="ltr"':''} value="${tmEsc(m[k])}" placeholder="${ph}" oninput="_tm.members[${i}].${k}=this.value"></div>`;
+    const ta=(k,label,ph,ltr,rows)=>`<div class="cg"><label>${label}</label><textarea class="cta" rows="${rows}" ${ltr?'dir="ltr"':''} placeholder="${ph}" oninput="_tm.members[${i}].${k}=this.value">${tmEsc(m[k])}</textarea></div>`;
+    const photo=/^https?:\/\//.test(m.photoUrl||'')?`<img src="${tmEsc(m.photoUrl)}" style="width:72px;height:72px;border-radius:50%;object-fit:cover">`:`<div style="width:72px;height:72px;border-radius:50%;background:var(--b2);display:grid;place-items:center;font-size:1.6rem">👤</div>`;
+    return `<div class="pay-card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">${photo}
+        <div style="flex:1"><b>${i+1}. ${tmEsc(m.name)||'عضو جديد'}</b></div>
+        <div class="iacts"><button class="btn-edit" onclick="tmMove(${i},-1)">⬆️</button><button class="btn-edit" onclick="tmMove(${i},1)">⬇️</button><button class="btn-del" onclick="if(confirm('حذف العضو؟')){_tm.members.splice(${i},1);tmRender()}">🗑️</button></div>
+      </div>
+      <div class="cg"><label>🖼️ الصورة</label>
+        <div class="upzone"><input type="file" accept="image/*" onchange="tmPhoto(this,${i})"><div class="uz-icon">📷</div><p>اضغط لرفع صورة شخصية</p><div class="uz-hint">مربعة أفضل — بتنضغط تلقائياً</div></div>
+        <div class="up-prog" id="tmProg${i}"><div class="up-bar-wrap"><div class="up-bar" id="tmBar${i}"></div></div><div class="up-info"><div class="mini-spin"></div><span>جاري الرفع...</span></div></div>
+        <input class="ci" id="tmPhoto${i}" dir="ltr" style="margin-top:8px" placeholder="أو رابط الصورة" value="${tmEsc(m.photoUrl)}" oninput="_tm.members[${i}].photoUrl=this.value">
+        ${m.photoUrl?`<button class="btn-del" style="margin-top:6px" onclick="_tm.members[${i}].photoUrl='';tmRender()">إزالة الصورة</button>`:''}
+      </div>
+      <div class="g2">${f('name','الاسم *','م. الاسم')}${f('en','الاسم بالإنجليزي','Name Surname',1)}</div>
+      ${f('role','المسمى (يظهر تحت الاسم)','مهندس كهربائي • مدرّب')}
+      ${ta('bio','نبذة (كل سطر فقرة)','',0,4)}
+      ${f('skills','المهارات (مفصولة بفاصلة)','IoT, Arduino, Python',1)}
+      ${f('linkedin','🔗 رابط LinkedIn','https://www.linkedin.com/in/...',1)}
+      ${ta('links','روابط أخرى (كل رابط بسطر)','https://...',1,2)}
+      <div class="g2">${f('slug','رابط الصفحة /team/...','name-surname',1)}
+        <label style="display:flex;align-items:center;gap:8px;padding-top:22px;font-size:.84rem;cursor:pointer"><input type="checkbox" ${m.founder?'checked':''} onchange="_tm.members[${i}].founder=this.checked" style="accent-color:var(--p)"> مؤسِّس (للبيانات المنظمة بجوجل)</label></div>
+    </div>`;}).join('');
+}
+window.tmMove=(i,d)=>{const a=_tm.members,j=i+d;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];tmRender();};
+window.tmAdd=()=>{_tm.members.push({name:'',en:'',role:'',bio:'',skills:'',linkedin:'',links:'',slug:'',photoUrl:'',founder:false});tmRender();};
+window.tmPhoto=(input,i)=>{
+  // handleUpload بيعبّي الخانة وبيطلق input لما يخلص الرفع ← نحدّث الصورة
+  document.getElementById('tmPhoto'+i).addEventListener('input',()=>setTimeout(tmRender,0),{once:true});
+  handleUpload(input,'team','tmPhoto'+i,'tmProg'+i,'tmBar'+i);
+};
+window.saveTeam=async()=>{
+  const sl=t=>String(t||'').toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/^-+|-+$/g,'');
+  const members=_tm.members.filter(m=>(m.name||'').trim()).map(m=>({...m,slug:sl(m.slug)||sl(m.en),name:m.name.trim()}));
+  if(members.some(m=>!m.slug)){toast('⚠️ كل عضو لازم إله رابط صفحة أو اسم بالإنجليزي','err');return;}
+  const bad=members.find(m=>m.linkedin&&!/^https:\/\/([a-z]+\.)?linkedin\.com\//i.test(m.linkedin.trim()));
+  if(bad){toast('⚠️ رابط LinkedIn غير صحيح: '+bad.name,'err');return;}
+  try{await setDoc(doc(db,'site_config','team'),{intro:document.getElementById('tm-intro').value.trim(),members,updatedAt:serverTimestamp()});
+    toast('✅ تم حفظ الفريق — الرئيسية فوراً، وصفحات الفريق خلال ساعة');}
+  catch(e){toast('⚠️ '+e.message,'err');}
+};
 
 // SAVE SECTIONS
 window.saveSec=async(sec)=>{
@@ -1735,7 +1809,7 @@ window.toast=toast;
 </script>
 
 <script>
-const panelTitles={workshops:'🎟️ الورشات',articles:'📝 المقالات',dashboard:'🏠 الرئيسية',hero:'🎯 القسم الرئيسي',layout:'🧭 ترتيب الصفحة والقائمة',products:'📦 المنتجات',courses:'🎓 الدورات',books:'📚 الكتب',projects:'🔧 المشاريع',testimonials:'⭐ آراء الطلاب',sections:'➕ أقسام مخصصة',orders:'🧾 الطلبات',users:'👥 المستخدمون',messages:'💬 الرسائل',newsletter:'📧 النشرة',payment:'💳 إعدادات الدفع',design:'🎨 التصميم',seo:'🔍 SEO',brand:'💡 الهوية',social:'🔗 التواصل'};
+const panelTitles={workshops:'🎟️ الورشات',articles:'📝 المقالات',dashboard:'🏠 الرئيسية',hero:'🎯 القسم الرئيسي',layout:'🧭 ترتيب الصفحة والقائمة',team:'👷 الفريق',products:'📦 المنتجات',courses:'🎓 الدورات',books:'📚 الكتب',projects:'🔧 المشاريع',testimonials:'⭐ آراء الطلاب',sections:'➕ أقسام مخصصة',orders:'🧾 الطلبات',users:'👥 المستخدمون',messages:'💬 الرسائل',newsletter:'📧 النشرة',payment:'💳 إعدادات الدفع',design:'🎨 التصميم',seo:'🔍 SEO',brand:'💡 الهوية',social:'🔗 التواصل'};
 function showP(id,el){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
