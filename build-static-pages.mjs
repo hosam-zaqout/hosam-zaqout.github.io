@@ -228,7 +228,7 @@ header.top .wrap{display:flex;align-items:center;justify-content:space-between;h
 .crumbs{font-size:.82rem;color:var(--mut);margin:18px 0 8px}
 .crumbs a:hover{color:var(--acc)}
 .hero{display:grid;grid-template-columns:1.3fr 1fr;gap:26px;align-items:start;margin:10px 0 26px}
-.hero img{width:100%;height:auto;border-radius:18px;border:1px solid var(--line);aspect-ratio:16/9;object-fit:cover;background:var(--card)}
+.hero img{width:100%;height:auto;border-radius:18px;border:1px solid var(--line);aspect-ratio:16/9;object-fit:contain;background:var(--card)}
 .emoji-cover{aspect-ratio:16/9;border-radius:18px;background:linear-gradient(135deg,#1e2a55,#131a2e);display:grid;place-items:center;font-size:5rem;border:1px solid var(--line)}
 h1{font-size:1.75rem;line-height:1.5;margin-bottom:10px}
 .lead{color:var(--mut);margin-bottom:16px}
@@ -256,7 +256,7 @@ h1{font-size:1.75rem;line-height:1.5;margin-bottom:10px}
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;transition:.2s}
 .card:hover{border-color:var(--acc);transform:translateY(-2px)}
-.card img,.card .ph{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:#1a2340}
+.card img,.card .ph{width:100%;aspect-ratio:16/9;object-fit:contain;display:block;background:#1a2340}
 .card .ph{display:grid;place-items:center;font-size:2.6rem}
 .card .b{padding:12px 14px}
 .card h3{font-size:.98rem;line-height:1.6;margin-bottom:4px}
@@ -822,6 +822,8 @@ function itemPage(sec, item, siblings, all) {
   const score = (o) => itemTopics(o).filter((t) => topics.includes(t)).length;
   const related = all
     .filter((o) => !(o._sec === sec && o.id === item.id))
+    // صفحة عنصر مدفوع (اللي بنبعت رابطها للمشتري) ← ما نشتّته بعناصر مجانية
+    .filter((o) => free || !isFree(o))
     .map((o) => [o, score(o) * 10 + (o._sec === sec ? 1 : 0)])
     .filter(([, sc]) => sc > 0)
     .sort((a, b) => b[1] - a[1])
@@ -839,7 +841,7 @@ ${bc.html}
     <div class="price">${!free ? `<b>$${price}</b>` : `<b>مجاني</b>`}${!free && oldPrice && oldPrice > price ? `<s>$${oldPrice}</s><span class="off">وفّر ${off}%</span>` : ""}</div>
     <div class="cta">
       ${!free
-        ? `<a class="btn main" href="/?open=${sec.col}:${item.id}">🛒 اطلب الآن</a>`
+        ? `<a class="btn main" href="/?buy=${sec.col}:${item.id}" rel="nofollow">🛒 اشترِ الآن</a>`
         : item.fileUrl
           ? `<a class="btn main" href="${esc(item.fileUrl)}" target="_blank" rel="nofollow noopener">📥 تحميل مجاني</a>`
           : `<a class="btn main" href="/?open=${sec.col}:${item.id}">📥 احصل عليه مجاناً</a>`}

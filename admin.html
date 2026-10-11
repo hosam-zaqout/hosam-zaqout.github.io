@@ -288,7 +288,8 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
     <div class="panel" id="p-projects">
       <div class="pc"><h3>🔧 إدارة المشاريع الهندسية</h3>
         <p style="font-size:.8rem;color:var(--mt);margin-bottom:12px">المشاريع تعرض على الموقع مع صورة، تفاصيل، وعند الشراء يتم تحميل ملف ZIP. يمكن إضافة فيديو يوتيوب اختياري.</p>
-        <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn-add" onclick="openModal('project')">➕ إضافة مشروع</button></div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px"><label class="btn-edit" style="cursor:pointer;padding:9px 14px" title="اختر مجلد فيه manifest.json">📥 استيراد مشاريع من مجلد<input type="file" webkitdirectory multiple style="display:none" onchange="importProjects(this)"></label><button class="btn-add" onclick="openModal('project')">➕ إضافة مشروع</button></div>
+        <pre id="impLog" style="display:none;max-height:220px;overflow:auto;background:rgba(0,0,0,.3);border-radius:8px;padding:10px;font-size:.78rem;white-space:pre-wrap;margin-bottom:12px"></pre>
         <div id="projList"><div style="color:var(--mt);text-align:center;padding:30px">جاري التحميل...</div></div>
       </div>
     </div>
@@ -1181,6 +1182,53 @@ window.saveTeam=async()=>{
   try{await setDoc(doc(db,'site_config','team'),{intro:document.getElementById('tm-intro').value.trim(),members,updatedAt:serverTimestamp()});
     toast('✅ تم حفظ الفريق — الرئيسية فوراً، وصفحات الفريق خلال ساعة');}
   catch(e){toast('⚠️ '+e.message,'err');}
+};
+
+// 📥 استيراد مشاريع من مجلد (manifest.json + الصور + ملفات ZIP) — بيرفع كل شي وبينشئ المشاريع
+// المشروع اللي رابطه (slug) موجود مسبقاً بيتخطّاه، فإعادة الاستيراد آمنة
+async function upFile(file,folder){
+  if(/^image\//.test(file.type)){try{const c=await compressImage(file);if(c&&c.size<file.size)file=c;}catch(e){}}
+  const r=ref(storage,`${folder}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g,'_')}`);
+  await uploadBytesResumable(r,file);
+  return getDownloadURL(r);
+}
+window.importProjects=async(input)=>{
+  const files=[...input.files];input.value='';
+  const byName=Object.fromEntries(files.map(f=>[f.name,f]));
+  const mf=byName['manifest.json'];
+  const log=document.getElementById('impLog');
+  if(!mf){toast('⚠️ المجلد لازم يكون فيه manifest.json','err');return;}
+  let M;try{M=JSON.parse(await mf.text());}catch(e){toast('⚠️ manifest.json غير صالح','err');return;}
+  const col=M.col||'projects';
+  const existing=new Set((window._projects||[]).map(p=>p.slug).filter(Boolean));
+  const todo=(M.projects||[]).filter(p=>!existing.has(p.slug));
+  if(!todo.length){toast('ℹ️ كل المشاريع موجودة مسبقاً');return;}
+  if(!confirm(`رح ينضاف ${todo.length} مشروع (المكرر بيتخطّى). متابعة؟`))return;
+  const base=(window._projects||[]).reduce((m,p)=>Math.max(m,p.order||0),0);
+  log.style.display='block';log.textContent='';
+  const say=t=>{log.textContent+=t+'\n';log.scrollTop=log.scrollHeight;};
+  let ok=0;
+  for(const p of todo){
+    try{
+      say(`⏳ ${p.num}. ${p.title}`);
+      const need=[p.image,p.file,...(p.circuits||[])].filter(n=>!byName[n]);
+      if(need.length)throw new Error('ملفات ناقصة: '+need.join('، '));
+      const imageUrl=await upFile(byName[p.image],'projects');
+      let desc=p.desc;
+      for(const c of p.circuits||[])desc=desc.split(`{{img:${c}}}`).join(await upFile(byName[c],'projects'));
+      const fileUrl=await upFile(byName[p.file],'projects-files');
+      const d=doc(collection(db,col));
+      await setDoc(doc(db,'private_files',col+'__'+d.id),{fileUrl,col,title:p.title,updatedAt:serverTimestamp()});
+      await setDoc(d,{title:p.title,slug:p.slug,shortDesc:p.shortDesc,desc,category:p.category||'',emoji:p.emoji||'🔧',
+        isFree:false,price:Number(p.price)||0,oldPrice:0,level:p.level||'',duration:p.duration||'',videoUrl:'',
+        components:p.components||[],learns:p.learns||[],requirements:p.requirements||[],
+        tags:p.tags||[],audience:p.audience||[],faqs:p.faqs||[],imageUrl,
+        order:base+(Number(p.num)||ok+1),createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
+      ok++;say(`✅ تم`);
+    }catch(e){say('❌ '+e.message);}
+  }
+  say(`\n🎉 انضاف ${ok} من ${todo.length}. الصفحات بتنشر خلال ساعة (أو GitHub ← Actions ← Run workflow).`);
+  toast(`✅ انضاف ${ok} مشروع`);loadProjects();
 };
 
 // SAVE SECTIONS
