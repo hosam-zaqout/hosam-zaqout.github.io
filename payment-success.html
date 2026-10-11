@@ -181,9 +181,10 @@ async function callFn(name, body) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`,
+      ...(token ? { "Authorization": `Bearer ${token}` } : {}),
     },
-    body: JSON.stringify(body),
+    // k: مفتاح الطلب للشراء بدون حساب (من رابط الرجوع أو الإيصال)
+    body: JSON.stringify({ ...body, ...(accessKey ? { key: accessKey } : {}) }),
   });
   if (!res.ok) {
     const err = await res.json().catch(()=>({}));
@@ -200,6 +201,7 @@ const urlParams     = new URLSearchParams(window.location.search);
 const invoiceId     = urlParams.get("invoice_id")     || "";
 // ملاحظة: ما منعتمد على أي حالة بالرابط — السيرفر بيسأل Togo مباشرة
 const cancelled     = urlParams.get("cancel") === "1";
+const accessKey     = urlParams.get("k") || "";
 
 // ── عرض رقم الطلب في كل الـ states ──────────────────────
 if (invoiceId) {
@@ -291,8 +293,8 @@ function launchConfetti() {
 // ── المنطق الرئيسي ────────────────────────────────────────
 onAuthStateChanged(auth, async (user) => {
 
-  // 1. تحقق من تسجيل الدخول
-  if (!user) {
+  // 1. تحقق من تسجيل الدخول — أو مفتاح الطلب (شراء بدون حساب)
+  if (!user && !accessKey) {
     showState("stLogin");
     return;
   }
@@ -325,7 +327,7 @@ onAuthStateChanged(auth, async (user) => {
     } else if (data.status === "pending" && !cancelled) {
       // 🔄 لسا ما وصل تأكيد — الفحص الدوري بيأكده تلقائياً
       showState("stPending");
-      document.getElementById("pendMsg").innerHTML = "لم يصلنا تأكيد الدفع من البوابة بعد.<br>إذا أتممت الدفع، سيتأكد طلبك تلقائياً خلال 30 دقيقة ويظهر في <b>📦 مشترياتي</b>.";
+      document.getElementById("pendMsg").innerHTML = "لم يصلنا تأكيد الدفع من البوابة بعد.<br>إذا أتممت الدفع، سيتأكد طلبك تلقائياً خلال 30 دقيقة ويصلك بريد فيه روابط التحميل، ويمكنك أيضاً إعادة فتح هذه الصفحة من نفس الرابط.";
 
     } else if (data.status === "awaiting_approval") {
       // ⏳ الدفع رجع ناجح — بانتظار موافقة الأدمن
@@ -353,7 +355,7 @@ onAuthStateChanged(auth, async (user) => {
       showState("stError");
       document.getElementById("errTitle").textContent = "غير مصرح";
       document.getElementById("errMsg").textContent =
-        "هذا الطلب لا يخص حسابك. تأكد من تسجيل الدخول بالحساب الصحيح.";
+        "لا يمكن عرض هذا الطلب. افتح الرابط المرسل إلى بريدك، أو تواصل معنا مع رقم الطلب.";
 
     } else {
       // خطأ في الاتصال

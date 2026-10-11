@@ -1124,9 +1124,10 @@ function buildPaymentButtons(){
 // ==============================
 window.payOnline = async function(provider) {
   window._payProvider = 'togo';
-  if (!_currentUser) {
-    toast('⚠️ سجّل الدخول أولاً للدفع','err');
-    setTimeout(()=>{ window.location.href='auth.html'; }, 1500);
+  // الشراء ما بيحتاج حساب — إلا الأدوات المتقدمة (صلاحية على الحساب)
+  if (!_currentUser && cart.some(i=>i.col==='products'&&i.id==='tools-pro')) {
+    toast('🔐 الأدوات المتقدمة تُفعَّل على حسابك — سجّل الدخول أولاً','warn');
+    setTimeout(()=>{ window.location.href='auth.html?redirect='+encodeURIComponent('https://www.3engs.com/?buy=products:tools-pro'); }, 1500);
     return;
   }
   if (!cart.length) { toast('⚠️ السلة فارغة','err'); return; }
@@ -1172,6 +1173,16 @@ function showPhoneModal(total) {
           </div>
           <p style="font-size:.72rem;color:var(--mt);margin-top:6px;">مثال: 592753159 (بدون 0 في البداية، وبدون + أو 00)</p>
         </div>
+        <div id="guestFields">
+          <div style="margin-bottom:8px;">
+            <label style="display:block;font-size:.76rem;font-weight:700;color:var(--mt);margin-bottom:6px;">الاسم</label>
+            <input id="payName" type="text" maxlength="80" autocomplete="name" placeholder="الاسم الكامل" style="width:100%;padding:11px 13px;background:rgba(15,23,42,.7);border:1px solid var(--b2);border-radius:8px;color:var(--tx);font-family:'Cairo',sans-serif;font-size:.86rem;outline:none;">
+          </div>
+          <div style="margin-bottom:8px;">
+            <label style="display:block;font-size:.76rem;font-weight:700;color:var(--mt);margin-bottom:6px;">البريد الإلكتروني (تصلك عليه روابط التحميل)</label>
+            <input id="payEmail" type="email" maxlength="120" autocomplete="email" dir="ltr" placeholder="name@example.com" style="width:100%;padding:11px 13px;background:rgba(15,23,42,.7);border:1px solid var(--b2);border-radius:8px;color:var(--tx);font-family:'Cairo',sans-serif;font-size:.86rem;outline:none;">
+          </div>
+        </div>
         <div style="margin-bottom:8px;">
           <label style="display:block;font-size:.76rem;font-weight:700;color:var(--mt);margin-bottom:6px;">المدينة</label>
           <input id="payCity" type="text" placeholder="غزة" value="غزة" style="width:100%;padding:11px 13px;background:rgba(15,23,42,.7);border:1px solid var(--b2);border-radius:8px;color:var(--tx);font-family:'Cairo',sans-serif;font-size:.86rem;outline:none;">
@@ -1199,8 +1210,10 @@ function showPhoneModal(total) {
     const row = document.getElementById('phoneTotalRow');
     if (row) row.querySelector('span:last-child').textContent = '$' + total.toFixed(2);
   }
+  // المسجّل: الاسم والإيميل من حسابه. الزائر: بيعبّيهم
+  document.getElementById('guestFields').style.display = _currentUser ? 'none' : 'block';
   modal.style.display = 'flex';
-  setTimeout(()=>{ document.getElementById('phoneNumber')?.focus(); }, 300);
+  setTimeout(()=>{ document.getElementById(_currentUser?'phoneNumber':'payName')?.focus(); }, 300);
 }
 
 window.confirmPhoneAndPay = async function() {
@@ -1214,6 +1227,12 @@ window.confirmPhoneAndPay = async function() {
     return;
   }
 
+  if (!_currentUser) {
+    const nm = document.getElementById('payName')?.value.trim() || '';
+    const em = document.getElementById('payEmail')?.value.trim() || '';
+    if (nm.length < 2) { toast('⚠️ اكتب اسمك','err'); document.getElementById('payName')?.focus(); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)) { toast('⚠️ البريد الإلكتروني غير صحيح','err'); document.getElementById('payEmail')?.focus(); return; }
+  }
   const cleanNumber = number.replace(/^0+/,'');
   const fullMobile  = code + cleanNumber;
 
@@ -1232,11 +1251,12 @@ async function processPayment(mobile, provider) {
   </div>`;
 
   try {
-    // احصل على Firebase ID Token
-    const token = await auth.currentUser.getIdToken();
-
-    const customerName = (_currentUser.displayName ||
-      _currentUser.email.split('@')[0]).substring(0, 80);
+    // مسجّل ← token. زائر ← الاسم والإيميل من النموذج
+    const token = auth.currentUser ? await auth.currentUser.getIdToken() : '';
+    const customerName = (_currentUser
+      ? (_currentUser.displayName || _currentUser.email.split('@')[0])
+      : (document.getElementById('payName')?.value.trim() || '')).substring(0, 80);
+    const guestEmail = _currentUser ? '' : (document.getElementById('payEmail')?.value.trim() || '');
 
     // نرسل فقط نوع العنصر ورقمه — السيرفر يقرأ السعر من قاعدة البيانات
     const itemsJson = JSON.stringify(cart.filter(i=>i.col&&i.id).map(i=>({col:i.col,id:i.id})));
@@ -1253,6 +1273,7 @@ async function processPayment(mobile, provider) {
       items:    itemsJson,
       mobile:   mobile,
       name:     customerName,
+      email:    guestEmail,
       city:     (document.getElementById('payCity')?.value || '').trim().slice(0, 60),
       provider: provider,
     };
@@ -1787,7 +1808,7 @@ function defaultTests(){return emptyPh('كن أول من يشاركنا رأيه
     for(let i=0;i<20&&!window._currentUser;i++)await new Promise(r=>setTimeout(r,250));
     window.openMyOrders?.();history.replaceState(null,'',location.pathname+location.hash);return;
   }
-  // شراء مباشر من صفحة العنصر: /?buy=courses:ID ← دخول (لو لازم) ← رقم الجوال ← بوابة الدفع
+  // شراء مباشر من صفحة العنصر: /?buy=courses:ID ← الاسم والإيميل والجوال ← بوابة الدفع (بدون حساب)
   // العنصر لحاله بيندفع، والسلة المحفوظة ما بتتغير
   const b=new URLSearchParams(location.search).get('buy');
   if(b){
@@ -1795,11 +1816,6 @@ function defaultTests(){return emptyPh('كن أول من يشاركنا رأيه
     if(!/^(courses|projects|products|books)$/.test(bc)||!bid)return;
     for(let i=0;i<40&&!window._authReady;i++)await new Promise(r=>setTimeout(r,100));
     try{await window._authReady;}catch(e){}
-    if(!window._currentUser){
-      toast('🔐 سجّل الدخول لإتمام الشراء','warn');
-      setTimeout(()=>{location.href='auth.html?redirect='+encodeURIComponent('https://www.3engs.com/?buy='+bc+':'+bid);},900);
-      return;
-    }
     history.replaceState(null,'',location.pathname);
     const it=await window._getItem(bc,bid).catch(()=>null);
     if(!it){toast('⚠️ العنصر غير موجود','err');return;}

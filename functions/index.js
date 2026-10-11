@@ -60,6 +60,20 @@ function isAdmin(user) {
   return !!user && user.email_verified === true && ADMINS.includes(user.email || "");
 }
 
+// 🛒 الشراء بدون حساب (زائر): الطلب إله مفتاح سري accessKey بيوصل للزبون برابط الرجوع والإيصال
+const crypto = require("crypto");
+function keyOk(order, key) {
+  const a = Buffer.from(String(order.accessKey || "")), b = Buffer.from(String(key || ""));
+  return a.length >= 32 && a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+function canAccess(order, user, key) {
+  return (!!user && (order.userId === user.uid || isAdmin(user))) || keyOk(order, key);
+}
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+function orderLink(o) {
+  return `${RETURN_BASE}?invoice_id=${encodeURIComponent(o.invoiceId)}&k=${encodeURIComponent(o.accessKey || "")}`;
+}
+
 function isFreeItem(d) {
   return d.isFree === true || !(Number(d.price) > 0);
 }
@@ -210,7 +224,8 @@ function countryOf(mobile) {
 
 // عنوان المستلم عند Togo — بنعيد استخدامه لنفس الرقم
 async function togoReceiver(user, mobile, name, city) {
-  const userRef = db.collection("users").doc(user.uid);
+  // المسجّل: بنخزّن بحسابه. الزائر: togo_receivers/{mobile} (السيرفر بس)
+  const userRef = user ? db.collection("users").doc(user.uid) : db.collection("togo_receivers").doc(mobile);
   const cached = (await userRef.get()).data()?.togoReceivers?.[mobile];
   if (cached) return cached;
   const [code, country] = countryOf(mobile);
@@ -242,9 +257,11 @@ exports.createPayment = onRequest(
     if (req.method !== "POST") { errorPage(res, 405, "طريقة الطلب غير مسموحة"); return; }
 
     const q = req.body || {};
-    const user = await verifyIdToken(String(q.token || ""));
-    if (!user) { errorPage(res, 401, "انتهت الجلسة — سجّل الدخول وحاول مرة أخرى"); return; }
-    if (!user.email) { errorPage(res, 400, "حسابك بدون بريد إلكتروني — سجّل الدخول بحساب فيه بريد"); return; }
+    // الحساب اختياري: بدون token ← شراء كزائر بالاسم والإيميل
+    const user = q.token ? await verifyIdToken(String(q.token)) : null;
+    if (q.token && !user) { errorPage(res, 401, "انتهت الجلسة — حدّث الصفحة وحاول مرة أخرى"); return; }
+    const email = String((user && user.email) || q.email || "").trim().toLowerCase().substring(0, 120);
+    if (!EMAIL_RE.test(email)) { errorPage(res, 400, "البريد الإلكتروني غير صحيح — عليه تصلك روابط التحميل والإيصال"); return; }
 
     const payCfg = await getPaymentConfig();
     if (!payCfg.togo?.active) { errorPage(res, 400, "الدفع الإلكتروني غير مفعّل حالياً — تواصل معنا عبر واتساب"); return; }
@@ -284,13 +301,18 @@ exports.createPayment = onRequest(
       });
     }
     if (!items.length) { errorPage(res, 400, "لا توجد منتجات مدفوعة صالحة في السلة"); return; }
+    // الأدوات المتقدمة صلاحية مربوطة بحساب — لازم تسجيل دخول
+    if (!user && items.some((i) => i.col === "products" && i.id === TOOLS_PRO_ID)) {
+      errorPage(res, 400, "الأدوات المتقدمة تُفعَّل على حسابك في الموقع، لذلك سجّل الدخول أولاً ثم أكمل الشراء"); return;
+    }
 
     const total = Math.round(items.reduce((s, i) => s + i.price, 0) * 100) / 100;
-    const customerName = String(q.name || user.name || "عميل 3ENG.s").substring(0, 80);
+    const customerName = String(q.name || (user && user.name) || "عميل 3ENG.s").trim().substring(0, 80) || "عميل 3ENG.s";
+    const accessKey = crypto.randomBytes(24).toString("hex");
     const invoiceId =
       "3ENGS-" + Date.now() + "-" +
       Math.random().toString(36).substring(2, 11).toUpperCase();
-    const back = RETURN_BASE + "?invoice_id=" + encodeURIComponent(invoiceId);
+    const back = orderLink({ invoiceId, accessKey });
 
     let togoOrderId, hashedId, created;
     try {
@@ -302,7 +324,7 @@ exports.createPayment = onRequest(
           value: total,
           currency: CURRENCY,
           receiver_address_id: receiverId,
-          receiver_email: user.email,
+          receiver_email: email,
           source: "external_website",
           prevent_sms_link: true,
           payment_success_redirect_link: back,
@@ -326,8 +348,11 @@ exports.createPayment = onRequest(
 
     await db.collection("orders").doc(invoiceId).set({
       invoiceId,
-      userId:        user.uid,
-      userEmail:     user.email || "",
+      userId:        user ? user.uid : null,
+      guest:         !user,
+      accessKey,
+      buyerName:     customerName,
+      userEmail:     email,
       userMobile:    mobile,
       items,
       total,
@@ -341,7 +366,7 @@ exports.createPayment = onRequest(
     });
 
     logger.info("Order created (Togo)", { invoiceId, total, togoOrderId });
-    const payUrl = `https://api.togo.ps/api/v1/direct-pay?orderId=${encodeURIComponent(hashedId)}&receiverEmail=${encodeURIComponent(user.email)}`;
+    const payUrl = `https://api.togo.ps/api/v1/direct-pay?orderId=${encodeURIComponent(hashedId)}&receiverEmail=${encodeURIComponent(email)}`;
     res.redirect(302, payUrl);
   }
 );
@@ -357,9 +382,8 @@ exports.verifyPayment = onRequest(
     if (req.method === "OPTIONS") { res.status(204).send(""); return; }
 
     const user = await verifyToken(req);
-    if (!user) { res.status(401).json({ error: "Unauthorized" }); return; }
-
-    const { invoiceId } = req.body || {};
+    const { invoiceId, key } = req.body || {};
+    if (!user && !key) { res.status(401).json({ error: "Unauthorized" }); return; }
     if (!invoiceId || typeof invoiceId !== "string") {
       res.status(400).json({ error: "invoice_id مطلوب" }); return;
     }
@@ -369,7 +393,7 @@ exports.verifyPayment = onRequest(
     if (!orderSnap.exists) { res.status(404).json({ error: "الطلب غير موجود" }); return; }
 
     let order = orderSnap.data();
-    if (order.userId !== user.uid && !isAdmin(user)) { res.status(403).json({ error: "غير مصرح" }); return; }
+    if (!canAccess(order, user, key)) { res.status(403).json({ error: "غير مصرح" }); return; }
 
     order = await syncTogoOrder(orderRef, order);
     const links = order.status === "paid" ? await resolveDownloads(order) : [];
@@ -453,9 +477,8 @@ exports.getOrderStatus = onRequest(
     if (req.method === "OPTIONS") { res.status(204).send(""); return; }
 
     const user = await verifyToken(req);
-    if (!user) { res.status(401).json({ error: "Unauthorized" }); return; }
-
-    const { invoiceId } = req.body || {};
+    const { invoiceId, key } = req.body || {};
+    if (!user && !key) { res.status(401).json({ error: "Unauthorized" }); return; }
     if (!invoiceId || typeof invoiceId !== "string") {
       res.status(400).json({ error: "invoice_id مطلوب" }); return;
     }
@@ -464,7 +487,7 @@ exports.getOrderStatus = onRequest(
     if (!snap.exists) { res.status(404).json({ error: "غير موجود" }); return; }
 
     const order = snap.data();
-    if (order.userId !== user.uid && !isAdmin(user)) {
+    if (!canAccess(order, user, key)) {
       res.status(403).json({ error: "غير مصرح" }); return;
     }
 
@@ -492,7 +515,14 @@ exports.getUserOrders = onRequest(
       : db.collection("orders").where("userId", "==", user.uid).limit(100);
 
     const snap = await q.get();
-    const docs = admin ? snap.docs : [...snap.docs]
+    let own = snap.docs;
+    // طلبات اشتراها كزائر بنفس الإيميل (بعد ما عمل حساب وأكّد إيميله)
+    if (!admin && user.email && user.email_verified) {
+      const g = await db.collection("orders").where("userEmail", "==", user.email.toLowerCase()).limit(100).get();
+      const ids = new Set(own.map((d) => d.id));
+      own = [...own, ...g.docs.filter((d) => d.data().guest === true && !ids.has(d.id))];
+    }
+    const docs = admin ? snap.docs : [...own]
       .filter((d) => d.data().status !== "pending")
       .sort((a, b) => (b.data().createdAt?.toMillis?.() || 0) - (a.data().createdAt?.toMillis?.() || 0));
     const orders = await Promise.all(docs.map(async (doc) => {
@@ -701,10 +731,10 @@ function buildReceipt(o, tpl, name) {
 <tr><td style="color:#64748b">طريقة الدفع</td><td style="text-align:left">${escMail(METHOD_AR[o.method] || o.method || "—")}</td></tr></table>
 <table style="width:100%;font-size:14px;border-collapse:collapse;margin:10px 0">${rows}
 <tr><td style="padding:8px 0"><b>الإجمالي</b></td><td style="padding:8px 0;text-align:left" dir="ltr"><b>${total} ${escMail(o.currency || CURRENCY)}</b></td></tr></table>
-<p>📦 مشترياتك جاهزة الآن في حسابك: <a href="${SITE}/?myorders=1" style="color:#D97706;font-weight:bold">افتح مشترياتي</a></p>
+${o.guest ? `<p>📦 مشترياتك جاهزة للتحميل: <a href="${escMail(orderLink(o))}" style="color:#D97706;font-weight:bold">افتح صفحة التحميل</a><br><span style="font-size:13px;color:#64748b">احتفظ بهذا البريد؛ الرابط خاص بك ويمكنك العودة إليه في أي وقت.</span></p>` : `<p>📦 مشترياتك جاهزة الآن في حسابك: <a href="${SITE}/?myorders=1" style="color:#D97706;font-weight:bold">افتح مشترياتي</a></p>`}
 ${para(tpl.receiptFooter)}
 <p style="font-size:13px;color:#64748b">↩️ يمكنك طلب الاسترداد خلال 7 أيام حسب <a href="${SITE}/privacy.html#refund" style="color:#D97706">سياسة الاسترداد</a>.</p>`;
-  const text = `${fill(tpl.receiptIntro)}\n\nرقم الطلب: ${o.invoiceId}\nالتاريخ: ${paidAt}\n${(o.items || []).map((i) => `- ${i.name}: $${Number(i.price || 0).toFixed(2)}`).join("\n")}\nالإجمالي: ${total}\nمشترياتك: ${SITE}/?myorders=1\n\n${fill(tpl.receiptFooter)}`;
+  const text = `${fill(tpl.receiptIntro)}\n\nرقم الطلب: ${o.invoiceId}\nالتاريخ: ${paidAt}\n${(o.items || []).map((i) => `- ${i.name}: $${Number(i.price || 0).toFixed(2)}`).join("\n")}\nالإجمالي: ${total}\nمشترياتك: ${o.guest ? orderLink(o) : SITE + "/?myorders=1"}\n\n${fill(tpl.receiptFooter)}`;
   return { subject: fill(tpl.receiptSubject).substring(0, 200), title: fill(tpl.receiptTitle), inner, text };
 }
 
@@ -746,7 +776,7 @@ exports.sendReceipt = onDocumentWritten(
     });
     if (!claimed) return;
     const o = after;
-    const r = buildReceipt(o, await receiptTemplate(), await buyerName(o.userEmail));
+    const r = buildReceipt(o, await receiptTemplate(), o.buyerName || await buyerName(o.userEmail));
     try {
       await sendMail(o.userEmail, r.subject, r.title, r.inner, r.text);
       await ref.update({ receiptSentAt: FieldValue.serverTimestamp(), receiptError: FieldValue.delete() });
