@@ -39,20 +39,164 @@
     <priority>0.9</priority>
   </url>
   <url>
+    <loc>https://www.3engs.com/projects/arduino-weather-station/</loc>
+    <lastmod>2026-10-11</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/projects/TDiAdpRwKfPrlgNHjMnx.webp</image:loc><image:title>كيف تصنع محطة طقس منزلية باستخدام الأردوينو</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/projects/arduino-altimeter-bmp180/</loc>
+    <lastmod>2026-10-11</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/projects/P4im2sbHCswNvZ8xroV3.webp</image:loc><image:title>كيف تصنع جهاز قياس الارتفاع باستخدام الأردوينو</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/projects/arduino-rain-alarm/</loc>
+    <lastmod>2026-10-11</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/projects/dK4OS4ACsIKSkQA2WAT4.webp</image:loc><image:title>كيف تصنع جهاز إنذار المطر باستخدام الأردوينو</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/projects/arduino-smart-irrigation/</loc>
+    <lastmod>2026-10-11</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/projects/vxdvTWNYFJ8X9Xw4yRxO.webp</image:loc><image:title>كيف تصنع نظام ريّ ذكي باستخدام الأردوينو</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/projects/arduino-waterproof-thermometer/</loc>
+    <lastmod>2026-10-11</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/projects/et0H4imJO4zjfz6VGwsH.webp</image:loc><image:title>كيف تصنع ميزان حرارة مقاوم للماء باستخدام الأردوينو</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/projects/arduino-real-time-clock/</loc>
+    <lastmod>2026-10-11</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/projects/3diMtJ45pjaHiEKlpusR.webp</image:loc><image:title>كيف تصنع ساعة رقمية دقيقة باستخدام الأردوينو</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/projects/arduino-gas-leak-detector/</loc>
+    <lastmod>2026-10-11</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/projects/kcPgh26X3IQf4WnNLxlD.webp</image:loc><image:title>كيف تصنع كاشف تسرّب الغاز باستخدام الأردوينو</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/projects/arduino-parking-sensor/</loc>
+    <lastmod>2026-10-11</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/projects/kZYjFIPJJkBHdmFAHQQq.webp</image:loc><image:title>كيف تصنع حسّاس ركن السيارة باستخدام الأردوينو</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/projects/arduino-burglar-alarm/</loc>
+    <lastmod>2026-10-11</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/projects/RTf0LMzNGwfcNeOw372Y.webp</image:loc><image:title>كيف تصنع إنذار ضد اللصوص باستخدام الأردوينو</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/projects/arduino-tilt-alarm/</loc>
+    <lastmod>2026-10-11</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/projects/QpkAlaGtz0GnQHORK8hh.webp</image:loc><image:title>جهاز إنذار الانحدار باستخدام الأردوينو</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/projects/arduino-clap-switch/</loc>
+    <lastmod>2026-10-11</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/projects/lhWvUuBjUInunIMwZvO9.webp</image:loc><image:title>كيف تصنع مصباح يعمل بالتصفيق باستخدام الأردوينو</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/projects/arduino-door-alarm/</loc>
+    <lastmod>2026-10-11</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/projects/wHlfipA0bYnSz3EtEyDe.webp</image:loc><image:title>كيف تصنع إنذار فتح الباب باستخدام الأردوينو</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/projects/arduino-rfid-door-lock/</loc>
+    <lastmod>2026-10-11</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/projects/D8QnZaHlSua03jij2iwY.webp</image:loc><image:title>كيف تصنع قفل باب بالبطاقة باستخدام الأردوينو</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/projects/arduino-motion-light/</loc>
+    <lastmod>2026-10-11</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/projects/MUqPpmKfUC3u79RXN3XP.webp</image:loc><image:title>كيف تصنع إنارة ذكية بالحركة باستخدام الأردوينو</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/projects/arduino-wireless-remote-nrf24/</loc>
+    <lastmod>2026-10-11</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/projects/ZYiQ1ompcfU0mwmnMKzm.webp</image:loc><image:title>كيف تصنع ريموت لاسلكي باستخدام الأردوينو</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/projects/arduino-wireless-doorbell-433mhz/</loc>
+    <lastmod>2026-10-11</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/projects/17xWN2PCqPigTqWfSAsZ.webp</image:loc><image:title>كيف تصنع جرس باب لاسلكي باستخدام الأردوينو</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/projects/arduino-oled-thermometer/</loc>
+    <lastmod>2026-10-11</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/projects/NL6qT4zjZYutDCfIDCsw.webp</image:loc><image:title>كيف تصنع شاشة حرارة ورطوبة باستخدام الأردوينو</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/projects/arduino-led-matrix-faces/</loc>
+    <lastmod>2026-10-11</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/projects/ae0qjemEnelpe37LKAto.webp</image:loc><image:title>كيف تصنع وجوه تعبيرية مضيئة باستخدام الأردوينو</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/projects/arduino-rgb-led-strip/</loc>
+    <lastmod>2026-10-11</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/projects/tWz6PfCKC5Md9AtVQlgc.webp</image:loc><image:title>كيف تصنع إضاءة قوس قزح باستخدام الأردوينو</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/projects/arduino-keypad-password-lock/</loc>
+    <lastmod>2026-10-11</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/projects/mdTuuEgylBTKZkF1tmr4.webp</image:loc><image:title>كيف تصنع قفل برمز سري باستخدام الأردوينو</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/projects/arduino-color-tft-display/</loc>
+    <lastmod>2026-10-11</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/projects/uRYxGUfoYHLvgPStGTVl.webp</image:loc><image:title>كيف تصنع شاشة ألوان صغيرة باستخدام الأردوينو</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/projects/arduino-sms-security-alarm/</loc>
+    <lastmod>2026-10-11</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/projects/MZh5M5fiTlFr41oVafmV.webp</image:loc><image:title>كيف تصنع إنذار يرسل رسالة SMS باستخدام الأردوينو</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/projects/arduino-sd-data-logger/</loc>
+    <lastmod>2026-10-11</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/projects/9D9li4zsQ3aGcKXegxAI.webp</image:loc><image:title>كيف تصنع مسجّل بيانات الحرارة باستخدام الأردوينو</image:title></image:image>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/projects/arduino-color-sorter-tcs3200/</loc>
+    <lastmod>2026-10-11</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/projects/1FIKFqKx3eOUllvbTTt6.webp</image:loc><image:title>كيف تصنع كاشف الألوان باستخدام الأردوينو</image:title></image:image>
+  </url>
+  <url>
     <loc>https://www.3engs.com/projects/security-system-factory/</loc>
-    <lastmod>2026-09-27</lastmod>
+    <lastmod>2026-10-11</lastmod>
     <priority>0.8</priority>
     <image:image><image:loc>https://www.3engs.com/img/projects/1hBkXtJAJg71IsEaaNwJ.webp</image:loc><image:title>نظام حماية المصانع باستخدام PIC18F4550 | Factory Security System</image:title></image:image>
   </url>
   <url>
     <loc>https://www.3engs.com/projects/weather-station-project/</loc>
-    <lastmod>2026-09-27</lastmod>
+    <lastmod>2026-10-11</lastmod>
     <priority>0.8</priority>
     <image:image><image:loc>https://www.3engs.com/img/projects/ABaMSMO49TXKwWE8GaMk.webp</image:loc><image:title>محطة طقس متنقلة ذكية</image:title></image:image>
   </url>
   <url>
     <loc>https://www.3engs.com/projects/blind-stick-project/</loc>
-    <lastmod>2026-10-02</lastmod>
+    <lastmod>2026-10-11</lastmod>
     <priority>0.8</priority>
     <image:image><image:loc>https://www.3engs.com/img/projects/wJcchGH56DQYmTm14pa7.webp</image:loc><image:title>العصا الذكية للمكفوفين (Smart Blind Stick)</image:title></image:image>
   </url>
