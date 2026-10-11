@@ -9,13 +9,21 @@ service cloud.firestore {
       return request.auth != null;
     }
     // الإيميل لازم يكون مؤكَّد — وإلا أي شخص يسجّل بإيميل الأدمن يصير أدمن
-    function isAdmin() {
+    // الأدمن الأساسي: إيميلات ثابتة (هم بس بيقدروا يرفعوا أو ينزّلوا أدمن)
+    function isSuperAdmin() {
       return isSignedIn() &&
         request.auth.token.email_verified == true &&
         request.auth.token.email in [
           'hosam2564491@gmail.com',
           'info@3engs.com'
         ];
+    }
+    // أدمن = أساسي، أو حساب دوره "admin" بـ users/{uid} — وإيميله مؤكَّد
+    function isAdmin() {
+      return isSuperAdmin() || (
+        isSignedIn() &&
+        request.auth.token.email_verified == true &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'user') == 'admin');
     }
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
@@ -97,9 +105,11 @@ service cloud.firestore {
       allow read: if isOwner(userId) || isAdmin();
       // المستخدم ينشئ ملفه بدور "user" فقط
       allow create: if isOwner(userId) &&
-        (request.resource.data.get('role', 'user') == 'user' || isAdmin());
+        (request.resource.data.get('role', 'user') == 'user' || isSuperAdmin());
       // المستخدم يعدّل ملفه فقط — لكن لا يغير role أبداً
-      allow update: if isAdmin() ||
+      // تغيير الدور (role) للأدمن الأساسي فقط
+      allow update: if isSuperAdmin() ||
+        (isAdmin() && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role'])) ||
         (isOwner(userId) &&
          !request.resource.data.diff(resource.data).affectedKeys()
            .hasAny(['role', 'uid', 'userId', 'createdAt']));

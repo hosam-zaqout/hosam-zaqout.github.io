@@ -956,7 +956,9 @@ onAuthStateChanged(auth,user=>{
     uw.style.display='block';lb.style.display='none';
     const nm=user.displayName||user.email?.split('@')[0]||'مستخدم';
     document.getElementById('uBtn').textContent='👤 '+nm+' ▾';
-    if(ADMINS.includes(user.email)){document.getElementById('adminLnk').style.display='block';document.getElementById('adminSep').style.display='block';}
+    const showAdmin=()=>{document.getElementById('adminLnk').style.display='block';document.getElementById('adminSep').style.display='block';};
+    if(ADMINS.includes(user.email))showAdmin();
+    else if(user.emailVerified)getDoc(doc(db,'users',user.uid)).then(s=>{if(s.exists()&&s.data().role==='admin')showAdmin();}).catch(()=>{});
   }else{uw.style.display='none';lb.style.display='block';}
 });
 // مشترياتي — كل الطلبات المدفوعة مع روابط التحميل (من السيرفر)

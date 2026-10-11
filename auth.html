@@ -121,7 +121,9 @@ const auth=getAuth(app); const db=getFirestore(app); const gp=new GoogleAuthProv
 onAuthStateChanged(auth, async user => {
   if(user) {
     await saveUser(user, user.providerData?.[0]?.providerId||'email');
-    const isAdmin = ADMINS.includes(user.email) && user.emailVerified;
+    let isAdmin = ADMINS.includes(user.email) && user.emailVerified;
+    // أو حساب رفعه الأدمن الأساسي لدور "admin"
+    if (!isAdmin && user.emailVerified) { try { const s = await getDoc(doc(db,'users',user.uid)); isAdmin = s.exists() && s.data().role === 'admin'; } catch(e) {} }
     const back = new URLSearchParams(location.search).get('redirect') || '';
     const safeBack = back.startsWith('https://www.3engs.com/') ? back : '';
     window.location.href = safeBack || (isAdmin ? 'admin.html' : '/');

@@ -628,8 +628,13 @@ const ADMINS=['hosam2564491@gmail.com','info@3engs.com'];
 const app=initializeApp(CFG); getAnalytics(app);
 const auth=getAuth(app); const db=getFirestore(app); const storage=getStorage(app);
 
-onAuthStateChanged(auth,user=>{
-  if(!user||!ADMINS.includes(user.email)){window.location.href='auth.html';return;}
+// أدمن = إيميل أساسي، أو حساب دوره "admin" (يرفعه الأدمن الأساسي من 👥 المستخدمون)
+async function hasAdminRole(user){
+  if(ADMINS.includes(user.email))return true;
+  try{const s=await getDoc(doc(db,'users',user.uid));return s.exists()&&s.data().role==='admin';}catch(e){return false;}
+}
+onAuthStateChanged(auth,async user=>{
+  if(!user||!(await hasAdminRole(user))){window.location.href='auth.html';return;}
   if(!user.emailVerified){document.getElementById('authLoad').innerHTML='<p style="color:#fff;text-align:center;padding:20px">⚠️ يجب تأكيد البريد الإلكتروني لهذا الحساب قبل استخدام لوحة التحكم.<br>استخدم "نسيت كلمة المرور" في صفحة الدخول لتأكيده.</p>';return;}
   document.getElementById('authLoad').style.display='none';
   const name=user.displayName||user.email.split('@')[0];
@@ -933,7 +938,12 @@ window.toggleRole=async(uid, role, email)=>{
     toast('⚠️ لا يمكن تغيير صلاحيات هذا الحساب','err');
     return;
   }
+  if(!SUPER_ADMINS.includes(auth.currentUser?.email)){
+    toast('⚠️ رفع أو تنزيل الأدمن للحساب الأساسي فقط','err');
+    return;
+  }
   const newRole = role==='admin'?'user':'admin';
+  if(newRole==='admin'&&!confirm(`رفع ${email} لأدمن؟\nبيقدر يعدّل كل محتوى الموقع ويشوف الطلبات والمستخدمين.\nلازم يكون إيميله مؤكَّد حتى تشتغل اللوحة عنده.`))return;
   try{
     await updateDoc(doc(db,'users',uid),{role:newRole});
     toast(`✅ تم تغيير الدور إلى ${newRole==='admin'?'أدمن':'مستخدم'}`);

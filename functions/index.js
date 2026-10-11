@@ -56,8 +56,12 @@ async function verifyToken(req) {
   return h.startsWith("Bearer ") ? verifyIdToken(h.slice(7)) : null;
 }
 
-function isAdmin(user) {
-  return !!user && user.email_verified === true && ADMINS.includes(user.email || "");
+// الأدمن: الإيميلات الأساسية، أو حساب رفعه أدمن أساسي (users/{uid}.role == "admin") — والإيميل مؤكَّد دائماً
+async function isAdmin(user) {
+  if (!user || user.email_verified !== true) return false;
+  if (ADMINS.includes(user.email || "")) return true;
+  const u = await db.collection("users").doc(user.uid).get();
+  return u.exists && u.data().role === "admin";
 }
 
 // 🛒 الشراء بدون حساب (زائر): الطلب إله مفتاح سري accessKey بيوصل للزبون برابط الرجوع والإيصال
@@ -66,8 +70,8 @@ function keyOk(order, key) {
   const a = Buffer.from(String(order.accessKey || "")), b = Buffer.from(String(key || ""));
   return a.length >= 32 && a.length === b.length && crypto.timingSafeEqual(a, b);
 }
-function canAccess(order, user, key) {
-  return (!!user && (order.userId === user.uid || isAdmin(user))) || keyOk(order, key);
+async function canAccess(order, user, key) {
+  return (!!user && (order.userId === user.uid || await isAdmin(user))) || keyOk(order, key);
 }
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 function orderLink(o) {
@@ -393,7 +397,7 @@ exports.verifyPayment = onRequest(
     if (!orderSnap.exists) { res.status(404).json({ error: "الطلب غير موجود" }); return; }
 
     let order = orderSnap.data();
-    if (!canAccess(order, user, key)) { res.status(403).json({ error: "غير مصرح" }); return; }
+    if (!(await canAccess(order, user, key))) { res.status(403).json({ error: "غير مصرح" }); return; }
 
     order = await syncTogoOrder(orderRef, order);
     const links = order.status === "paid" ? await resolveDownloads(order) : [];
@@ -429,7 +433,7 @@ exports.adminTogo = onRequest(
     setCORS(req, res);
     if (req.method === "OPTIONS") { res.status(204).send(""); return; }
     const user = await verifyToken(req);
-    if (!isAdmin(user)) { res.status(403).json({ error: "للأدمن فقط" }); return; }
+    if (!(await isAdmin(user))) { res.status(403).json({ error: "للأدمن فقط" }); return; }
     // dryrun: عنوان تجريبي + طلب دفع $1 ثم إلغاؤه فوراً — لمعرفة شكل ردود Togo الحقيقية
     if (req.body?.action === "dryrun") {
       const steps = [];
@@ -487,7 +491,7 @@ exports.getOrderStatus = onRequest(
     if (!snap.exists) { res.status(404).json({ error: "غير موجود" }); return; }
 
     const order = snap.data();
-    if (!canAccess(order, user, key)) {
+    if (!(await canAccess(order, user, key))) {
       res.status(403).json({ error: "غير مصرح" }); return;
     }
 
@@ -508,7 +512,7 @@ exports.getUserOrders = onRequest(
     const user = await verifyToken(req);
     if (!user) { res.status(401).json({ error: "Unauthorized" }); return; }
 
-    const admin = isAdmin(user) && req.body?.all === true;
+    const admin = req.body?.all === true && await isAdmin(user);
     // طلبات المستخدم تُرتّب هنا بدل orderBy — عشان ما نحتاج composite index
     const q = admin
       ? db.collection("orders").orderBy("createdAt", "desc").limit(200)
@@ -558,7 +562,7 @@ exports.adminUpdateOrder = onRequest(
     if (req.method === "OPTIONS") { res.status(204).send(""); return; }
 
     const user = await verifyToken(req);
-    if (!isAdmin(user)) { res.status(403).json({ error: "للأدمن فقط" }); return; }
+    if (!(await isAdmin(user))) { res.status(403).json({ error: "للأدمن فقط" }); return; }
 
     const { invoiceId, action } = req.body || {};
     if (!invoiceId || typeof invoiceId !== "string" || !["approve", "revoke", "recheck"].includes(action)) {
@@ -600,7 +604,7 @@ exports.adminCreateOrder = onRequest(
     if (req.method === "OPTIONS") { res.status(204).send(""); return; }
 
     const admin = await verifyToken(req);
-    if (!isAdmin(admin)) { res.status(403).json({ error: "للأدمن فقط" }); return; }
+    if (!(await isAdmin(admin))) { res.status(403).json({ error: "للأدمن فقط" }); return; }
 
     const { email, items: refs, method, amountPaid, note } = req.body || {};
     const cleanEmail = String(email || "").trim().toLowerCase();
@@ -745,7 +749,7 @@ exports.adminTestReceipt = onRequest(
     setCORS(req, res);
     if (req.method === "OPTIONS") { res.status(204).send(""); return; }
     const admin = await verifyToken(req);
-    if (!isAdmin(admin)) { res.status(403).json({ error: "للأدمن فقط" }); return; }
+    if (!(await isAdmin(admin))) { res.status(403).json({ error: "للأدمن فقط" }); return; }
     const sample = { invoiceId: "3ENGS-TEST-0000", method: "togo", total: 25, currency: CURRENCY, items: [{ emoji: "🎓", name: "دورة تجريبية", price: 25 }] };
     const r = buildReceipt(sample, await receiptTemplate(), await buyerName(admin.email));
     try {
@@ -795,7 +799,7 @@ exports.adminWorkshopEmail = onRequest(
     setCORS(req, res);
     if (req.method === "OPTIONS") { res.status(204).send(""); return; }
     const admin = await verifyToken(req);
-    if (!isAdmin(admin)) { res.status(403).json({ error: "للأدمن فقط" }); return; }
+    if (!(await isAdmin(admin))) { res.status(403).json({ error: "للأدمن فقط" }); return; }
 
     const { workshopId, subject, message, test } = req.body || {};
     const subj = String(subject || "").trim().substring(0, 150);
