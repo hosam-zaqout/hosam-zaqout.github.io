@@ -336,6 +336,10 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
           <div class="cg"><label>بريد الزبون *</label><input class="ci" id="mo-email" list="mo-users" placeholder="customer@gmail.com" dir="ltr" autocomplete="off" oninput="moCheckUser()"><datalist id="mo-users"></datalist><div id="mo-user-hint" style="font-size:.74rem;margin-top:4px"></div></div>
           <div class="cg"><label>طريقة الدفع</label><select class="cs" id="mo-method"><option value="whatsapp">💬 واتساب</option><option value="paypal">🅿️ PayPal</option><option value="transfer">🏦 تحويل بنكي / محفظة</option><option value="cash">💵 نقداً</option><option value="other">أخرى</option></select></div>
         </div>
+        <div class="g2">
+          <div class="cg"><label>اسم الزبون</label><input class="ci" id="mo-name" placeholder="الاسم الكامل"></div>
+          <div class="cg"><label>جوال/واتساب الزبون (دولي بدون +)</label><input class="ci" id="mo-mobile" dir="ltr" placeholder="970592123456"></div>
+        </div>
         <div class="cg"><label>العناصر اللي اشتراها *</label>
           <input class="ci" id="mo-search" placeholder="🔍 ابحث عن عنصر..." oninput="moRenderItems()" style="margin-bottom:8px">
           <div id="mo-items" style="max-height:240px;overflow:auto;border:1px solid var(--b2,rgba(255,255,255,.08));border-radius:10px;padding:6px"></div>
@@ -881,15 +885,16 @@ async function loadSectionItems(){
   const el=document.getElementById('sectionItemsList');
   if(!items.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد عناصر</p>';return;}
   const art=curSectionIsArticles();
-  if(art)items.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-  el.innerHTML=items.map(i=>`<div class="irow"><div class="iemoji">${i.emoji||(art?'📝':'•')}</div><div class="iinfo"><div class="ititle">${i.title||''}</div><div class="imeta">${art?`${i.hidden?'<span style="color:var(--p)">📄 مسودة</span>':'<span style="color:var(--ok)">✅ منشور</span>'} • ${i.createdAt?.toDate?.()?.toLocaleDateString('ar')||''} • ⏱ ${window.md3?md3.readingMinutes(i.body):1} د`:`${i.price?'$'+i.price:'مجاني'}${fileBadge(i)}`}${i.imageUrl?' • <span style="color:var(--ok)">🖼️</span>':''}</div></div><div class="iacts"><button class="btn-edit" onclick="editSectionItem('${i.id}')">✏️</button><button class="btn-del" onclick="delSectionItem('${i.id}')">🗑️</button></div></div>`).join('');
+  if(art)items.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));else items.sort(byOrder);
+  el.innerHTML=items.map(i=>`<div class="irow"><div class="iemoji">${i.emoji||(art?'📝':'•')}</div><div class="iinfo"><div class="ititle">${i.title||''}</div><div class="imeta">${art?`${i.hidden?'<span style="color:var(--p)">📄 مسودة</span>':'<span style="color:var(--ok)">✅ منشور</span>'} • ${i.createdAt?.toDate?.()?.toLocaleDateString('ar')||''} • ⏱ ${window.md3?md3.readingMinutes(i.body):1} د`:`${i.price?'$'+i.price:'مجاني'}${fileBadge(i)}`}${i.imageUrl?' • <span style="color:var(--ok)">🖼️</span>':''}</div></div><div class="iacts">${art?'':moveBtns('section_items','_curSectionItems',i.id,'loadSectionItems')}<button class="btn-edit" onclick="editSectionItem('${i.id}')">✏️</button><button class="btn-del" onclick="delSectionItem('${i.id}')">🗑️</button></div></div>`).join('');
 }
+window.loadSectionItems=loadSectionItems;
 function curSectionIsArticles(){return (window._sections||[]).find(x=>x.id===window._curSectionId)?.type==='articles';}
 window.openSectionItemModal=function(id=null){
   const art=curSectionIsArticles();
   window._mType=art?'articleItem':'sectionItem'; window._mId=id;
   document.getElementById('mTitle').textContent=art?(id?'تعديل مقال':'✍️ مقال جديد'):(id?'تعديل عنصر':'إضافة عنصر للقسم');
-  document.getElementById('mBody').innerHTML=art?mForms.articleItem:mForms.sectionItem;
+  document.getElementById('mBody').innerHTML=art?mForms.articleItem:mForms.sectionItem;fillWsSelect();
   if(id){
     const item=(window._curSectionItems||[]).find(i=>i.id===id);
     if(item){fillForm(item);loadPrivateFileUrl('sectionItem',id);}
@@ -1318,6 +1323,15 @@ makeTagSystem('Requirement',_requirements,'m-req-inp','m-requirements');
 // MODAL FORMS
 // حقول لجوجل والذكاء الاصطناعي — تظهر في صفحة المنتج الثابتة (ملخص + لمن + أسئلة + تصنيفات)
 const TAG_SUGGEST=['ESP32','Arduino','Raspberry Pi','ESP8266','PIC','STM32','Python','PCB','Electronics','IoT','Embedded Systems','Automation','AI','Robotics','Renewable Energy','Drivers'];
+// 🔒 بعد الدفع: رسالة خاصة للمشتري (private_files) + ربط المشترين بورشة (workshopId بالعنصر)
+const AFTER_PAY=()=>`
+    <div class="opt-section open"><div class="opt-head" onclick="this.parentElement.classList.toggle('open')"><h4>🔒 بعد الدفع (بيوصل للمشتري بس)</h4><span class="opt-chev">▼</span></div><div class="opt-body">
+      <div class="cg"><label>رسالة بعد الدفع — مثل رابط جروب الواتساب أو رابط اللقاء</label><textarea class="cta" id="m-afterMsg" rows="3" placeholder="رابط جروب الواتساب الخاص بالمشاركين:&#10;https://chat.whatsapp.com/..."></textarea>
+        <div style="font-size:.72rem;color:var(--mt);margin-top:4px">ما بتظهر بالصفحة العامة أبداً. بتوصل بإيميل الإيصال، وبصفحة الدفع الناجح، وبـ"مشترياتي".</div></div>
+      <div class="cg"><label>🎟️ سجّل المشترين تلقائياً بورشة</label><select class="cs" id="m-workshopId"><option value="">— بدون —</option>${(typeof _ws!=='undefined'?_ws:[]).map(w=>`<option value="${escH(w.id)}">${escH(w.title||w.slug||w.id)}</option>`).join('')}</select>
+        <div style="font-size:.72rem;color:var(--mt);margin-top:4px">كل من يدفع بينضاف لمسجلي هالورشة (الاسم والإيميل والجوال) — بتقدر تصدّرهم Excel وتبعتلهم إيميل جماعي.</div></div>
+    </div></div>`;
+function fillWsSelect(){const el=document.getElementById('m-workshopId');if(!el)return;el.innerHTML='<option value="">— بدون —</option>'+(typeof _ws!=='undefined'?_ws:[]).map(w=>'<option value="'+escH(w.id)+'">'+escH(w.title||w.slug||w.id)+'</option>').join('');}
 const GEO_FIELDS=`
     <div class="opt-section open"><div class="opt-head" onclick="this.parentElement.classList.toggle('open')"><h4>🤖 معلومات لجوجل والذكاء الاصطناعي (مهمة للظهور)</h4><span class="opt-chev">▼</span></div><div class="opt-body">
       <div class="cg"><label>🏷️ التقنيات والمجالات (افصل بفاصلة)</label><input class="ci" id="m-tags" placeholder="ESP32, IoT, Arduino" dir="ltr">
@@ -1359,7 +1373,7 @@ const mForms={
       <div class="cg"><label>الشارة</label><select class="cs" id="m-badge"><option value="">بدون</option><option value="new">جديد</option><option value="best">الأكثر مبيعاً</option><option value="sale">خصم</option><option value="free">مجاني</option></select></div>
       <div class="cg" style="display:flex;align-items:center;gap:8px;padding-top:22px"><input type="checkbox" id="m-isFree" style="accent-color:var(--p);width:16px;height:16px"><label for="m-isFree" style="cursor:pointer;font-size:.86rem">منتج مجاني</label></div>
     </div>
-${GEO_FIELDS}
+${GEO_FIELDS}${AFTER_PAY()}
     <div class="cg"><label>🖼️ صورة المنتج</label>
       <div class="upzone"><input type="file" accept="image/*" onchange="handleUpload(this,'products','m-imageUrl','prodImgProg','prodImgBar')"><div class="uz-icon">🖼️</div><p>اضغط لرفع الصورة</p><div class="uz-hint">حتى 5MB</div></div>
       <div class="up-prog" id="prodImgProg"><div class="up-bar-wrap"><div class="up-bar" id="prodImgBar"></div></div><div class="up-info"><div class="mini-spin"></div><span>جاري الرفع...</span></div></div>
@@ -1404,7 +1418,7 @@ ${GEO_FIELDS}
       <div class="cg"><label>رابط فيديو يوتيوب</label><input class="ci" id="m-videoUrl" placeholder="https://youtube.com/watch?v=..." dir="ltr"></div>
     </div></div>
 
-${GEO_FIELDS}
+${GEO_FIELDS}${AFTER_PAY()}
     <div class="cg"><label>🖼️ صورة الدورة</label>
       <div class="upzone"><input type="file" accept="image/*" onchange="handleUpload(this,'courses','m-imageUrl','courImgProg','courImgBar')"><div class="uz-icon">🖼️</div><p>اضغط لرفع الصورة</p><div class="uz-hint">800×450px مفضّل</div></div>
       <div class="up-prog" id="courImgProg"><div class="up-bar-wrap"><div class="up-bar" id="courImgBar"></div></div><div class="up-info"><div class="mini-spin"></div><span>جاري الرفع...</span></div></div>
@@ -1424,7 +1438,7 @@ ${GEO_FIELDS}
       <div class="cg" style="display:flex;align-items:center;gap:8px;padding-top:22px"><input type="checkbox" id="m-isFree" style="accent-color:var(--p);width:16px;height:16px"><label for="m-isFree" style="cursor:pointer;font-size:.86rem">كتاب مجاني (تحميل للجميع)</label></div>
     </div>
     <div class="cg"><label>الوصف</label><textarea class="cta" id="m-desc" rows="3"></textarea></div>
-${GEO_FIELDS}
+${GEO_FIELDS}${AFTER_PAY()}
     <div class="cg"><label>📄 ملف الكتاب (PDF/EPUB)</label>
       <div class="upzone"><input type="file" accept=".pdf,.epub" onchange="handleUpload(this,'books','m-fileUrl','bookFileProg','bookFileBar')"><div class="uz-icon">📄</div><p>اضغط لرفع الملف</p><div class="uz-hint">حتى 100MB</div></div>
       <div class="up-prog" id="bookFileProg"><div class="up-bar-wrap"><div class="up-bar" id="bookFileBar"></div></div><div class="up-info"><div class="mini-spin"></div><span>جاري الرفع...</span></div></div>
@@ -1475,7 +1489,7 @@ ${GEO_FIELDS}
       <div class="tag-input-row"><input class="ci" id="m-req-inp" placeholder="معرفة بالأردوينو..." onkeypress="if(event.key==='Enter'){addRequirement();event.preventDefault();}"><button onclick="addRequirement()">+ إضافة</button></div>
     </div></div>
 
-${GEO_FIELDS}
+${GEO_FIELDS}${AFTER_PAY()}
     <div class="cg"><label>🖼️ صورة المشروع *</label>
       <div class="upzone"><input type="file" accept="image/*" onchange="handleUpload(this,'projects','m-imageUrl','projImgProg','projImgBar')"><div class="uz-icon">🖼️</div><p>اضغط لرفع الصورة</p><div class="uz-hint">800×450px — حتى 5MB</div></div>
       <div class="up-prog" id="projImgProg"><div class="up-bar-wrap"><div class="up-bar" id="projImgBar"></div></div><div class="up-info"><div class="mini-spin"></div><span>جاري الرفع...</span></div></div>
@@ -1530,7 +1544,7 @@ ${GEO_FIELDS}
       <input class="ci" id="m-fileUrl" placeholder="أو رابط الملف" dir="ltr" style="margin-top:8px">
     </div>
     <div class="cg"><label>رابط فيديو (اختياري)</label><input class="ci" id="m-videoUrl" placeholder="https://youtube.com/..." dir="ltr"></div>
-    ${GEO_FIELDS}`,
+    ${GEO_FIELDS}${AFTER_PAY()}`,
 
   // ── نموذج المقال ──
   articleItem:`
@@ -1665,7 +1679,7 @@ window.openModal=(type,id=null)=>{
   _learns.length=0;_topics.length=0;_components.length=0;_requirements.length=0;
   const labels={product:'منتج',course:'دورة',book:'كتاب',project:'مشروع',testimonial:'رأي',section:'قسم'};
   document.getElementById('mTitle').textContent=(id?'تعديل ':'إضافة ')+(labels[type]||type);
-  document.getElementById('mBody').innerHTML=mForms[type]||'';
+  document.getElementById('mBody').innerHTML=mForms[type]||'';fillWsSelect();
   if(type==='testimonial')fillItemRefOptions();
   if(id){
     const colMap={product:window._prods,course:window._courses,book:window._books,project:window._projects,testimonial:window._tests,section:window._sections};
@@ -1697,6 +1711,8 @@ window.saveModal=async()=>{
   if(['product','course','book','project','sectionItem','articleItem'].includes(type))data.slug=g('m-slug').toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80);
   const colMap={product:'products',course:'courses',book:'books',project:'projects',testimonial:'testimonials',section:'custom_sections',sectionItem:'section_items',articleItem:'section_items'};
   const reloads={product:loadProducts,course:loadCourses,book:loadBooks,project:loadProjects,testimonial:loadTestimonials,section:loadCustomSections,sectionItem:loadSectionItems,articleItem:()=>{loadSectionItems();loadArticles();}};
+  if(document.getElementById('m-workshopId'))data.workshopId=g('m-workshopId');
+  const afterMsg=document.getElementById('m-afterMsg')?g('m-afterMsg').trim().slice(0,2000):null;
   const ref=id?doc(db,colMap[type],id):doc(collection(db,colMap[type]));
   if(!id)data.createdAt=serverTimestamp();
   try{
@@ -1709,6 +1725,7 @@ window.saveModal=async()=>{
       await setDoc(ref,data,{merge:true});
       if('fileUrl' in data)await deleteDoc(doc(db,'private_files',colMap[type]+'__'+ref.id));
     }
+    if(afterMsg!==null&&!isFreeItem(data))await setDoc(doc(db,'private_files',colMap[type]+'__'+ref.id),{message:afterMsg,col:colMap[type],title:data.title||'',updatedAt:serverTimestamp()},{merge:true});
   }catch(e){console.error(e);toast('⚠️ فشل الحفظ: '+e.message,'err');return;}
   closeModal(); toast('✅ تم الحفظ!');
   if(reloads[type])reloads[type]();
@@ -1723,12 +1740,13 @@ function fileBadge(d){
 }
 window.fileBadge=fileBadge;
 async function loadPrivateFileUrl(type,id){
-  const col={product:'products',book:'books',project:'projects',sectionItem:'section_items'}[type];
+  const col={product:'products',book:'books',project:'projects',course:'courses',sectionItem:'section_items'}[type];
   if(!col)return;
   try{
     const snap=await getDoc(doc(db,'private_files',col+'__'+id));
     const inp=document.getElementById('m-fileUrl');
     if(snap.exists()&&inp&&!inp.value)inp.value=snap.data().fileUrl||'';
+    const am=document.getElementById('m-afterMsg');if(snap.exists()&&am)am.value=snap.data().message||'';
   }catch(e){console.error(e);}
 }
 window.migratePrivateFiles=async()=>{
@@ -1805,7 +1823,16 @@ window.renderOrders=()=>{
 const METHOD_LBL={togo:'💳 Togo',paysky:'💳 PaySky','crosspay-paypal':'🅿️ PayPal (Crosspay)','manual-whatsapp':'✋ يدوي — واتساب','manual-paypal':'✋ يدوي — PayPal','manual-transfer':'✋ يدوي — تحويل','manual-cash':'✋ يدوي — نقداً','manual-other':'✋ يدوي'};
 
 // ─── الطلب اليدوي ───
-const MO_COLS=[['_courses','courses','🎓'],['_projects','projects','🔧'],['_prods','products','📦'],['_books','books','📚']];
+const MO_COLS=[['_courses','courses','🎓'],['_projects','projects','🔧'],['_prods','products','📦'],['_books','books','📚'],['_allSecItems','section_items','🎟️']];
+// عناصر الأقسام المخصصة (الورش...) — بدون المقالات
+async function moLoadSecItems(){
+  if(window._allSecItems)return;
+  window._allSecItems=[];
+  const art=new Set((window._sections||[]).filter(x=>x.type==='articles').map(x=>x.id));
+  const sn=await getDocs(collection(db,'section_items'));
+  sn.forEach(d=>{const x={id:d.id,...d.data()};if(!art.has(x.sectionId))window._allSecItems.push(x);});
+  moRenderItems();
+}
 window._moSel=new Set();
 function moAllItems(){
   const out=[];
@@ -1813,6 +1840,7 @@ function moAllItems(){
   return out;
 }
 window.moRenderItems=()=>{
+  if(!window._allSecItems)moLoadSecItems();
   const q=(document.getElementById('mo-search')?.value||'').trim().toLowerCase();
   const list=moAllItems().filter(i=>!q||i.title.toLowerCase().includes(q));
   const box=document.getElementById('mo-items');if(!box)return;
@@ -1826,7 +1854,7 @@ window.moCheckUser=()=>{
   const hint=document.getElementById('mo-user-hint');
   if(!e){hint.textContent='';return;}
   const u=(window._users||[]).find(x=>(x.email||'').toLowerCase()===e);
-  hint.innerHTML=u?`<span style="color:var(--ok)">✅ ${escH(u.displayName||'مستخدم مسجّل')}</span>`:'<span style="color:var(--mt)">لم يُعثر عليه بالقائمة — تأكد إنه مسجّل بالموقع</span>';
+  hint.innerHTML=u?`<span style="color:var(--ok)">✅ ${escH(u.displayName||'مستخدم مسجّل')}</span>`:'<span style="color:var(--mt)">بدون حساب — عادي: بيوصله إيميل فيه رابط خاص للتحميل</span>';
 };
 function moFillUsers(){
   const dl=document.getElementById('mo-users');if(!dl)return;
@@ -1838,14 +1866,14 @@ window.createManualOrder=async()=>{
   if(!email){toast('⚠️ أدخل بريد الزبون','err');return;}
   if(!items.length){toast('⚠️ اختر عنصراً واحداً على الأقل','err');return;}
   const amt=document.getElementById('mo-amount').value;
-  const body={email,items,method:document.getElementById('mo-method').value,note:document.getElementById('mo-note').value.trim()};
+  const body={email,items,method:document.getElementById('mo-method').value,note:document.getElementById('mo-note').value.trim(),name:(document.getElementById('mo-name')?.value||'').trim(),mobile:(document.getElementById('mo-mobile')?.value||'').trim()};
   if(amt!=='')body.amountPaid=parseFloat(amt);
   if(!confirm(`تسجيل طلب مدفوع لـ ${email} (${items.length} عنصر)؟\nسيتمكن الزبون من تحميل الملفات فوراً.`))return;
   const btn=document.getElementById('mo-submit');btn.disabled=true;btn.textContent='⏳ جاري التسجيل...';
   try{
     const r=await callFn('adminCreateOrder',body);
-    toast(`✅ تم! الطلب ${r.invoiceId} — الزبون يلاقي ملفاته في "مشترياتي"`);
-    window._moSel.clear();['mo-email','mo-amount','mo-note','mo-search'].forEach(id=>document.getElementById(id).value='');
+    toast(r.guest?`✅ تم! الطلب ${r.invoiceId} — الزبون بدون حساب: وصله إيميل فيه رابط التحميل والرسالة الخاصة`:`✅ تم! الطلب ${r.invoiceId} — الزبون يلاقي ملفاته في "مشترياتي"`);
+    window._moSel.clear();['mo-email','mo-amount','mo-note','mo-search','mo-name','mo-mobile'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('mo-user-hint').textContent='';moRenderItems();loadOrders();
   }catch(e){toast('⚠️ '+e.message,'err');}
   btn.disabled=false;btn.textContent='✅ تسجيل الطلب وفتح التحميل للزبون';

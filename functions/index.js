@@ -95,16 +95,18 @@ async function resolveDownloads(order) {
   if (!items.some((i) => i.col && i.id)) return order.downloadLinks || [];
 
   return Promise.all(items.map(async (item) => {
-    let fileUrl = "";
+    let fileUrl = "", message = "";
     if (item.col && item.id) {
       const priv = await db.collection("private_files").doc(`${item.col}__${item.id}`).get();
       fileUrl = (priv.exists && priv.data().fileUrl) || "";
+      // 🔒 رسالة بعد الدفع (مثل رابط جروب الورشة) — للمشتري فقط
+      message = String((priv.exists && priv.data().message) || "").substring(0, 2000);
       if (!fileUrl) {
         const pub = await db.collection(item.col).doc(item.id).get();
         fileUrl = (pub.exists && pub.data().fileUrl) || "";
       }
     }
-    return { name: item.name, emoji: item.emoji || "📦", fileUrl };
+    return { name: item.name, emoji: item.emoji || "📦", fileUrl, message };
   }));
 }
 
@@ -606,7 +608,7 @@ exports.adminCreateOrder = onRequest(
     const admin = await verifyToken(req);
     if (!(await isAdmin(admin))) { res.status(403).json({ error: "للأدمن فقط" }); return; }
 
-    const { email, items: refs, method, amountPaid, note } = req.body || {};
+    const { email, items: refs, method, amountPaid, note, name, mobile } = req.body || {};
     const cleanEmail = String(email || "").trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
       res.status(400).json({ error: "بريد الزبون غير صحيح" }); return;
@@ -615,13 +617,10 @@ exports.adminCreateOrder = onRequest(
       res.status(400).json({ error: "اختر عنصراً واحداً على الأقل" }); return;
     }
 
-    let buyer;
-    try {
-      buyer = await getAuth().getUserByEmail(cleanEmail);
-    } catch (e) {
-      res.status(404).json({ error: "هذا البريد غير مسجّل بالموقع — اطلب من الزبون يعمل حساب أولاً" });
-      return;
-    }
+    // الزبون بدون حساب ← طلب زائر برابط خاص بيوصله بالإيصال
+    let buyer = null;
+    try { buyer = await getAuth().getUserByEmail(cleanEmail); } catch (e) { buyer = null; }
+    const buyerMobile = String(mobile || "").replace(/\D/g, "").substring(0, 15);
 
     const seen = new Set();
     const items = [];
@@ -653,9 +652,12 @@ exports.adminCreateOrder = onRequest(
 
     await db.collection("orders").doc(invoiceId).set({
       invoiceId,
-      userId:       buyer.uid,
-      userEmail:    buyer.email || cleanEmail,
-      userMobile:   "",
+      userId:       buyer ? buyer.uid : null,
+      guest:        !buyer,
+      accessKey:    crypto.randomBytes(24).toString("hex"),
+      buyerName:    String(name || "").trim().substring(0, 80) || (buyer && buyer.displayName) || cleanEmail.split("@")[0],
+      userEmail:    cleanEmail,
+      userMobile:   buyerMobile,
       items,
       total,
       listTotal,
@@ -669,8 +671,8 @@ exports.adminCreateOrder = onRequest(
       paidAt:       FieldValue.serverTimestamp(),
     });
 
-    logger.info("Manual order created", { invoiceId, by: admin.email, buyer: buyer.email, total });
-    res.status(200).json({ success: true, invoiceId, buyer: buyer.email, items: items.length, total });
+    logger.info("Manual order created", { invoiceId, by: admin.email, buyer: cleanEmail, guest: !buyer, total });
+    res.status(200).json({ success: true, invoiceId, buyer: cleanEmail, guest: !buyer, items: items.length, total });
   }
 );
 
@@ -723,7 +725,8 @@ async function buyerName(email) {
   try { const u = await getAuth().getUserByEmail(email); return u.displayName || email.split("@")[0]; }
   catch { return String(email || "").split("@")[0]; }
 }
-function buildReceipt(o, tpl, name) {
+// extras: [{name, message}] — 🔒 رسائل ما بعد الدفع (مثل رابط جروب الواتساب)
+function buildReceipt(o, tpl, name, extras = []) {
   const total = `$${Number(o.total || 0).toFixed(2)}`;
   const fill = (s) => String(s).replace(/\{name\}/g, name).replace(/\{invoice\}/g, o.invoiceId).replace(/\{total\}/g, total);
   const para = (s) => `<p style="white-space:pre-line">${escMail(fill(s))}</p>`;
@@ -736,10 +739,17 @@ function buildReceipt(o, tpl, name) {
 <table style="width:100%;font-size:14px;border-collapse:collapse;margin:10px 0">${rows}
 <tr><td style="padding:8px 0"><b>الإجمالي</b></td><td style="padding:8px 0;text-align:left" dir="ltr"><b>${total} ${escMail(o.currency || CURRENCY)}</b></td></tr></table>
 ${o.guest ? `<p>📦 مشترياتك جاهزة للتحميل: <a href="${escMail(orderLink(o))}" style="color:#D97706;font-weight:bold">افتح صفحة التحميل</a><br><span style="font-size:13px;color:#64748b">احتفظ بهذا البريد؛ الرابط خاص بك ويمكنك العودة إليه في أي وقت.</span></p>` : `<p>📦 مشترياتك جاهزة الآن في حسابك: <a href="${SITE}/?myorders=1" style="color:#D97706;font-weight:bold">افتح مشترياتي</a></p>`}
+${msgsHtml(extras)}
 ${para(tpl.receiptFooter)}
 <p style="font-size:13px;color:#64748b">↩️ يمكنك طلب الاسترداد خلال 7 أيام حسب <a href="${SITE}/privacy.html#refund" style="color:#D97706">سياسة الاسترداد</a>.</p>`;
-  const text = `${fill(tpl.receiptIntro)}\n\nرقم الطلب: ${o.invoiceId}\nالتاريخ: ${paidAt}\n${(o.items || []).map((i) => `- ${i.name}: $${Number(i.price || 0).toFixed(2)}`).join("\n")}\nالإجمالي: ${total}\nمشترياتك: ${o.guest ? orderLink(o) : SITE + "/?myorders=1"}\n\n${fill(tpl.receiptFooter)}`;
+  const text = `${fill(tpl.receiptIntro)}\n\nرقم الطلب: ${o.invoiceId}\nالتاريخ: ${paidAt}\n${(o.items || []).map((i) => `- ${i.name}: $${Number(i.price || 0).toFixed(2)}`).join("\n")}\nالإجمالي: ${total}${extras.filter((x) => x.message).map((x) => `\n\n🔒 ${x.name}:\n${x.message}`).join("")}\nمشترياتك: ${o.guest ? orderLink(o) : SITE + "/?myorders=1"}\n\n${fill(tpl.receiptFooter)}`;
   return { subject: fill(tpl.receiptSubject).substring(0, 200), title: fill(tpl.receiptTitle), inner, text };
+}
+
+const linkify = (t) => escMail(t).replace(/https?:\/\/[^\s<]+/g, (u) => `<a href="${u}" style="color:#D97706;font-weight:bold;word-break:break-all">${u}</a>`);
+function msgsHtml(extras) {
+  const m = (extras || []).filter((x) => x.message);
+  return m.length ? `<div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:12px 14px;margin:12px 0"><b>🔒 معلومات خاصة بطلبك</b>${m.map((x) => `<p style="margin:8px 0 0;white-space:pre-line"><b>${escMail(x.name)}:</b>\n${linkify(x.message)}</p>`).join("")}</div>` : "";
 }
 
 // 🧪 إيصال تجريبي لإيميل الأدمن — لمعاينة النص المحفوظ
@@ -780,7 +790,8 @@ exports.sendReceipt = onDocumentWritten(
     });
     if (!claimed) return;
     const o = after;
-    const r = buildReceipt(o, await receiptTemplate(), o.buyerName || await buyerName(o.userEmail));
+    const extras = await resolveDownloads(o).catch(() => []);
+    const r = buildReceipt(o, await receiptTemplate(), o.buyerName || await buyerName(o.userEmail), extras);
     try {
       await sendMail(o.userEmail, r.subject, r.title, r.inner, r.text);
       await ref.update({ receiptSentAt: FieldValue.serverTimestamp(), receiptError: FieldValue.delete() });
@@ -860,6 +871,33 @@ exports.grantToolsPro = onDocumentWritten(
     } else if (before?.status === "paid" && ["revoked", "failed"].includes(after.status)) {
       await ref.set({ toolsPro: false, toolsProRevokedAt: FieldValue.serverTimestamp() }, { merge: true });
       logger.info("Tools Pro revoked", { uid: after.userId, invoiceId: after.invoiceId });
+    }
+  }
+);
+
+// ─────────────────────────────────────────────
+// 🎟️ المشتري بينضاف تلقائياً لمسجلي الورشة المربوطة بالعنصر (الحقل workshopId بالعنصر)
+// ─────────────────────────────────────────────
+exports.registerWorkshopBuyer = onDocumentWritten(
+  { document: "orders/{orderId}", region: "us-central1" },
+  async (event) => {
+    const after = event.data?.after?.data();
+    const before = event.data?.before?.data();
+    if (!after || after.status !== "paid" || before?.status === "paid") return;
+    for (const it of after.items || []) {
+      if (!it.col || !it.id) continue;
+      const item = (await db.collection(it.col).doc(it.id).get()).data() || {};
+      const wid = String(item.workshopId || "");
+      if (!/^[A-Za-z0-9_-]{1,64}$/.test(wid)) continue;
+      const ws = (await db.collection("workshops").doc(wid).get()).data();
+      if (!ws) continue;
+      const key = after.userMobile || ("e" + crypto.createHash("sha1").update(String(after.userEmail || after.invoiceId)).digest("hex").slice(0, 14));
+      await db.collection("workshop_registrations").doc(`${wid}__${key}`).set({
+        workshopId: wid, workshopTitle: ws.title || "", name: after.buyerName || String(after.userEmail || "").split("@")[0],
+        phone: after.userMobile || "", email: after.userEmail || "", uid: after.userId || "", country: "", major: "",
+        paid: true, invoiceId: after.invoiceId, amount: Number(after.total) || 0, timestamp: FieldValue.serverTimestamp(),
+      }, { merge: true });
+      logger.info("Workshop buyer registered", { wid, invoiceId: after.invoiceId });
     }
   }
 );

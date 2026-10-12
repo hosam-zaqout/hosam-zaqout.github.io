@@ -978,8 +978,11 @@ window.openMyOrders=async()=>{
       const links=o.downloadLinks||[];
       const rows=(o.items||[]).map((it,i)=>{
         const l=links[i];const url=l&&/^https?:\/\//i.test(l.fileUrl||'')?l.fileUrl:'';
-        const act=o.status!=='paid'?'':url?`<a class="mo-dl" href="${esc(url)}" target="_blank" rel="noopener">📥 تحميل</a>`:'<span class="mo-soon">سنتواصل معك للتفاصيل</span>';
-        return `<div class="mo-item"><span>${esc(it.emoji||'📦')} ${esc(it.name)}</span>${act}</div>`;
+        const msg=o.status==='paid'&&l&&l.message?String(l.message):'';
+        const act=o.status!=='paid'?'':url?`<a class="mo-dl" href="${esc(url)}" target="_blank" rel="noopener">📥 تحميل</a>`:msg?'':'<span class="mo-soon">سنتواصل معك للتفاصيل</span>';
+        // 🔒 رسالة بعد الدفع (مثل رابط جروب الورشة) — الروابط قابلة للضغط
+        const msgHtml=msg?`<div style="flex-basis:100%;margin-top:6px;padding:8px 10px;border-radius:8px;background:rgba(16,185,129,.1);font-size:.82rem;white-space:pre-line;line-height:1.8">🔒 ${esc(msg).replace(/https?:\/\/[^\s<]+/g,u=>`<a href="${u}" target="_blank" rel="noopener" style="color:#10B981;font-weight:700;word-break:break-all">${u}</a>`)}</div>`:'';
+        return `<div class="mo-item" style="flex-wrap:wrap"><span>${esc(it.emoji||'📦')} ${esc(it.name)}</span>${act}${msgHtml}</div>`;
       }).join('');
       return `<div class="mo-order"><div class="mo-head"><span dir="ltr">${esc(o.invoiceId)}</span><span>${dt}</span><span class="mo-st" style="background:${st[1]};color:${st[2]}">${st[0]}</span></div>${rows}</div>`;
     }).join('');
@@ -1565,6 +1568,7 @@ async function loadCustomSections(){
       const isArt=s.type==='articles';
       const secSlug=slug3(s.slug)||autoSlug3(s.name,s.id);
       if(isArt)items.sort((a,b)=>((b.publishedAt||b.createdAt)?.seconds||0)-((a.publishedAt||a.createdAt)?.seconds||0));
+      else items.sort(byOrder); // الورش وغيرها: حسب الأسهم بلوحة التحكم
       const itemsHTML=items.map(i=>{
         const thumb=i.imageUrl?`<img src="${optImg('section_items',i.id,i.imageUrl,1)}" data-orig="${escAttr(i.imageUrl)}" alt="${escAttr(i.title)}" loading="lazy" decoding="async" onerror="imgFb(this)">`:'';
         if(isArt){
@@ -1815,7 +1819,7 @@ function defaultTests(){return emptyPh('كن أول من يشاركنا رأيه
   const b=new URLSearchParams(location.search).get('buy');
   if(b){
     const [bc,bid]=b.split(':');
-    if(!/^(courses|projects|products|books)$/.test(bc)||!bid)return;
+    if(!/^(courses|projects|products|books|section_items)$/.test(bc)||!bid)return;
     for(let i=0;i<40&&!window._authReady;i++)await new Promise(r=>setTimeout(r,100));
     try{await window._authReady;}catch(e){}
     history.replaceState(null,'',location.pathname);

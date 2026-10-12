@@ -243,23 +243,29 @@ function showDownloads(links) {
     name:    esc(l.name),
     emoji:   esc(l.emoji),
     fileUrl: /^https?:\/\//i.test(l.fileUrl || "") ? esc(l.fileUrl) : "",
+    // 🔒 رسالة بعد الدفع (مثل رابط جروب الورشة) — الروابط قابلة للضغط
+    message: esc(l.message).replace(/https?:\/\/[^\s<]+/g, u => `<a href="${u}" target="_blank" rel="noopener" style="color:#10B981;font-weight:700;word-break:break-all">${u}</a>`),
   }));
+  const msgBox = (l) => l.message
+    ? `<div style="flex-basis:100%;margin-top:8px;padding:10px 12px;border-radius:10px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);white-space:pre-line;line-height:1.9;font-size:.9rem;text-align:right">🔒 ${l.message}</div>` : "";
 
   const withFile    = links.filter(l => l.fileUrl);
   const withoutFile = links.filter(l => !l.fileUrl);
 
   let html = withFile.map(l => `
-    <div class="dl-item">
+    <div class="dl-item" style="flex-wrap:wrap">
       <span class="dl-name">${l.emoji || "📦"} ${l.name || ""}</span>
       <a href="${l.fileUrl}" target="_blank" rel="noopener" class="dl-btn">📥 تحميل</a>
+      ${msgBox(l)}
     </div>
   `).join("");
 
   if (withoutFile.length > 0) {
     html += withoutFile.map(l => `
-      <div class="dl-item">
+      <div class="dl-item" style="flex-wrap:wrap">
         <span class="dl-name">${l.emoji || "🎓"} ${l.name || ""}</span>
-        <span class="dl-soon">سيتم التواصل معك قريباً</span>
+        ${l.message ? "" : `<span class="dl-soon">سيتم التواصل معك قريباً</span>`}
+        ${msgBox(l)}
       </div>
     `).join("");
   }

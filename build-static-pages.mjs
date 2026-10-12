@@ -1353,6 +1353,7 @@ async function main() {
     let items = (data.section_items || []).filter((i) => i.sectionId === c.id);
     if (articles) items = items.filter((i) => clean(i.body) || clean(i.desc))
       .sort((a, b) => (isoDate(b.publishedAt || b.createdAt) || "").localeCompare(isoDate(a.publishedAt || a.createdAt) || ""));
+    else items.sort(byOrder); // الورش وغيرها: حسب الأسهم بلوحة التحكم
     groups.push({ sec, items });
   }
   data.groups = groups;
