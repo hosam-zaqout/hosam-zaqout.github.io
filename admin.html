@@ -1131,12 +1131,13 @@ function lyLoad(L){
 }
 function lyArrows(list,i){return `<button class="btn-edit" onclick="lyMove('${list}',${i},-1)">⬆️</button><button class="btn-edit" onclick="lyMove('${list}',${i},1)">⬇️</button>`;}
 function lyRender(){
-  document.getElementById('lyNav').innerHTML=_ly.nav.map((n,i)=>`<div class="irow"><input type="checkbox" ${n.show!==false?'checked':''} onchange="_ly.nav[${i}].show=this.checked" style="accent-color:var(--p)" title="إظهار"><input class="ci" style="width:54px" value="${lyEsc(n.emoji)}" oninput="_ly.nav[${i}].emoji=this.value" title="إيموجي (بقائمة الموبايل)"><input class="ci" value="${lyEsc(n.label)}" oninput="_ly.nav[${i}].label=this.value" placeholder="النص"><input class="ci" dir="ltr" value="${lyEsc(n.href)}" oninput="_ly.nav[${i}].href=this.value" placeholder="/courses/"><div class="iacts">${lyArrows('nav',i)}<button class="btn-del" onclick="_ly.nav.splice(${i},1);lyRender()">🗑️</button></div></div>`).join('');
-  document.getElementById('lyBlocks').innerHTML=_ly.blocks.map((b,i)=>`<div class="irow"><input type="checkbox" ${b.show!==false?'checked':''} onchange="_ly.blocks[${i}].show=this.checked" style="accent-color:var(--p)" title="إظهار"><div class="iinfo"><div class="ititle">${i+1}. ${LY_BLOCKS[b.k]}</div></div><div class="iacts">${lyArrows('blocks',i)}</div></div>`).join('');
+  document.getElementById('lyNav').innerHTML=_ly.nav.map((n,i)=>`<div class="irow"><input type="checkbox" ${n.show!==false?'checked':''} onchange="_ly.nav[${i}].show=this.checked;lySaveSoon()" style="accent-color:var(--p)" title="إظهار"><input class="ci" style="width:54px" value="${lyEsc(n.emoji)}" oninput="_ly.nav[${i}].emoji=this.value" onchange="lySaveSoon()" title="إيموجي (بقائمة الموبايل)"><input class="ci" value="${lyEsc(n.label)}" oninput="_ly.nav[${i}].label=this.value" onchange="lySaveSoon()" placeholder="النص"><input class="ci" dir="ltr" value="${lyEsc(n.href)}" oninput="_ly.nav[${i}].href=this.value" onchange="lySaveSoon()" placeholder="/courses/"><div class="iacts">${lyArrows('nav',i)}<button class="btn-del" onclick="_ly.nav.splice(${i},1);lyRender();lySaveSoon()">🗑️</button></div></div>`).join('');
+  document.getElementById('lyBlocks').innerHTML=_ly.blocks.map((b,i)=>`<div class="irow"><input type="checkbox" ${b.show!==false?'checked':''} onchange="_ly.blocks[${i}].show=this.checked;lySaveSoon()" style="accent-color:var(--p)" title="إظهار"><div class="iinfo"><div class="ititle">${i+1}. ${LY_BLOCKS[b.k]}</div></div><div class="iacts">${lyArrows('blocks',i)}</div></div>`).join('');
 }
-window.lyMove=(list,i,d)=>{const a=list==='nav'?_ly.nav:_ly.blocks;const j=i+d;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];lyRender();};
+let _lyT=null;window.lySaveSoon=()=>{clearTimeout(_lyT);_lyT=setTimeout(()=>window.saveSec('layout'),700);};
+window.lyMove=(list,i,d)=>{const a=list==='nav'?_ly.nav:_ly.blocks;const j=i+d;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];lyRender();lySaveSoon();};
 window.lyAddNav=()=>{_ly.nav.push({label:'',href:'/',emoji:'',show:true});lyRender();};
-window.lyReset=()=>{if(confirm('ترجع للترتيب الافتراضي؟ (لازم تضغط حفظ بعدها)'))lyLoad({});};
+window.lyReset=()=>{if(confirm('ترجع للترتيب الافتراضي؟ (بينحفظ فوراً)')){lyLoad({});lySaveSoon();}};
 lyLoad({});
 
 // 👷 الفريق — site_config/team {intro, members[]}. سكربت البناء (mergeTeam) والرئيسية (loadTeam) بيقروا منه
@@ -1285,7 +1286,7 @@ window.saveSec=async(sec)=>{
   await setDoc(doc(db,'site_config','main'),data,{merge:true});
   toast('✅ تم حفظ '+({hero:'Hero',social:'الروابط',brand:'الهوية',layout:'الترتيب',design:'الألوان',siteConfig:'الإعدادات',payment:'إعدادات الدفع',seo:'إعدادات SEO'}[sec]||sec));
 };
-window.saveAllSections=async()=>{await Promise.all(['hero','social','brand','design','siteConfig','payment','seo'].map(s=>window.saveSec(s)));toast('✅ تم حفظ الكل!');};
+window.saveAllSections=async()=>{await Promise.all(['hero','social','brand','design','siteConfig','payment','seo','layout'].map(s=>window.saveSec(s)));toast('✅ تم حفظ الكل!');};
 
 // 🔗 رابط صفحة العنصر — نفس منطق build-static-pages.mjs (slugify)
 function itemSlug(it){const c=String(it.slug||'').toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/^-+|-+$/g,'');if(c)return c;const w=(String(it.title||'').toLowerCase().match(/[a-z0-9]+/g)||[]).slice(0,5);return w.length?w.join('-')+'-'+it.id.slice(0,6).toLowerCase():it.id.toLowerCase();}
