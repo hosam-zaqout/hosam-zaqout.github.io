@@ -27,7 +27,7 @@ body{font-family:'Cairo',sans-serif;background:var(--dk);color:var(--tx);min-hei
 .fg input[readonly]{opacity:.7;}
 .fg select option{background:var(--d2);}
 .phone-row{display:flex;gap:8px;direction:ltr;}
-.phone-row select{width:120px;flex-shrink:0;}
+.phone-row select{width:170px;flex-shrink:0;}
 .hint{font-size:.72rem;color:var(--mt);margin-top:5px;}
 .hint a{color:var(--p);font-weight:700;text-decoration:none;}
 .btn-main{width:100%;padding:14px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--p),var(--pd));color:var(--dk);font-family:'Cairo',sans-serif;font-size:.97rem;font-weight:900;cursor:pointer;transition:all .25s;margin-top:4px;}
@@ -49,6 +49,17 @@ body{font-family:'Cairo',sans-serif;background:var(--dk);color:var(--tx);min-hei
 @media(max-width:480px){.card{padding:26px 18px;}}
 </style>
 <script src="/assets/visit.js" defer></script>
+<script src="/assets/countries.js?v=1"></script>
+<script>
+// كل الدول من assets/countries.js — العربية أولاً، و"أخرى" بالآخر
+document.addEventListener('DOMContentLoaded',()=>{
+  const s=document.getElementById('r-cc');if(!s||!window.COUNTRIES3)return;
+  const flag=iso=>iso.replace(/./g,c=>String.fromCodePoint(127397+c.charCodeAt(0)));
+  s.innerHTML=window.COUNTRIES3.map(([iso,dial,ar])=>'<option value="'+dial+'" data-ar="'+ar+'">'+(iso==='IL'?'🇵🇸':flag(iso))+' '+ar+' +'+dial+'</option>').join('')+'<option value="">🌍 دولة أخرى (اكتب الرقم مع رمز الدولة +)</option>';
+  // اختيار الدولة بيعبّي خانة الدولة لو فاضية
+  s.addEventListener('change',()=>{const c=document.getElementById('r-country'),o=s.selectedOptions[0];if(c&&o&&o.dataset.ar&&!c.value)c.value=o.dataset.ar.replace(/ \(972\)$/,'');});
+});
+</script>
 </head>
 <body>
 <div class="bg"></div>
@@ -68,18 +79,7 @@ body{font-family:'Cairo',sans-serif;background:var(--dk);color:var(--tx);min-hei
     <div class="fg"><label>الاسم الكامل *</label><input id="r-name" maxlength="100" placeholder="الاسم الثلاثي" autocomplete="name"></div>
     <div class="fg"><label>رقم الواتساب *</label>
       <div class="phone-row">
-        <select id="r-cc">
-          <option value="970">🇵🇸 +970</option>
-          <option value="972">+972</option>
-          <option value="962">🇯🇴 +962</option>
-          <option value="20">🇪🇬 +20</option>
-          <option value="966">🇸🇦 +966</option>
-          <option value="971">🇦🇪 +971</option>
-          <option value="974">🇶🇦 +974</option>
-          <option value="965">🇰🇼 +965</option>
-          <option value="90">🇹🇷 +90</option>
-          <option value="">أخرى (اكتب الرقم مع رمز الدولة +)</option>
-        </select>
+        <select id="r-cc"><option value="970">🇵🇸 +970</option><option value="">أخرى (اكتب الرقم مع رمز الدولة +)</option></select>
         <input id="r-phone" type="tel" inputmode="tel" maxlength="20" placeholder="0599123456" dir="ltr" autocomplete="tel">
       </div>
     </div>

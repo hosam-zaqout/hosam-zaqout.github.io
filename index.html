@@ -1149,7 +1149,8 @@ window.payOnline = async function(provider) {
 function countryOptions(){
   const L=window.COUNTRIES3||[['PS','970','فلسطين']];
   const flag=iso=>iso.replace(/./g,c=>String.fromCodePoint(127397+c.charCodeAt(0)));
-  return L.map(([iso,dial,ar])=>`<option value="${iso}" data-dial="${dial}"${iso==='PS'?' selected':''}>${iso==='IL'?'🇵🇸':flag(iso)} ${ar} +${dial}</option>`).join('');
+  return L.map(([iso,dial,ar])=>`<option value="${iso}" data-dial="${dial}"${iso==='PS'?' selected':''}>${iso==='IL'?'🇵🇸':flag(iso)} ${ar} +${dial}</option>`).join('')
+    +'<option value="XX" data-dial="">🌍 دولة أخرى / مقدمة أخرى</option>';
 }
 function showPhoneModal(total) {
   // أنشئ المودال إذا ما كان موجوداً
@@ -1169,12 +1170,13 @@ function showPhoneModal(total) {
         <div style="margin-bottom:8px;">
           <label style="display:block;font-size:.76rem;font-weight:700;color:var(--mt);margin-bottom:6px;">رقم الجوال (بالمقدمة الدولية)</label>
           <div style="display:flex;gap:8px;">
-            <select id="phoneCountryCode" title="الدولة" style="width:150px;flex-shrink:0;padding:11px 6px;background:rgba(15,23,42,.7);border:1px solid var(--b2);border-radius:8px;color:var(--tx);font-family:'Cairo',sans-serif;font-size:.8rem;outline:none;">${countryOptions()}</select>
+            <select id="phoneCountryCode" title="الدولة" style="width:150px;flex-shrink:0;padding:11px 6px;background:rgba(15,23,42,.7);border:1px solid var(--b2);border-radius:8px;color:var(--tx);font-family:'Cairo',sans-serif;font-size:.8rem;outline:none;" onchange="document.getElementById('otherDialWrap').style.display=this.value==='XX'?'flex':'none'">${countryOptions()}</select>
             <input id="phoneNumber" type="tel" placeholder="592753159" dir="ltr"
               style="flex:1;padding:11px 13px;background:rgba(15,23,42,.7);border:1px solid var(--b2);border-radius:8px;color:var(--tx);font-family:'Cairo',sans-serif;font-size:.86rem;outline:none;"
               onkeypress="if(event.key==='Enter')window.confirmPhoneAndPay()">
           </div>
-          <p style="font-size:.72rem;color:var(--mt);margin-top:6px;">اختر دولتك ثم اكتب الرقم بدون 0 في البداية (مثال: 592753159)</p>
+          <div id="otherDialWrap" style="display:none;align-items:center;gap:6px;margin-top:8px;direction:ltr"><span style="color:var(--mt);font-weight:700">+</span><input id="otherDial" type="tel" inputmode="numeric" maxlength="4" placeholder="مقدمة الدولة" style="width:130px;padding:9px 11px;background:rgba(15,23,42,.7);border:1px solid var(--b2);border-radius:8px;color:var(--tx);font-family:'Cairo',sans-serif;font-size:.84rem;outline:none;"></div>
+          <p style="font-size:.72rem;color:var(--mt);margin-top:6px;">اختر دولتك (أو "دولة أخرى" واكتب مقدمتها) ثم اكتب الرقم بدون 0 في البداية (مثال: 592753159)</p>
         </div>
         <div id="guestFields">
           <div style="margin-bottom:8px;">
@@ -1221,7 +1223,9 @@ function showPhoneModal(total) {
 
 window.confirmPhoneAndPay = async function() {
   const sel    = document.getElementById('phoneCountryCode');
-  const code   = sel?.selectedOptions?.[0]?.dataset.dial || '970';
+  const other  = sel?.value === 'XX' ? (document.getElementById('otherDial')?.value || '').replace(/\D/g, '') : '';
+  if (sel?.value === 'XX' && !/^[1-9]\d{0,3}$/.test(other)) { toast('⚠️ اكتب مقدمة دولتك (أرقام فقط، مثل 49)','err'); document.getElementById('otherDial')?.focus(); return; }
+  const code   = other || sel?.selectedOptions?.[0]?.dataset.dial || '970';
   window._payCountry = sel?.value || 'PS';
   const number = document.getElementById('phoneNumber')?.value.trim() || '';
 
