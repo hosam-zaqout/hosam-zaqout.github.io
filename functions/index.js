@@ -218,23 +218,26 @@ async function syncTogoOrder(orderRef, order) {
   return { ...order, ...update, status };
 }
 
-const COUNTRIES = {
-  "970": ["PS", "Palestine"], "972": ["PS", "Palestine"], "962": ["JO", "Jordan"], "966": ["SA", "Saudi Arabia"],
-  "20": ["EG", "Egypt"], "971": ["AE", "United Arab Emirates"], "974": ["QA", "Qatar"], "965": ["KW", "Kuwait"],
-  "90": ["TR", "Turkey"], "1": ["US", "United States"], "44": ["GB", "United Kingdom"], "49": ["DE", "Germany"],
-};
-function countryOf(mobile) {
-  for (const len of [3, 2, 1]) { const c = COUNTRIES[mobile.slice(0, len)]; if (c) return c; }
-  return ["PS", "Palestine"];
+// كل الدول (functions/countries.js). المتصفح بيبعت رمز الدولة (ISO)، وإلا بنستنتجها من مقدمة الرقم
+const { LIST: COUNTRY_LIST, BY_ISO } = require("./countries");
+function countryOf(mobile, iso) {
+  let c = BY_ISO[String(iso || "").toUpperCase()];
+  if (!c || !mobile.startsWith(c.dial)) {
+    c = null;
+    for (const len of [4, 3, 2, 1]) { c = COUNTRY_LIST.find((x) => x.dial === mobile.slice(0, len)); if (c) break; }
+  }
+  if (!c) return ["PS", "Palestine"];
+  // 972 من غزة والضفة والداخل ← فلسطين عند بوابة الدفع
+  return c.iso === "IL" ? ["PS", "Palestine"] : [c.iso, c.en];
 }
 
 // عنوان المستلم عند Togo — بنعيد استخدامه لنفس الرقم
-async function togoReceiver(user, mobile, name, city) {
+async function togoReceiver(user, mobile, name, city, iso) {
   // المسجّل: بنخزّن بحسابه. الزائر: togo_receivers/{mobile} (السيرفر بس)
   const userRef = user ? db.collection("users").doc(user.uid) : db.collection("togo_receivers").doc(mobile);
   const cached = (await userRef.get()).data()?.togoReceivers?.[mobile];
   if (cached) return cached;
-  const [code, country] = countryOf(mobile);
+  const [code, country] = countryOf(mobile, iso);
   const json = await togo("POST", "/receivers-addresses", {
     receiver_name: name,
     receiver_phone_number: "+" + mobile,
@@ -322,7 +325,7 @@ exports.createPayment = onRequest(
 
     let togoOrderId, hashedId, created;
     try {
-      const receiverId = await togoReceiver(user, mobile, customerName, city);
+      const receiverId = await togoReceiver(user, mobile, customerName, city, String(q.country || "").substring(0, 2));
       created = await togo("POST", "/actions", {
         event: "Create_Visa",
         data: {

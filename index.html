@@ -95,6 +95,7 @@
 
 
 <script src="/assets/md.js?v=3" defer></script>
+<script src="/assets/countries.js?v=1" defer></script>
 
 <!-- Theme Loader (instant, no flash) -->
 <script>
@@ -1144,6 +1145,12 @@ window.payOnline = async function(provider) {
   showPhoneModal(total);
 };
 
+// كل الدول (assets/countries.js) — العربية أولاً، والقيمة رمز الدولة ISO
+function countryOptions(){
+  const L=window.COUNTRIES3||[['PS','970','فلسطين']];
+  const flag=iso=>iso.replace(/./g,c=>String.fromCodePoint(127397+c.charCodeAt(0)));
+  return L.map(([iso,dial,ar])=>`<option value="${iso}" data-dial="${dial}"${iso==='PS'?' selected':''}>${iso==='IL'?'🇵🇸':flag(iso)} ${ar} +${dial}</option>`).join('');
+}
 function showPhoneModal(total) {
   // أنشئ المودال إذا ما كان موجوداً
   let modal = document.getElementById('phonePayModal');
@@ -1162,21 +1169,12 @@ function showPhoneModal(total) {
         <div style="margin-bottom:8px;">
           <label style="display:block;font-size:.76rem;font-weight:700;color:var(--mt);margin-bottom:6px;">رقم الجوال (بالمقدمة الدولية)</label>
           <div style="display:flex;gap:8px;">
-            <select id="phoneCountryCode" style="width:110px;padding:11px 8px;background:rgba(15,23,42,.7);border:1px solid var(--b2);border-radius:8px;color:var(--tx);font-family:'Cairo',sans-serif;font-size:.84rem;outline:none;flex-shrink:0;">
-              <option value="970">🇵🇸 970</option>
-              <option value="972">🇮🇱 972</option>
-              <option value="962">🇯🇴 962</option>
-              <option value="966">🇸🇦 966</option>
-              <option value="20">🇪🇬 20</option>
-              <option value="971">🇦🇪 971</option>
-              <option value="1">🇺🇸 1</option>
-              <option value="44">🇬🇧 44</option>
-            </select>
+            <select id="phoneCountryCode" title="الدولة" style="width:150px;flex-shrink:0;padding:11px 6px;background:rgba(15,23,42,.7);border:1px solid var(--b2);border-radius:8px;color:var(--tx);font-family:'Cairo',sans-serif;font-size:.8rem;outline:none;">${countryOptions()}</select>
             <input id="phoneNumber" type="tel" placeholder="592753159" dir="ltr"
               style="flex:1;padding:11px 13px;background:rgba(15,23,42,.7);border:1px solid var(--b2);border-radius:8px;color:var(--tx);font-family:'Cairo',sans-serif;font-size:.86rem;outline:none;"
               onkeypress="if(event.key==='Enter')window.confirmPhoneAndPay()">
           </div>
-          <p style="font-size:.72rem;color:var(--mt);margin-top:6px;">مثال: 592753159 (بدون 0 في البداية، وبدون + أو 00)</p>
+          <p style="font-size:.72rem;color:var(--mt);margin-top:6px;">اختر دولتك ثم اكتب الرقم بدون 0 في البداية (مثال: 592753159)</p>
         </div>
         <div id="guestFields">
           <div style="margin-bottom:8px;">
@@ -1190,7 +1188,7 @@ function showPhoneModal(total) {
         </div>
         <div style="margin-bottom:8px;">
           <label style="display:block;font-size:.76rem;font-weight:700;color:var(--mt);margin-bottom:6px;">المدينة</label>
-          <input id="payCity" type="text" placeholder="غزة" value="غزة" style="width:100%;padding:11px 13px;background:rgba(15,23,42,.7);border:1px solid var(--b2);border-radius:8px;color:var(--tx);font-family:'Cairo',sans-serif;font-size:.86rem;outline:none;">
+          <input id="payCity" type="text" placeholder="مدينتك" value="" style="width:100%;padding:11px 13px;background:rgba(15,23,42,.7);border:1px solid var(--b2);border-radius:8px;color:var(--tx);font-family:'Cairo',sans-serif;font-size:.86rem;outline:none;">
         </div>
 
         <div id="phoneTotalRow" style="display:flex;justify-content:space-between;padding:12px 0;border-top:1px solid var(--br);margin-bottom:16px;font-weight:800;">
@@ -1222,7 +1220,9 @@ function showPhoneModal(total) {
 }
 
 window.confirmPhoneAndPay = async function() {
-  const code   = document.getElementById('phoneCountryCode')?.value || '970';
+  const sel    = document.getElementById('phoneCountryCode');
+  const code   = sel?.selectedOptions?.[0]?.dataset.dial || '970';
+  window._payCountry = sel?.value || 'PS';
   const number = document.getElementById('phoneNumber')?.value.trim() || '';
 
   if (!number || number.length < 7) {
@@ -1279,6 +1279,7 @@ async function processPayment(mobile, provider) {
       mobile:   mobile,
       name:     customerName,
       email:    guestEmail,
+      country:  window._payCountry || '',
       city:     (document.getElementById('payCity')?.value || '').trim().slice(0, 60),
       provider: provider,
     };
