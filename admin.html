@@ -357,7 +357,7 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
         <p style="font-size:.8rem;color:var(--mt);margin-bottom:12px">قارن الطلبات المدفوعة مع لوحة Crosspay. "بانتظار الموافقة" يظهر فقط إذا فعّلت المراجعة اليدوية من إعدادات الدفع.</p>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
           <select class="cs" id="oFilter" style="width:200px" onchange="renderOrders()">
-            <option value="">كل الحالات</option><option value="awaiting_approval">⏳ بانتظار الموافقة</option><option value="paid">✅ مدفوع</option><option value="pending">🕓 لم يكتمل</option><option value="failed">❌ فشل</option><option value="revoked">🚫 ملغى</option>
+            <option value="">كل الحالات</option><option value="awaiting_approval">⏳ بانتظار الموافقة</option><option value="paid">✅ مدفوع</option><option value="pending">🕓 فتح صفحة الدفع ولم يكمل</option><option value="started">🛒 بدأ ولم يصل للدفع</option><option value="gateway_error">⚠️ خطأ ببوابة الدفع</option><option value="failed">❌ فشل</option><option value="revoked">🚫 ملغى</option>
           </select>
           <button class="btn-sm" onclick="loadOrders()">🔄 تحديث</button>
         </div>
@@ -1779,7 +1779,7 @@ async function callFn(name,body){
   if(!res.ok)throw new Error(data.error||'HTTP '+res.status);
   return data;
 }
-const O_STATUS={paid:['✅ مدفوع','var(--ok)'],awaiting_approval:['⏳ بانتظار الموافقة','var(--p)'],pending:['🕓 لم يكتمل','var(--mt)'],failed:['❌ فشل','var(--er)'],revoked:['🚫 ملغى','var(--er)']};
+const O_STATUS={paid:['✅ مدفوع','var(--ok)'],awaiting_approval:['⏳ بانتظار الموافقة','var(--p)'],pending:['🕓 فتح صفحة الدفع ولم يكمل','var(--mt)'],started:['🛒 بدأ ولم يصل للدفع','var(--ac)'],gateway_error:['⚠️ خطأ ببوابة الدفع','var(--er)'],failed:['❌ فشل','var(--er)'],revoked:['🚫 ملغى','var(--er)']};
 function escH(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 window._orders=[];
 window.moFillUsers=moFillUsers;
@@ -1809,11 +1809,18 @@ window.renderOrders=()=>{
     const st=O_STATUS[o.status]||[o.status,'var(--mt)'];
     const dt=o.createdAt?new Date(o.createdAt).toLocaleString('ar'):'—';
     const acts=[];
-    if(o.method==='togo'&&(o.status==='pending'||o.status==='failed'))acts.push(`<button class="btn-edit" style="font-size:.72rem" onclick="orderAction('${escH(o.invoiceId)}','recheck')" title="اسأل Togo عن حالة الدفع">🔄 تحقق</button>`);
+    if(o.method==='togo'&&o.togo!==false&&(o.status==='pending'||o.status==='failed'))acts.push(`<button class="btn-edit" style="font-size:.72rem" onclick="orderAction('${escH(o.invoiceId)}','recheck')" title="اسأل Togo عن حالة الدفع">🔄 تحقق</button>`);
     if(o.status!=='paid')acts.push(`<button class="btn-edit" style="font-size:.72rem" onclick="orderAction('${escH(o.invoiceId)}','approve')">✅ موافقة</button>`);
     if(o.status==='paid'||o.status==='awaiting_approval')acts.push(`<button class="btn-del" style="font-size:.72rem" onclick="orderAction('${escH(o.invoiceId)}','revoke')">🚫 إلغاء</button>`);
     return `<tr><td dir="ltr" style="font-size:.7rem">${escH(o.invoiceId)}${o.transactionId?'<br><span style="color:var(--mt)">tx: '+escH(o.transactionId)+'</span>':''}</td>
-      <td dir="ltr" style="font-size:.74rem">${escH(o.userEmail)}<br><span style="color:var(--mt)">${escH(o.userMobile)}</span>${o.method?'<br><span style="color:var(--ac)">'+escH(METHOD_LBL[o.method]||o.method)+'</span>':''}${o.note?'<br><span style="color:var(--mt)" dir="rtl">📝 '+escH(o.note)+'</span>':''}</td>
+      <td style="font-size:.76rem;line-height:1.7">${o.buyerName?'<b>'+escH(o.buyerName)+'</b>'+(o.guest?' <span style="color:var(--mt);font-size:.68rem">(بدون حساب)</span>':'')+'<br>':''}
+        ${o.userMobile?`<a href="https://wa.me/${escH(o.userMobile)}" target="_blank" rel="noopener" style="color:#25D366;font-weight:700;text-decoration:none" dir="ltr">💬 +${escH(o.userMobile)}</a> <button class="btn-edit" style="font-size:.62rem;padding:1px 6px" onclick="navigator.clipboard.writeText('+${escH(o.userMobile)}');toast('📋 تم نسخ الرقم')">📋</button><br>`:''}
+        <span dir="ltr">${escH(o.userEmail)}</span>
+        ${o.countryName||o.city?'<br><span style="color:var(--mt)">📍 '+escH([o.countryName,o.city].filter(Boolean).join(' — '))+'</span>':''}
+        ${o.method?'<br><span style="color:var(--ac)">'+escH(METHOD_LBL[o.method]||o.method)+'</span>':''}
+        ${o.sourcePage?'<br><a href="'+escH(o.sourcePage)+'" target="_blank" rel="noopener" style="color:var(--mt);font-size:.68rem;word-break:break-all">🔗 '+escH(o.sourcePage.replace(/^https?:\/\/(www\.)?3engs\.com/,'').slice(0,60)||'/')+'</a>':''}
+        ${o.receiptSentAt?'<br><span style="color:var(--ok);font-size:.68rem">📧 وصله الإيصال</span>':''}
+        ${o.note?'<br><span style="color:var(--mt)">📝 '+escH(o.note)+'</span>':''}</td>
       <td style="font-size:.76rem">${(o.items||[]).map(i=>escH((i.emoji||'')+' '+i.name)).join('<br>')}</td>
       <td style="font-weight:800">$${Number(o.total||0).toFixed(2)}</td>
       <td style="color:${st[1]};font-size:.78rem;font-weight:700">${st[0]}</td>

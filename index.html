@@ -1284,6 +1284,7 @@ async function processPayment(mobile, provider) {
       name:     customerName,
       email:    guestEmail,
       country:  window._payCountry || '',
+      source:   location.href.split('#')[0],
       city:     (document.getElementById('payCity')?.value || '').trim().slice(0, 60),
       provider: provider,
     };

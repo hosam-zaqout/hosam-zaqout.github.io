@@ -359,6 +359,7 @@ function layout({ title, description, canonical, image, schemas, body, ogType = 
 <style>${CSS.replace(/\s*\n\s*/g, "").replace(/\s*([{}:;,])\s*/g, "$1").replace(/;}/g, "}")}</style>
 ${schemas.map(jsonLd).join("\n")}
 <!-- Google Analytics -->
+<script src="/assets/countries.js?v=1" defer></script><script src="/assets/checkout.js?v=1" defer></script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-GZJCYL5YM8"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-GZJCYL5YM8');</script>
 <script src="/assets/visit.js" defer></script>
@@ -841,7 +842,7 @@ ${bc.html}
     <div class="price">${!free ? `<b>$${price}</b>` : `<b>مجاني</b>`}${!free && oldPrice && oldPrice > price ? `<s>$${oldPrice}</s><span class="off">وفّر ${off}%</span>` : ""}</div>
     <div class="cta">
       ${!free
-        ? `<a class="btn main" href="/?buy=${sec.col}:${item.id}" rel="nofollow">🛒 اشترِ الآن</a>`
+        ? `<a class="btn main" href="/?buy=${sec.col}:${item.id}" rel="nofollow" data-buy="${sec.col}:${item.id}" data-name="${esc(title)}" data-price="${price}" data-emoji="${esc(item.emoji || "🛒")}">🛒 اشترِ الآن</a>`
         : item.fileUrl
           ? `<a class="btn main" href="${esc(item.fileUrl)}" target="_blank" rel="nofollow noopener">📥 تحميل مجاني</a>`
           : `<a class="btn main" href="/?open=${sec.col}:${item.id}">📥 احصل عليه مجاناً</a>`}

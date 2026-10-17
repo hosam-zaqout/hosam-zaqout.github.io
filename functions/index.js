@@ -14,6 +14,7 @@ const db = getFirestore();
 // مفتاح بوابة Togo — محفوظ في Secret Manager:
 //   firebase functions:secrets:set TOGO_API_KEY --project engs-website
 const TOGO_API_KEY = defineSecret("TOGO_API_KEY");
+const SMTP_PASS = defineSecret("SMTP_PASS");
 const TOGO_BASE    = "https://api.togo.ps/api/v1";
 
 const CURRENCY    = "USD";
@@ -260,7 +261,7 @@ async function togoReceiver(user, mobile, name, city, iso) {
 // الأسعار تُقرأ من Firestore — لا نثق بأي سعر من المتصفح
 // ─────────────────────────────────────────────
 exports.createPayment = onRequest(
-  { secrets: [TOGO_API_KEY], region: "us-central1" },
+  { secrets: [TOGO_API_KEY, SMTP_PASS], region: "us-central1" },
   async (req, res) => {
     if (req.method === "OPTIONS") { setCORS(req, res); res.status(204).send(""); return; }
     if (req.method !== "POST") { errorPage(res, 405, "طريقة الطلب غير مسموحة"); return; }
@@ -323,6 +324,33 @@ exports.createPayment = onRequest(
       Math.random().toString(36).substring(2, 11).toUpperCase();
     const back = orderLink({ invoiceId, accessKey });
 
+    // 📝 كل محاولة دفع بتنحفظ فوراً (status: started) بكل بيانات الزبون — حتى لو ما كمّل أو فشلت البوابة
+    const iso = String(q.country || "").toUpperCase().substring(0, 2);
+    const [ccIso, ccName] = countryOf(mobile, iso);
+    const orderRef = db.collection("orders").doc(invoiceId);
+    const attempt = {
+      invoiceId,
+      userId:        user ? user.uid : null,
+      guest:         !user,
+      accessKey,
+      buyerName:     customerName,
+      userEmail:     email,
+      userMobile:    mobile,
+      city,
+      country:       ccIso,
+      countryName:   iso === "XX" ? "أخرى" : ccName,
+      sourcePage:    String(q.source || req.headers.referer || "").substring(0, 300),
+      items,
+      total,
+      currency:      CURRENCY,
+      status:        "started",
+      method:        "togo",
+      createdAt:     FieldValue.serverTimestamp(),
+    };
+    await orderRef.set(attempt);
+    // 🔔 تنبيه للأدمن (ما بيأخّر الزبون أكثر من 4 ثواني)
+    await Promise.race([notifyAttempt({ ...attempt, createdAt: new Date() }), new Promise((r) => setTimeout(r, 4000))]).catch(() => {});
+
     let togoOrderId, hashedId, created;
     try {
       const receiverId = await togoReceiver(user, mobile, customerName, city, String(q.country || "").substring(0, 2));
@@ -346,32 +374,23 @@ exports.createPayment = onRequest(
       hashedId = pick(d, ["hashed_id", "hashedId", "hash_id", "order.hashed_id", "hash"]);
     } catch (e) {
       logger.error("Togo create failed", { invoiceId, msg: e.message, body: e.body && clip(e.body) });
-      errorPage(res, 502, "تعذر الاتصال ببوابة الدفع حالياً. حاول بعد قليل أو تواصل معنا عبر واتساب.");
+      await orderRef.update({ status: "gateway_error", note: ("بوابة الدفع: " + (e.message || "")).substring(0, 300) }).catch(() => {});
+      errorPage(res, 502, "تعذر الاتصال ببوابة الدفع حالياً. حاول بعد قليل أو تواصل معنا عبر واتساب مع رقم الطلب: " + invoiceId);
       return;
     }
     if (!hashedId || !togoOrderId) {
       logger.error("Togo create: missing ids", { invoiceId, body: clip(created) });
+      await orderRef.update({ status: "gateway_error", note: "بوابة الدفع: رد بدون رقم طلب", togoCreate: clip(created) }).catch(() => {});
       errorPage(res, 502, "تعذر تجهيز صفحة الدفع. تواصل معنا عبر واتساب مع رقم الطلب: " + invoiceId);
       return;
     }
 
-    await db.collection("orders").doc(invoiceId).set({
-      invoiceId,
-      userId:        user ? user.uid : null,
-      guest:         !user,
-      accessKey,
-      buyerName:     customerName,
-      userEmail:     email,
-      userMobile:    mobile,
-      items,
-      total,
-      currency:      CURRENCY,
+    // وصل لبوابة الدفع ← pending لحد ما Togo يأكد
+    await orderRef.update({
       status:        "pending",
-      method:        "togo",
       togoOrderId:   String(togoOrderId),
       togoHashedId:  String(hashedId),
       togoCreate:    clip(created.data || created),
-      createdAt:     FieldValue.serverTimestamp(),
     });
 
     logger.info("Order created (Togo)", { invoiceId, total, togoOrderId });
@@ -532,7 +551,7 @@ exports.getUserOrders = onRequest(
       own = [...own, ...g.docs.filter((d) => d.data().guest === true && !ids.has(d.id))];
     }
     const docs = admin ? snap.docs : [...own]
-      .filter((d) => d.data().status !== "pending")
+      .filter((d) => ["paid", "awaiting_approval", "failed", "revoked"].includes(d.data().status))
       .sort((a, b) => (b.data().createdAt?.toMillis?.() || 0) - (a.data().createdAt?.toMillis?.() || 0));
     const orders = await Promise.all(docs.map(async (doc) => {
       const o = doc.data();
@@ -541,6 +560,13 @@ exports.getUserOrders = onRequest(
           ...publicOrder(o, []),
           userEmail:     o.userEmail || "",
           userMobile:    o.userMobile || "",
+          buyerName:     o.buyerName || "",
+          city:          o.city || "",
+          country:       o.country || "",
+          countryName:   o.countryName || "",
+          sourcePage:    o.sourcePage || "",
+          guest:         !!o.guest,
+          receiptSentAt: o.receiptSentAt?.toMillis?.() || null,
           method:        o.method || "",
           transactionId: o.transactionId || "",
           verification:  o.verification || "",
@@ -685,7 +711,6 @@ exports.adminCreateOrder = onRequest(
 //   firebase functions:secrets:set SMTP_PASS --project engs-website
 // ─────────────────────────────────────────────
 const { onDocumentWritten } = require("firebase-functions/v2/firestore");
-const SMTP_PASS = defineSecret("SMTP_PASS");
 const MAIL_FROM = "info@3engs.com";
 let _mailer = null;
 function mailer() {
@@ -753,6 +778,26 @@ const linkify = (t) => escMail(t).replace(/https?:\/\/[^\s<]+/g, (u) => `<a href
 function msgsHtml(extras) {
   const m = (extras || []).filter((x) => x.message);
   return m.length ? `<div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:12px 14px;margin:12px 0"><b>🔒 معلومات خاصة بطلبك</b>${m.map((x) => `<p style="margin:8px 0 0;white-space:pre-line"><b>${escMail(x.name)}:</b>\n${linkify(x.message)}</p>`).join("")}</div>` : "";
+}
+
+// 🔔 تنبيه للأدمن عند كل محاولة دفع
+async function notifyAttempt(o) {
+  const items = (o.items || []).map((i) => `${i.emoji || ""} ${i.name} — ${Number(i.price || 0).toFixed(2)}`).join("\n");
+  const wa = o.userMobile ? `https://wa.me/${o.userMobile}` : "";
+  const rows = [
+    ["الاسم", o.buyerName], ["واتساب / جوال", o.userMobile ? "+" + o.userMobile : "—"], ["الإيميل", o.userEmail],
+    ["الدولة / المدينة", [o.countryName, o.city].filter(Boolean).join(" — ") || "—"], ["المبلغ", "$" + Number(o.total || 0).toFixed(2)],
+    ["من صفحة", o.sourcePage || "—"], ["رقم الطلب", o.invoiceId],
+  ].map(([k, v]) => `<tr><td style="color:#64748b;padding:4px 0;width:120px">${escMail(k)}</td><td style="padding:4px 0" dir="auto">${escMail(v)}</td></tr>`).join("");
+  const inner = `<p>شخص بدأ عملية دفع على الموقع. إذا ما وصلك إيصال دفع ناجح بعد شوي، تواصل معه وكمّل البيع.</p>
+<table style="width:100%;font-size:14px">${rows}</table>
+<p style="white-space:pre-line;background:#f8fafc;border-radius:8px;padding:10px">${escMail(items)}</p>
+${wa ? `<p><a href="${wa}" style="background:#25D366;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-weight:bold">💬 راسله واتساب</a></p>` : ""}
+<p><a href="${SITE}/admin.html" style="color:#D97706">🧾 افتح الطلبات بلوحة التحكم</a></p>`;
+  const text = `محاولة دفع جديدة\n${o.buyerName} | +${o.userMobile} | ${o.userEmail}\n${o.countryName || ""} ${o.city || ""}\n${items}\nالمجموع: ${o.total}\nمن: ${o.sourcePage || "—"}\n${o.invoiceId}`;
+  try {
+    await sendMail(MAIL_FROM, `🛒 محاولة دفع: ${o.buyerName} — ${Number(o.total || 0).toFixed(2)}`, "🛒 محاولة دفع جديدة", inner, text);
+  } catch (e) { logger.warn("Attempt notify failed", { invoiceId: o.invoiceId, msg: e.message }); }
 }
 
 // 🧪 إيصال تجريبي لإيميل الأدمن — لمعاينة النص المحفوظ
