@@ -1335,6 +1335,9 @@ const AFTER_PAY=()=>`
         <div id="lsList"></div>
         <button type="button" class="btn-add" style="margin-top:6px" onclick="lsAdd()">➕ محاضرة</button>
         <div style="font-size:.72rem;color:var(--mt);margin-top:6px">الفيديو: رابط يوتيوب (يُفضّل "غير مدرج") أو Google Drive (مشاركة: أي شخص لديه الرابط) أو Vimeo. المشترك بيفتحهم من صفحة "▶️ محاضرات الورشة".</div></div>
+      <div class="cg"><label>🔑 كود الدخول للمحاضرات (اختياري)</label>
+        <div style="display:flex;gap:6px"><input class="ci" id="m-accessCode" dir="ltr" maxlength="40" placeholder="مثلاً BOOT-2026" style="flex:1"><button type="button" class="btn-edit" onclick="document.getElementById('m-accessCode').value='3E-'+Math.random().toString(36).slice(2,8).toUpperCase()">🎲 كود عشوائي</button><button type="button" class="btn-del" onclick="document.getElementById('m-accessCode').value=''">مسح</button></div>
+        <div style="font-size:.72rem;color:var(--mt);margin-top:4px">أي حد بيكتب هالكود بصفحة المحاضرات بيدخل بدون دفع أو حساب. غيّره بأي وقت (والقديم بيبطل فوراً). 4 أحرف على الأقل — اتركه فاضي لإلغائه.</div></div>
       <div class="cg"><label>📧 إيميلات مسموح لها (دفعوا يدوياً) — كل إيميل بسطر</label><textarea class="cta" id="m-allowEmails" rows="3" dir="ltr" placeholder="student1@gmail.com&#10;student2@gmail.com"></textarea>
         <div style="font-size:.72rem;color:var(--mt);margin-top:4px">صاحب الإيميل بيسجّل دخول بالموقع بنفس الإيميل (جوجل أسهل) وبيفتح المحاضرات. أو سجّله "طلب يدوي" من 🧾 الطلبات فيوصله إيميل برابط خاص بدون حساب.</div></div>
     </div></div>`;
@@ -1755,6 +1758,8 @@ window.saveModal=async()=>{
   const lessons=hasLs?window._lessons.map(l=>({title:String(l.title||'').trim().slice(0,200),desc:String(l.desc||'').trim().slice(0,3000),video:String(l.video||'').trim().slice(0,500),files:(l.files||[]).filter(f=>f&&f.url).map(f=>({name:String(f.name||'ملف').slice(0,120),url:f.url}))})).filter(l=>l.title||l.video||l.files.length):null;
   const allowEmails=document.getElementById('m-allowEmails')?[...new Set(g('m-allowEmails').split(/[\s,;]+/).map(e=>e.trim().toLowerCase()).filter(e=>/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)))].slice(0,500):null;
   if(hasLs)data.lessonsOutline=lessons.map(l=>l.title||'محاضرة');
+  const accessCode=document.getElementById('m-accessCode')?g('m-accessCode').trim().slice(0,40):null;
+  if(accessCode&&accessCode.length<4){toast('⚠️ كود الدخول لازم يكون 4 أحرف على الأقل','err');return;}
   const ref=id?doc(db,colMap[type],id):doc(collection(db,colMap[type]));
   if(!id)data.createdAt=serverTimestamp();
   try{
@@ -1767,7 +1772,7 @@ window.saveModal=async()=>{
       await setDoc(ref,data,{merge:true});
       if('fileUrl' in data)await deleteDoc(doc(db,'private_files',colMap[type]+'__'+ref.id));
     }
-    if(afterMsg!==null&&!isFreeItem(data))await setDoc(doc(db,'private_files',colMap[type]+'__'+ref.id),{message:afterMsg,...(lessons?{lessons}:{}),...(allowEmails?{allowEmails}:{}),col:colMap[type],title:data.title||'',updatedAt:serverTimestamp()},{merge:true});
+    if(afterMsg!==null&&!isFreeItem(data))await setDoc(doc(db,'private_files',colMap[type]+'__'+ref.id),{message:afterMsg,...(lessons?{lessons}:{}),...(allowEmails?{allowEmails}:{}),...(accessCode!==null?{accessCode}:{}),col:colMap[type],title:data.title||'',updatedAt:serverTimestamp()},{merge:true});
   }catch(e){console.error(e);toast('⚠️ فشل الحفظ: '+e.message,'err');return;}
   closeModal(); toast('✅ تم الحفظ!');
   if(reloads[type])reloads[type]();
@@ -1791,6 +1796,7 @@ async function loadPrivateFileUrl(type,id){
     const am=document.getElementById('m-afterMsg');if(snap.exists()&&am)am.value=snap.data().message||'';
     if(snap.exists()&&document.getElementById('lsList')){window._lessons=JSON.parse(JSON.stringify(snap.data().lessons||[]));lsRender();}
     const ae=document.getElementById('m-allowEmails');if(snap.exists()&&ae)ae.value=(snap.data().allowEmails||[]).join('\n');
+    const ac=document.getElementById('m-accessCode');if(snap.exists()&&ac)ac.value=snap.data().accessCode||'';
   }catch(e){console.error(e);}
 }
 window.migratePrivateFiles=async()=>{

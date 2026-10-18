@@ -987,7 +987,7 @@ exports.getLessons = onRequest(
   async (req, res) => {
     setCORS(req, res);
     if (req.method === "OPTIONS") { res.status(204).send(""); return; }
-    const { col, id, invoiceId, key } = req.body || {};
+    const { col, id, invoiceId, key, code } = req.body || {};
     if (!SELLABLE.includes(String(col)) || !/^[A-Za-z0-9_-]{1,64}$/.test(String(id || ""))) { res.status(400).json({ error: "عنصر غير صحيح" }); return; }
     const user = await verifyToken(req);
     const itemSnap = await db.collection(col).doc(id).get();
@@ -995,10 +995,18 @@ exports.getLessons = onRequest(
     const item = itemSnap.data();
     const priv = (await db.collection("private_files").doc(`${col}__${id}`).get()).data() || {};
     const email = String((user && user.email) || "").toLowerCase();
-    const allowed = (user && await isAdmin(user)) ||
+    // 🔑 كود الدخول (من لوحة التحكم) — مقارنة بدون فرق أحرف كبيرة/صغيرة أو مسافات
+    const norm = (c) => String(c || "").trim().toLowerCase();
+    let codeOk = false;
+    if (code && norm(priv.accessCode).length >= 4) {
+      const A = Buffer.from(norm(priv.accessCode)), B = Buffer.from(norm(code).substring(0, 100));
+      codeOk = A.length === B.length && crypto.timingSafeEqual(A, B);
+      if (!codeOk) { logger.warn("Wrong access code", { col, id }); await new Promise((r) => setTimeout(r, 1200)); }
+    }
+    const allowed = codeOk || (user && await isAdmin(user)) ||
       (!!email && user.email_verified === true && (priv.allowEmails || []).map((e) => String(e).toLowerCase()).includes(email)) ||
       await hasPaidItem(col, id, { user, invoiceId, key });
-    const head = { title: item.title || item.name || "", emoji: item.emoji || "🎓", signedIn: !!user, email };
+    const head = { title: item.title || item.name || "", emoji: item.emoji || "🎓", signedIn: !!user, email, hasCode: norm(priv.accessCode).length >= 4, codeWrong: !!code && !codeOk };
     if (!allowed) { res.status(403).json({ ...head, error: "غير مصرح" }); return; }
     const lessons = (Array.isArray(priv.lessons) ? priv.lessons : []).map((l) => ({
       title: String(l.title || "").substring(0, 200),

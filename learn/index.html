@@ -53,6 +53,8 @@ const auth = getAuth(app);
 const P = new URLSearchParams(location.search);
 const [col, id] = String(P.get("item") || "").split(":");
 const inv = P.get("inv") || "", key = P.get("k") || "";
+// الكود المحفوظ على هالجهاز (بعد أول دخول صحيح)
+let code = ""; try { code = localStorage.getItem("learncode_" + P.get("item")) || ""; } catch (e) {}
 const $ = (x) => document.getElementById(x);
 const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const linkify = (t) => esc(t).replace(/https?:\/\/[^\s<]+/g, (u) => `<a href="${u}" target="_blank" rel="noopener">${u}</a>`);
@@ -63,7 +65,11 @@ function denied(d) {
     <p>هذا المحتوى متاح للمشتركين فقط.</p>
     ${d.signedIn ? `<p>أنت مسجّل بالإيميل <b dir="ltr">${esc(d.email)}</b>، وهذا الإيميل غير مسجّل بهذه الورشة.</p><button class="btn alt" id="out">🔄 الدخول بإيميل آخر</button>` :
       `<p>إذا اشتريت الورشة: افتح الرابط المرسل إلى بريدك بعد الدفع، أو سجّل الدخول بنفس الإيميل الذي اشتريت به.</p><a class="btn" href="/auth.html?redirect=${encodeURIComponent(here)}">🔑 تسجيل الدخول</a>`}
+    ${d.hasCode ? `<form id="cf" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px"><p>🔑 عندك كود دخول؟</p>
+      <input id="cv" dir="ltr" maxlength="40" autocomplete="off" placeholder="اكتب الكود" style="padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#0a0f1d;color:var(--txt);font:inherit;text-align:center;width:200px">
+      <button class="btn" type="submit">دخول</button>${d.codeWrong ? '<p style="color:#f87171">⚠️ الكود غير صحيح</p>' : ""}</form>` : ""}
     <p style="margin-top:16px">لم تشترك بعد؟ <a href="/">تصفّح الورشات</a> • <a href="https://wa.me/972592753159" style="color:#25D366">تواصل معنا عبر واتساب</a></p></div>`;
+  $("cf")?.addEventListener("submit", (e) => { e.preventDefault(); code = $("cv").value.trim(); if (code) { $("app").innerHTML = '<div class="spin"></div>'; load(window._u); } });
   $("out")?.addEventListener("click", async () => { await signOut(auth); location.href = "/auth.html?redirect=" + encodeURIComponent(here); });
 }
 function show(d) {
@@ -85,23 +91,24 @@ function show(d) {
   let last = 0; try { last = Math.min(L.length - 1, +localStorage.getItem("learn_" + col + id) || 0); } catch (e) {}
   play(last);
 }
-onAuthStateChanged(auth, async (user) => {
-  $("who").textContent = user ? user.email : "";
+async function load(user) {
   if (!col || !id) { $("app").innerHTML = `<div class="box"><p>رابط غير صحيح</p><a class="btn" href="/">الرئيسية</a></div>`; return; }
   try {
     const token = user ? await user.getIdToken() : "";
     const r = await fetch("https://us-central1-engs-website.cloudfunctions.net/getLessons", {
       method: "POST", headers: { "Content-Type": "application/json", ...(token ? { Authorization: "Bearer " + token } : {}) },
-      body: JSON.stringify({ col, id, invoiceId: inv, key }),
+      body: JSON.stringify({ col, id, invoiceId: inv, key, code }),
     });
     const d = await r.json().catch(() => ({}));
-    if (r.status === 403) return denied(d);
+    if (r.status === 403) { try { if (d.codeWrong) localStorage.removeItem("learncode_" + P.get("item")); } catch (e) {} return denied(d); }
+    try { if (code) localStorage.setItem("learncode_" + P.get("item"), code); } catch (e) {}
     if (!r.ok) throw new Error(d.error || r.status);
     show(d);
   } catch (e) {
     $("app").innerHTML = `<div class="box"><p>⚠️ تعذّر تحميل المحاضرات، حاول لاحقاً أو تواصل معنا.</p><a class="btn" href="https://wa.me/972592753159">💬 واتساب</a></div>`;
   }
-});
+}
+onAuthStateChanged(auth, (user) => { window._u = user; $("who").textContent = user ? user.email : ""; load(user); });
 </script>
 </body>
 </html>
