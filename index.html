@@ -980,7 +980,8 @@ window.openMyOrders=async()=>{
       const rows=(o.items||[]).map((it,i)=>{
         const l=links[i];const url=l&&/^https?:\/\//i.test(l.fileUrl||'')?l.fileUrl:'';
         const msg=o.status==='paid'&&l&&l.message?String(l.message):'';
-        const act=o.status!=='paid'?'':url?`<a class="mo-dl" href="${esc(url)}" target="_blank" rel="noopener">📥 تحميل</a>`:msg?'':'<span class="mo-soon">سنتواصل معك للتفاصيل</span>';
+        const learn=o.status==='paid'&&l&&l.hasLessons?`<a class="mo-dl" style="background:#10B981" href="/learn/?item=${encodeURIComponent(l.col)}:${encodeURIComponent(l.id)}">▶️ المحاضرات</a>`:'';
+        const act=o.status!=='paid'?'':(url?`<a class="mo-dl" href="${esc(url)}" target="_blank" rel="noopener">📥 تحميل</a>`:'')+learn||(msg?'':'<span class="mo-soon">سنتواصل معك للتفاصيل</span>');
         // 🔒 رسالة بعد الدفع (مثل رابط جروب الورشة) — الروابط قابلة للضغط
         const msgHtml=msg?`<div style="flex-basis:100%;margin-top:6px;padding:8px 10px;border-radius:8px;background:rgba(16,185,129,.1);font-size:.82rem;white-space:pre-line;line-height:1.8">🔒 ${esc(msg).replace(/https?:\/\/[^\s<]+/g,u=>`<a href="${u}" target="_blank" rel="noopener" style="color:#10B981;font-weight:700;word-break:break-all">${u}</a>`)}</div>`:'';
         return `<div class="mo-item" style="flex-wrap:wrap"><span>${esc(it.emoji||'📦')} ${esc(it.name)}</span>${act}${msgHtml}</div>`;

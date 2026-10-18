@@ -96,18 +96,19 @@ async function resolveDownloads(order) {
   if (!items.some((i) => i.col && i.id)) return order.downloadLinks || [];
 
   return Promise.all(items.map(async (item) => {
-    let fileUrl = "", message = "";
+    let fileUrl = "", message = "", hasLessons = false;
     if (item.col && item.id) {
       const priv = await db.collection("private_files").doc(`${item.col}__${item.id}`).get();
       fileUrl = (priv.exists && priv.data().fileUrl) || "";
       // 🔒 رسالة بعد الدفع (مثل رابط جروب الورشة) — للمشتري فقط
       message = String((priv.exists && priv.data().message) || "").substring(0, 2000);
+      hasLessons = !!(priv.exists && Array.isArray(priv.data().lessons) && priv.data().lessons.length);
       if (!fileUrl) {
         const pub = await db.collection(item.col).doc(item.id).get();
         fileUrl = (pub.exists && pub.data().fileUrl) || "";
       }
     }
-    return { name: item.name, emoji: item.emoji || "📦", fileUrl, message };
+    return { name: item.name, emoji: item.emoji || "📦", fileUrl, message, col: item.col, id: item.id, hasLessons };
   }));
 }
 
@@ -770,14 +771,14 @@ ${o.guest ? `<p>📦 مشترياتك جاهزة للتحميل: <a href="${escM
 ${msgsHtml(extras)}
 ${para(tpl.receiptFooter)}
 <p style="font-size:13px;color:#64748b">↩️ يمكنك طلب الاسترداد خلال 7 أيام حسب <a href="${SITE}/privacy.html#refund" style="color:#D97706">سياسة الاسترداد</a>.</p>`;
-  const text = `${fill(tpl.receiptIntro)}\n\nرقم الطلب: ${o.invoiceId}\nالتاريخ: ${paidAt}\n${(o.items || []).map((i) => `- ${i.name}: $${Number(i.price || 0).toFixed(2)}`).join("\n")}\nالإجمالي: ${total}${extras.filter((x) => x.message).map((x) => `\n\n🔒 ${x.name}:\n${x.message}`).join("")}\nمشترياتك: ${o.guest ? orderLink(o) : SITE + "/?myorders=1"}\n\n${fill(tpl.receiptFooter)}`;
+  const text = `${fill(tpl.receiptIntro)}\n\nرقم الطلب: ${o.invoiceId}\nالتاريخ: ${paidAt}\n${(o.items || []).map((i) => `- ${i.name}: $${Number(i.price || 0).toFixed(2)}`).join("\n")}\nالإجمالي: ${total}${extras.filter((x) => x.message || x.learnUrl).map((x) => `\n\n🔒 ${x.name}:${x.learnUrl ? "\n▶️ المحاضرات: " + x.learnUrl : ""}${x.message ? "\n" + x.message : ""}`).join("")}\nمشترياتك: ${o.guest ? orderLink(o) : SITE + "/?myorders=1"}\n\n${fill(tpl.receiptFooter)}`;
   return { subject: fill(tpl.receiptSubject).substring(0, 200), title: fill(tpl.receiptTitle), inner, text };
 }
 
 const linkify = (t) => escMail(t).replace(/https?:\/\/[^\s<]+/g, (u) => `<a href="${u}" style="color:#D97706;font-weight:bold;word-break:break-all">${u}</a>`);
 function msgsHtml(extras) {
-  const m = (extras || []).filter((x) => x.message);
-  return m.length ? `<div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:12px 14px;margin:12px 0"><b>🔒 معلومات خاصة بطلبك</b>${m.map((x) => `<p style="margin:8px 0 0;white-space:pre-line"><b>${escMail(x.name)}:</b>\n${linkify(x.message)}</p>`).join("")}</div>` : "";
+  const m = (extras || []).filter((x) => x.message || x.learnUrl);
+  return m.length ? `<div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:12px 14px;margin:12px 0"><b>🔒 معلومات خاصة بطلبك</b>${m.map((x) => `<p style="margin:8px 0 0;white-space:pre-line"><b>${escMail(x.name)}:</b>${x.learnUrl ? `\n<a href="${escMail(x.learnUrl)}" style="background:#10B981;color:#fff;padding:7px 14px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block;margin:6px 0">▶️ افتح محاضرات الورشة</a>` : ""}${x.message ? "\n" + linkify(x.message) : ""}</p>`).join("")}</div>` : "";
 }
 
 // 🔔 تنبيه للأدمن عند كل محاولة دفع
@@ -838,7 +839,8 @@ exports.sendReceipt = onDocumentWritten(
     });
     if (!claimed) return;
     const o = after;
-    const extras = await resolveDownloads(o).catch(() => []);
+    const extras = (await resolveDownloads(o).catch(() => [])).map((x) => ({ ...x,
+      learnUrl: x.hasLessons ? `${SITE}/learn/?item=${encodeURIComponent(x.col)}:${encodeURIComponent(x.id)}&inv=${encodeURIComponent(o.invoiceId)}&k=${encodeURIComponent(o.accessKey || "")}` : "" }));
     const r = buildReceipt(o, await receiptTemplate(), o.buyerName || await buyerName(o.userEmail), extras);
     try {
       await sendMail(o.userEmail, r.subject, r.title, r.inner, r.text);
@@ -947,5 +949,64 @@ exports.registerWorkshopBuyer = onDocumentWritten(
       }, { merge: true });
       logger.info("Workshop buyer registered", { wid, invoiceId: after.invoiceId });
     }
+  }
+);
+
+// ─────────────────────────────────────────────
+// 🎬 محاضرات الورشة/الدورة المدفوعة — للمشتري بس
+// private_files/{col}__{id}.lessons = [{title, desc, video, files:[{name,url}]}] و allowEmails = [...]
+// الصلاحية: أدمن، أو إيميل مؤكَّد بقائمة المسموح لهم، أو طلب مدفوع فيه العنصر (بالحساب أو الإيميل المؤكَّد أو رابط الطلب الخاص)
+// ─────────────────────────────────────────────
+function lessonVideo(url = "") {
+  const u = String(url);
+  const yt = (u.match(/(?:youtu\.be\/|v=|embed\/|shorts\/|live\/)([\w-]{11})/) || [])[1];
+  if (yt) return `https://www.youtube-nocookie.com/embed/${yt}?rel=0&modestbranding=1`;
+  const d = (u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]{20,})/) || [])[1];
+  if (d) return `https://drive.google.com/file/d/${d}/preview`;
+  const v = (u.match(/vimeo\.com\/(?:video\/)?(\d+)/) || [])[1];
+  if (v) return `https://player.vimeo.com/video/${v}`;
+  return /^https:\/\//.test(u) ? u : "";
+}
+async function hasPaidItem(col, id, { user, invoiceId, key }) {
+  const has = (o) => o && o.status === "paid" && (o.items || []).some((i) => i.col === col && i.id === id);
+  if (invoiceId && key) {
+    const o = (await db.collection("orders").doc(String(invoiceId).substring(0, 80)).get()).data();
+    if (o && keyOk(o, key) && has(o)) return true;
+  }
+  if (!user) return false;
+  const byUid = await db.collection("orders").where("userId", "==", user.uid).limit(100).get();
+  if (byUid.docs.some((d) => has(d.data()))) return true;
+  if (user.email && user.email_verified) {
+    const byEmail = await db.collection("orders").where("userEmail", "==", user.email.toLowerCase()).limit(100).get();
+    if (byEmail.docs.some((d) => has(d.data()))) return true;
+  }
+  return false;
+}
+exports.getLessons = onRequest(
+  { region: "us-central1" },
+  async (req, res) => {
+    setCORS(req, res);
+    if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+    const { col, id, invoiceId, key } = req.body || {};
+    if (!SELLABLE.includes(String(col)) || !/^[A-Za-z0-9_-]{1,64}$/.test(String(id || ""))) { res.status(400).json({ error: "عنصر غير صحيح" }); return; }
+    const user = await verifyToken(req);
+    const itemSnap = await db.collection(col).doc(id).get();
+    if (!itemSnap.exists) { res.status(404).json({ error: "غير موجود" }); return; }
+    const item = itemSnap.data();
+    const priv = (await db.collection("private_files").doc(`${col}__${id}`).get()).data() || {};
+    const email = String((user && user.email) || "").toLowerCase();
+    const allowed = (user && await isAdmin(user)) ||
+      (!!email && user.email_verified === true && (priv.allowEmails || []).map((e) => String(e).toLowerCase()).includes(email)) ||
+      await hasPaidItem(col, id, { user, invoiceId, key });
+    const head = { title: item.title || item.name || "", emoji: item.emoji || "🎓", signedIn: !!user, email };
+    if (!allowed) { res.status(403).json({ ...head, error: "غير مصرح" }); return; }
+    const lessons = (Array.isArray(priv.lessons) ? priv.lessons : []).map((l) => ({
+      title: String(l.title || "").substring(0, 200),
+      desc: String(l.desc || "").substring(0, 3000),
+      video: lessonVideo(l.video),
+      files: (Array.isArray(l.files) ? l.files : []).filter((f) => /^https?:\/\//.test(f.url || "")).map((f) => ({ name: String(f.name || "ملف").substring(0, 120), url: f.url })),
+    }));
+    logger.info("Lessons opened", { col, id, by: email || (invoiceId ? "order-link" : "?") });
+    res.status(200).json({ ...head, lessons, fileUrl: /^https?:\/\//.test(priv.fileUrl || "") ? priv.fileUrl : "", message: String(priv.message || "") });
   }
 );

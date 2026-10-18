@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>محاضرات الورشة | 3ENG.s</title>
+<link rel="icon" href="/logo.jpg">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b1020;--card:#131a2e;--line:#232c47;--txt:#e9edf7;--mut:#98a2bf;--acc:#F59E0B;--ok:#34d399}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Cairo,system-ui,Tahoma,sans-serif;background:var(--bg);color:var(--txt);line-height:1.8;min-height:100vh}
+a{color:var(--acc)}
+header{border-bottom:1px solid var(--line);padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+header .logo{display:flex;align-items:center;gap:8px;color:var(--txt);text-decoration:none;font-weight:900}
+header .logo img{width:32px;height:32px;border-radius:50%;background:#fff}
+#who{font-size:.8rem;color:var(--mut)}
+.wrap{max-width:1150px;margin:0 auto;padding:18px}
+h1{font-size:1.3rem;margin-bottom:12px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;text-align:center;max-width:560px;margin:40px auto}
+.box p{color:var(--mut);margin:10px 0}
+.btn{display:inline-block;background:linear-gradient(135deg,var(--acc),#D97706);color:#0b1020;padding:10px 20px;border-radius:10px;font-weight:800;text-decoration:none;border:0;cursor:pointer;font:inherit;margin:6px}
+.btn.alt{background:#ffffff12;color:var(--txt)}
+.grid{display:grid;grid-template-columns:1fr 320px;gap:18px;align-items:start}
+.player{background:#000;border-radius:14px;overflow:hidden;aspect-ratio:16/9;border:1px solid var(--line)}
+.player iframe{width:100%;height:100%;border:0}
+.player .none{display:grid;place-items:center;height:100%;color:var(--mut)}
+.now{margin-top:12px}.now h2{font-size:1.1rem}.now p{color:var(--mut);white-space:pre-line;margin-top:6px}
+.files{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.files a{background:#0f1528;border:1px solid var(--line);border-radius:10px;padding:8px 12px;text-decoration:none;color:var(--txt);font-size:.88rem}
+.list{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.list .hd{padding:12px 14px;font-weight:800;border-bottom:1px solid var(--line)}
+.list button{display:flex;gap:10px;width:100%;text-align:right;background:none;border:0;border-bottom:1px solid var(--line);color:var(--txt);padding:11px 14px;font:inherit;font-size:.9rem;cursor:pointer}
+.list button:last-child{border-bottom:0}
+.list button.on{background:rgba(245,158,11,.12);color:var(--acc);font-weight:700}
+.list button b{color:var(--mut);min-width:22px}
+.extra{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);border-radius:12px;padding:12px 14px;margin-top:14px;white-space:pre-line;font-size:.9rem}
+.extra a{color:var(--ok);font-weight:700;word-break:break-all}
+.spin{width:36px;height:36px;border:3px solid var(--line);border-top-color:var(--acc);border-radius:50%;animation:s .8s linear infinite;margin:60px auto}@keyframes s{to{transform:rotate(360deg)}}
+@media(max-width:860px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><a class="logo" href="/"><img src="/logo.jpg" alt="3ENG.s">3ENG.s</a><span id="who"></span></header>
+<main class="wrap" id="app"><div class="spin"></div></main>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+const app = initializeApp({ apiKey: "AIzaSyALJiF8l_wnk_6FU6etQpz44Z43lSORXQk", authDomain: "engs-website.firebaseapp.com", projectId: "engs-website", appId: "1:1028163586505:web:c09de00bb30a3369ca4018" });
+const auth = getAuth(app);
+const P = new URLSearchParams(location.search);
+const [col, id] = String(P.get("item") || "").split(":");
+const inv = P.get("inv") || "", key = P.get("k") || "";
+const $ = (x) => document.getElementById(x);
+const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const linkify = (t) => esc(t).replace(/https?:\/\/[^\s<]+/g, (u) => `<a href="${u}" target="_blank" rel="noopener">${u}</a>`);
+const here = "https://www.3engs.com" + location.pathname + location.search;
+
+function denied(d) {
+  $("app").innerHTML = `<div class="box"><div style="font-size:2.4rem">🔒</div><h1>${esc(d.title || "محاضرات الورشة")}</h1>
+    <p>هذا المحتوى متاح للمشتركين فقط.</p>
+    ${d.signedIn ? `<p>أنت مسجّل بالإيميل <b dir="ltr">${esc(d.email)}</b>، وهذا الإيميل غير مسجّل بهذه الورشة.</p><button class="btn alt" id="out">🔄 الدخول بإيميل آخر</button>` :
+      `<p>إذا اشتريت الورشة: افتح الرابط المرسل إلى بريدك بعد الدفع، أو سجّل الدخول بنفس الإيميل الذي اشتريت به.</p><a class="btn" href="/auth.html?redirect=${encodeURIComponent(here)}">🔑 تسجيل الدخول</a>`}
+    <p style="margin-top:16px">لم تشترك بعد؟ <a href="/">تصفّح الورشات</a> • <a href="https://wa.me/972592753159" style="color:#25D366">تواصل معنا عبر واتساب</a></p></div>`;
+  $("out")?.addEventListener("click", async () => { await signOut(auth); location.href = "/auth.html?redirect=" + encodeURIComponent(here); });
+}
+function show(d) {
+  document.title = (d.title || "محاضرات الورشة") + " | 3ENG.s";
+  const L = d.lessons || [];
+  const extra = `${d.fileUrl ? `<div class="files"><a href="${esc(d.fileUrl)}" target="_blank" rel="noopener">📦 ملف الورشة</a></div>` : ""}${d.message ? `<div class="extra">🔒 ${linkify(d.message)}</div>` : ""}`;
+  if (!L.length) { $("app").innerHTML = `<h1>${esc(d.emoji)} ${esc(d.title)}</h1><div class="box"><p>لم تُضف المحاضرات بعد — ستظهر هنا فور نشرها.</p></div>${extra}`; return; }
+  $("app").innerHTML = `<h1>${esc(d.emoji)} ${esc(d.title)}</h1>
+    <div class="grid"><div><div class="player" id="pl"></div><div class="now" id="now"></div>${extra}</div>
+    <div class="list"><div class="hd">📚 المحاضرات (${L.length})</div>${L.map((l, i) => `<button data-i="${i}"><b>${i + 1}</b><span>${esc(l.title || "محاضرة " + (i + 1))}</span></button>`).join("")}</div></div>`;
+  const play = (i) => {
+    const l = L[i];
+    $("pl").innerHTML = l.video ? `<iframe src="${esc(l.video)}" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>` : `<div class="none">لا يوجد فيديو لهذه المحاضرة</div>`;
+    $("now").innerHTML = `<h2>${i + 1}. ${esc(l.title)}</h2>${l.desc ? `<p>${linkify(l.desc)}</p>` : ""}${(l.files || []).length ? `<div class="files">${l.files.map((f) => `<a href="${esc(f.url)}" target="_blank" rel="noopener">📎 ${esc(f.name)}</a>`).join("")}</div>` : ""}`;
+    document.querySelectorAll(".list button").forEach((b) => b.classList.toggle("on", +b.dataset.i === i));
+    try { localStorage.setItem("learn_" + col + id, i); } catch (e) {}
+  };
+  document.querySelectorAll(".list button").forEach((b) => b.onclick = () => { play(+b.dataset.i); if (innerWidth < 860) $("pl").scrollIntoView({ behavior: "smooth" }); });
+  let last = 0; try { last = Math.min(L.length - 1, +localStorage.getItem("learn_" + col + id) || 0); } catch (e) {}
+  play(last);
+}
+onAuthStateChanged(auth, async (user) => {
+  $("who").textContent = user ? user.email : "";
+  if (!col || !id) { $("app").innerHTML = `<div class="box"><p>رابط غير صحيح</p><a class="btn" href="/">الرئيسية</a></div>`; return; }
+  try {
+    const token = user ? await user.getIdToken() : "";
+    const r = await fetch("https://us-central1-engs-website.cloudfunctions.net/getLessons", {
+      method: "POST", headers: { "Content-Type": "application/json", ...(token ? { Authorization: "Bearer " + token } : {}) },
+      body: JSON.stringify({ col, id, invoiceId: inv, key }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (r.status === 403) return denied(d);
+    if (!r.ok) throw new Error(d.error || r.status);
+    show(d);
+  } catch (e) {
+    $("app").innerHTML = `<div class="box"><p>⚠️ تعذّر تحميل المحاضرات، حاول لاحقاً أو تواصل معنا.</p><a class="btn" href="https://wa.me/972592753159">💬 واتساب</a></div>`;
+  }
+});
+</script>
+</body>
+</html>

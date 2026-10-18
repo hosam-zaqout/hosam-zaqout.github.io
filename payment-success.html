@@ -243,9 +243,12 @@ function showDownloads(links) {
     name:    esc(l.name),
     emoji:   esc(l.emoji),
     fileUrl: /^https?:\/\//i.test(l.fileUrl || "") ? esc(l.fileUrl) : "",
+    learn:   l.hasLessons && l.col && l.id ? esc(`/learn/?item=${encodeURIComponent(l.col)}:${encodeURIComponent(l.id)}&inv=${encodeURIComponent(invoiceId)}&k=${encodeURIComponent(accessKey)}`) : "",
     // 🔒 رسالة بعد الدفع (مثل رابط جروب الورشة) — الروابط قابلة للضغط
     message: esc(l.message).replace(/https?:\/\/[^\s<]+/g, u => `<a href="${u}" target="_blank" rel="noopener" style="color:#10B981;font-weight:700;word-break:break-all">${u}</a>`),
   }));
+  // ▶️ رابط المحاضرات (للعناصر اللي إلها محاضرات خاصة)
+  const learnBtn = (l) => l.learn ? `<a href="${l.learn}" class="dl-btn" style="background:linear-gradient(135deg,#10B981,#059669)">▶️ افتح المحاضرات</a>` : "";
   const msgBox = (l) => l.message
     ? `<div style="flex-basis:100%;margin-top:8px;padding:10px 12px;border-radius:10px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);white-space:pre-line;line-height:1.9;font-size:.9rem;text-align:right">🔒 ${l.message}</div>` : "";
 
@@ -256,6 +259,7 @@ function showDownloads(links) {
     <div class="dl-item" style="flex-wrap:wrap">
       <span class="dl-name">${l.emoji || "📦"} ${l.name || ""}</span>
       <a href="${l.fileUrl}" target="_blank" rel="noopener" class="dl-btn">📥 تحميل</a>
+      ${learnBtn(l)}
       ${msgBox(l)}
     </div>
   `).join("");
@@ -264,7 +268,7 @@ function showDownloads(links) {
     html += withoutFile.map(l => `
       <div class="dl-item" style="flex-wrap:wrap">
         <span class="dl-name">${l.emoji || "🎓"} ${l.name || ""}</span>
-        ${l.message ? "" : `<span class="dl-soon">سيتم التواصل معك قريباً</span>`}
+        ${l.learn ? learnBtn(l) : l.message ? "" : `<span class="dl-soon">سيتم التواصل معك قريباً</span>`}
         ${msgBox(l)}
       </div>
     `).join("");
