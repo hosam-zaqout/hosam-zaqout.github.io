@@ -886,9 +886,11 @@ async function loadSectionItems(){
   if(!items.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد عناصر</p>';return;}
   const art=curSectionIsArticles();
   if(art)items.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));else items.sort(byOrder);
-  el.innerHTML=items.map(i=>`<div class="irow"><div class="iemoji">${i.emoji||(art?'📝':'•')}</div><div class="iinfo"><div class="ititle">${i.title||''}</div><div class="imeta">${art?`${i.hidden?'<span style="color:var(--p)">📄 مسودة</span>':'<span style="color:var(--ok)">✅ منشور</span>'} • ${i.createdAt?.toDate?.()?.toLocaleDateString('ar')||''} • ⏱ ${window.md3?md3.readingMinutes(i.body):1} د`:`${i.price?'$'+i.price:'مجاني'}${fileBadge(i)}`}${i.imageUrl?' • <span style="color:var(--ok)">🖼️</span>':''}</div></div><div class="iacts">${art?'':moveBtns('section_items','_curSectionItems',i.id,'loadSectionItems')}<button class="btn-edit" onclick="editSectionItem('${i.id}')">✏️</button><button class="btn-del" onclick="delSectionItem('${i.id}')">🗑️</button></div></div>`).join('');
+  el.innerHTML=items.map(i=>`<div class="irow"><div class="iemoji">${i.emoji||(art?'📝':'•')}</div><div class="iinfo"><div class="ititle">${i.title||''}</div><div class="imeta">${art?`${i.hidden?'<span style="color:var(--p)">📄 مسودة</span>':'<span style="color:var(--ok)">✅ منشور</span>'} • ${i.createdAt?.toDate?.()?.toLocaleDateString('ar')||''} • ⏱ ${window.md3?md3.readingMinutes(i.body):1} د`:`${i.price?'$'+i.price:'مجاني'}${fileBadge(i)}`}${i.imageUrl?' • <span style="color:var(--ok)">🖼️</span>':''}</div></div><div class="iacts">${art?'':moveBtns('section_items','_curSectionItems',i.id,'loadSectionItems')}${!art&&!isFreeItem(i)?`<button class="btn-edit" title="نسخ رابط المحاضرات (للمشتركين)" onclick="copyLearnLink('section_items','${i.id}')">🎬</button>`:''}<button class="btn-edit" onclick="editSectionItem('${i.id}')">✏️</button><button class="btn-del" onclick="delSectionItem('${i.id}')">🗑️</button></div></div>`).join('');
 }
 window.loadSectionItems=loadSectionItems;
+// 🎬 رابط صفحة المحاضرات الخاصة (بيفتح للمشترك أو صاحب الكود أو الإيميل المسموح)
+window.copyLearnLink=async(col,id)=>{const u='https://www.3engs.com/learn/?item='+col+':'+id;try{await navigator.clipboard.writeText(u);toast('🎬 تم نسخ رابط المحاضرات');}catch{prompt('رابط المحاضرات:',u);}};
 function curSectionIsArticles(){return (window._sections||[]).find(x=>x.id===window._curSectionId)?.type==='articles';}
 window.openSectionItemModal=function(id=null){
   const art=curSectionIsArticles();
