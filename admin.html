@@ -162,6 +162,7 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
   <div class="ni" onclick="showP('testimonials',this)"><span class="ic">⭐</span> آراء الطلاب</div>
   <div class="ni" onclick="showP('sections',this)"><span class="ic">➕</span> أقسام مخصصة</div>
   <div class="ns">إدارة الموقع</div>
+  <div class="ni" onclick="showP('coupons',this);cpInit()"><span class="ic">🏷️</span> أكواد الخصم</div>
   <div class="ni" onclick="showP('orders',this);loadOrders();moRenderItems();moFillUsers()"><span class="ic">🧾</span> الطلبات <span class="nb" id="oc">0</span></div>
   <div class="ni" onclick="showP('users',this)"><span class="ic">👥</span> المستخدمون <span class="nb" id="uc">0</span></div>
   <div class="ni" onclick="showP('messages',this)"><span class="ic">💬</span> الرسائل <span class="nb" id="mc">0</span></div>
@@ -324,6 +325,33 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
         <h3>📋 عناصر القسم: <span id="curSectionName" style="color:var(--p)"></span></h3>
         <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn-add" onclick="openSectionItemModal()">➕ إضافة عنصر</button></div>
         <div id="sectionItemsList"></div>
+      </div>
+    </div>
+
+    <!-- COUPONS -->
+    <div class="panel" id="p-coupons">
+      <div class="pc"><h3>🏷️ إنشاء أكواد خصم</h3>
+        <p style="font-size:.8rem;color:var(--mt);margin-bottom:12px">كل كود بيحوّل سعر عنصر معيّن لسعر نهائي انت بتحدده، وبينفع <b>لشخص واحد بس</b> (أول دفعة ناجحة بتحرقه). سعر 0 = مجاني بالكامل (بيوصله الإيصال والمحتوى بدون بوابة الدفع).</p>
+        <div class="g2">
+          <div class="cg"><label>العنصر *</label><select class="cs" id="cp-item"></select></div>
+          <div class="cg"><label>السعر النهائي بعد الخصم ($) *</label><input class="ci" id="cp-price" type="number" min="0" step="0.01" placeholder="مثلاً 10"></div>
+        </div>
+        <div class="g2">
+          <div class="cg"><label>عدد الأكواد</label><input class="ci" id="cp-count" type="number" min="1" max="200" value="1"></div>
+          <div class="cg"><label>بداية الكود (اختياري)</label><input class="ci" id="cp-prefix" dir="ltr" maxlength="10" placeholder="BOOT"></div>
+        </div>
+        <div class="cg"><label>أو اكتب الكود بنفسك (لكود واحد)</label><input class="ci" id="cp-custom" dir="ltr" maxlength="32" placeholder="ESRAA-50"></div>
+        <div class="cg"><label>ملاحظة (لمين الكود؟)</label><input class="ci" id="cp-note" maxlength="120" placeholder="مثلاً: طلاب جامعة الأزهر"></div>
+        <button class="btn-add" onclick="cpCreate()">➕ إنشاء</button>
+      </div>
+      <div class="pc"><h3>📋 الأكواد</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+          <select class="cs" id="cp-filter" style="width:auto;min-width:220px" onchange="cpRender()"><option value="">كل العناصر</option></select>
+          <select class="cs" id="cp-state" style="width:auto" onchange="cpRender()"><option value="">كل الحالات</option><option value="ok">✅ متاح</option><option value="used">🔒 مستخدم</option></select>
+          <button class="btn-edit" onclick="cpCopyFree()">📋 نسخ المتاحة</button>
+          <button class="btn-sm" onclick="cpLoad()">🔄 تحديث</button>
+        </div>
+        <div class="tbl-wrap"><table class="dtbl"><thead><tr><th>الكود</th><th>العنصر</th><th>السعر</th><th>الحالة</th><th>ملاحظة</th><th></th></tr></thead><tbody id="cpTable"><tr><td colspan="6" style="text-align:center;color:var(--mt);padding:20px">جاري...</td></tr></tbody></table></div>
       </div>
     </div>
 
@@ -491,7 +519,7 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
             <strong>واتساب (Western Union / تحويل بنكي)</strong>
             <label class="pay-toggle"><input type="checkbox" id="pay-wa-active"> تفعيل</label>
           </div>
-          <div class="cg"><label>رقم واتساب للدفع</label><input class="ci" id="pay-wa-num" placeholder="972592753159" dir="ltr"></div>
+          <div class="cg"><label>رقم واتساب للدفع</label><input class="ci" id="pay-wa-num" placeholder="970592753159" dir="ltr"></div>
           <div class="cg"><label>تعليمات الدفع</label><textarea class="cta" id="pay-wa-msg" rows="3" placeholder="تواصل معنا على واتساب..."></textarea></div>
         </div>
 
@@ -579,7 +607,7 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
     <div class="panel" id="p-social">
       <div class="pc"><h3>🔗 منصات التواصل</h3>
         <div class="g2">
-          <div class="cg"><label>💬 رقم واتساب</label><input class="ci" id="s-wa" placeholder="972592753159" dir="ltr"></div>
+          <div class="cg"><label>💬 رقم واتساب</label><input class="ci" id="s-wa" placeholder="970592753159" dir="ltr"></div>
           <div class="cg"><label>📧 البريد</label><input class="ci" id="s-email" placeholder="info@3engs.com" dir="ltr"></div>
           <div class="cg"><label>🌐 الدومين</label><input class="ci" id="s-domain" placeholder="www.3engs.com" dir="ltr"></div>
           <div class="cg"><label>📸 إنستغرام</label><input class="ci" id="s-ig" placeholder="https://instagram.com/3engs" dir="ltr"></div>
@@ -886,17 +914,18 @@ async function loadSectionItems(){
   if(!items.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد عناصر</p>';return;}
   const art=curSectionIsArticles();
   if(art)items.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));else items.sort(byOrder);
-  el.innerHTML=items.map(i=>`<div class="irow"><div class="iemoji">${i.emoji||(art?'📝':'•')}</div><div class="iinfo"><div class="ititle">${i.title||''}</div><div class="imeta">${art?`${i.hidden?'<span style="color:var(--p)">📄 مسودة</span>':'<span style="color:var(--ok)">✅ منشور</span>'} • ${i.createdAt?.toDate?.()?.toLocaleDateString('ar')||''} • ⏱ ${window.md3?md3.readingMinutes(i.body):1} د`:`${i.price?'$'+i.price:'مجاني'}${fileBadge(i)}`}${i.imageUrl?' • <span style="color:var(--ok)">🖼️</span>':''}</div></div><div class="iacts">${art?'':moveBtns('section_items','_curSectionItems',i.id,'loadSectionItems')}${!art&&!isFreeItem(i)?`<button class="btn-edit" title="نسخ رابط المحاضرات (للمشتركين)" onclick="copyLearnLink('section_items','${i.id}')">🎬</button>`:''}<button class="btn-edit" onclick="editSectionItem('${i.id}')">✏️</button><button class="btn-del" onclick="delSectionItem('${i.id}')">🗑️</button></div></div>`).join('');
+  el.innerHTML=items.map(i=>`<div class="irow"><div class="iemoji">${i.emoji||(art?'📝':'•')}</div><div class="iinfo"><div class="ititle">${i.title||''}</div><div class="imeta">${art?`${i.hidden?'<span style="color:var(--p)">📄 مسودة</span>':'<span style="color:var(--ok)">✅ منشور</span>'} • ${i.createdAt?.toDate?.()?.toLocaleDateString('ar')||''} • ⏱ ${window.md3?md3.readingMinutes(i.body):1} د`:`${i.price?'$'+i.price:'مجاني'}${fileBadge(i)}`}${i.imageUrl?' • <span style="color:var(--ok)">🖼️</span>':''}</div></div><div class="iacts">${art?'':moveBtns('section_items','_curSectionItems',i.id,'loadSectionItems')}<button class="btn-edit" title="نسخ رابط صفحة العنصر" onclick="copySecItemLink('${i.id}')">🔗</button>${!art&&!isFreeItem(i)?`<button class="btn-edit" title="نسخ رابط المحاضرات (للمشتركين)" onclick="copyLearnLink('section_items','${i.id}')">🎬</button>`:''}<button class="btn-edit" onclick="editSectionItem('${i.id}')">✏️</button><button class="btn-del" onclick="delSectionItem('${i.id}')">🗑️</button></div></div>`).join('');
 }
 window.loadSectionItems=loadSectionItems;
 // 🎬 رابط صفحة المحاضرات الخاصة (بيفتح للمشترك أو صاحب الكود أو الإيميل المسموح)
+window.copySecItemLink=async(id)=>{const it=(window._curSectionItems||[]).find(x=>x.id===id);const sec=(window._sections||[]).find(x=>x.id===window._curSectionId);if(!it||!sec)return;const ss=itemSlug({slug:sec.slug,title:sec.name,id:sec.id});const u='https://www.3engs.com/sections/'+ss+'/'+itemSlug(it)+'/';try{await navigator.clipboard.writeText(u);toast('🔗 تم نسخ رابط الصفحة — الجديدة بتجهز خلال ساعة');}catch{prompt('رابط الصفحة:',u);}};
 window.copyLearnLink=async(col,id)=>{const u='https://www.3engs.com/learn/?item='+col+':'+id;try{await navigator.clipboard.writeText(u);toast('🎬 تم نسخ رابط المحاضرات');}catch{prompt('رابط المحاضرات:',u);}};
 function curSectionIsArticles(){return (window._sections||[]).find(x=>x.id===window._curSectionId)?.type==='articles';}
 window.openSectionItemModal=function(id=null){
   const art=curSectionIsArticles();
   window._mType=art?'articleItem':'sectionItem'; window._mId=id;
   document.getElementById('mTitle').textContent=art?(id?'تعديل مقال':'✍️ مقال جديد'):(id?'تعديل عنصر':'إضافة عنصر للقسم');
-  document.getElementById('mBody').innerHTML=art?mForms.articleItem:mForms.sectionItem;fillWsSelect();window._lessons=[];lsRender();
+  document.getElementById('mBody').innerHTML=art?mForms.articleItem:mForms.sectionItem;fillWsSelect();window._lessons=[];lsRender();splitTabs();
   if(id){
     const item=(window._curSectionItems||[]).find(i=>i.id===id);
     if(item){fillForm(item);loadPrivateFileUrl('sectionItem',id);}
@@ -1374,6 +1403,23 @@ window.lsUpload=async(input,i)=>{
     e=>{if(p)p.textContent='';toast('⚠️ فشل الرفع: '+e.message,'err');},
     async()=>{const url=await getDownloadURL(task.snapshot.ref);window._lessons[i].files=(window._lessons[i].files||[]);window._lessons[i].files.push({name:file.name,url});lsRender();toast('✅ تم رفع الملف');});
 };
+function splitTabs(){
+  const body=document.getElementById('mBody');const am=document.getElementById('m-afterMsg');if(!body||!am)return;
+  const priv=am.closest('.opt-section');if(!priv)return;
+  priv.classList.add('open');priv.querySelector('.opt-head')?.remove();
+  const t1=document.createElement('div');t1.id='tabPub';const t2=document.createElement('div');t2.id='tabPriv';t2.style.display='none';
+  // ملف التحميل المدفوع جزء من محتوى المشتركين
+  const fu=document.getElementById('m-fileUrl')?.closest('.cg');
+  while(body.firstChild)t1.appendChild(body.firstChild);
+  t2.innerHTML='<div class="note-info" style="margin-bottom:12px">🔒 كل اللي هون بيوصل للي دفع بس (أو صاحب الكود / الإيميل المسموح) — ما بيظهر بالصفحة العامة أبداً.</div>';
+  if(fu){const l=fu.querySelector('label');if(l)l.textContent='📦 الملف (المدفوع بيوصل للمشتركين بس — المجاني تحميل للكل)';t2.appendChild(fu);}
+  t2.appendChild(priv);
+  const bar=document.createElement('div');bar.style.cssText='display:flex;gap:6px;margin-bottom:14px;position:sticky;top:-26px;background:var(--d2);padding:6px 0;z-index:2';
+  bar.innerHTML='<button type="button" class="btn-sm" id="tb1">📄 صفحة العرض (قبل الشراء)</button><button type="button" class="btn-edit" id="tb2">🔒 محتوى المشتركين (بعد الشراء)</button>';
+  body.append(bar,t1,t2);
+  const sw=(n)=>{t1.style.display=n===1?'':'none';t2.style.display=n===2?'':'none';document.getElementById('tb1').className=n===1?'btn-sm':'btn-edit';document.getElementById('tb2').className=n===2?'btn-sm':'btn-edit';};
+  document.getElementById('tb1').onclick=()=>sw(1);document.getElementById('tb2').onclick=()=>sw(2);
+}
 function fillWsSelect(){const el=document.getElementById('m-workshopId');if(!el)return;el.innerHTML='<option value="">— بدون —</option>'+(typeof _ws!=='undefined'?_ws:[]).map(w=>'<option value="'+escH(w.id)+'">'+escH(w.title||w.slug||w.id)+'</option>').join('');}
 const GEO_FIELDS=`
     <div class="opt-section open"><div class="opt-head" onclick="this.parentElement.classList.toggle('open')"><h4>🤖 معلومات لجوجل والذكاء الاصطناعي (مهمة للظهور)</h4><span class="opt-chev">▼</span></div><div class="opt-body">
@@ -1722,7 +1768,7 @@ window.openModal=(type,id=null)=>{
   _learns.length=0;_topics.length=0;_components.length=0;_requirements.length=0;
   const labels={product:'منتج',course:'دورة',book:'كتاب',project:'مشروع',testimonial:'رأي',section:'قسم'};
   document.getElementById('mTitle').textContent=(id?'تعديل ':'إضافة ')+(labels[type]||type);
-  document.getElementById('mBody').innerHTML=mForms[type]||'';fillWsSelect();window._lessons=[];lsRender();
+  document.getElementById('mBody').innerHTML=mForms[type]||'';fillWsSelect();window._lessons=[];lsRender();splitTabs();
   if(type==='testimonial')fillItemRefOptions();
   if(id){
     const colMap={product:window._prods,course:window._courses,book:window._books,project:window._projects,testimonial:window._tests,section:window._sections};
@@ -1881,6 +1927,63 @@ window.renderOrders=()=>{
 };
 const METHOD_LBL={togo:'💳 Togo',paysky:'💳 PaySky','crosspay-paypal':'🅿️ PayPal (Crosspay)','manual-whatsapp':'✋ يدوي — واتساب','manual-paypal':'✋ يدوي — PayPal','manual-transfer':'✋ يدوي — تحويل','manual-cash':'✋ يدوي — نقداً','manual-other':'✋ يدوي'};
 
+// ─── 🏷️ أكواد الخصم (coupons/{CODE}) ───
+window._coupons=[];
+function cpItems(){return moAllItems().filter(i=>i.price>0);}
+window.cpInit=async()=>{
+  if(!window._allSecItems)await moLoadSecItems();
+  const opts=cpItems().map(i=>`<option value="${i.col}/${i.id}">${escH(i.emoji)} ${escH(i.title)} — $${i.price}</option>`).join('');
+  document.getElementById('cp-item').innerHTML=opts;
+  document.getElementById('cp-filter').innerHTML='<option value="">كل العناصر</option>'+opts;
+  cpLoad();
+};
+window.cpLoad=async()=>{
+  const sn=await getDocs(collection(db,'coupons'));window._coupons=[];
+  sn.forEach(d=>window._coupons.push({code:d.id,...d.data()}));
+  window._coupons.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+  cpRender();
+};
+function cpName(c){const i=cpItems().find(x=>x.col===c.col&&x.id===c.id)||moAllItems().find(x=>x.col===c.col&&x.id===c.id);return i?i.emoji+' '+i.title:c.col+'/'+c.id;}
+window.cpRender=()=>{
+  const f=document.getElementById('cp-filter').value,st=document.getElementById('cp-state').value;
+  const list=window._coupons.filter(c=>(!f||c.col+'/'+c.id===f)&&(!st||(st==='used'?c.used:!c.used)));
+  document.getElementById('cpTable').innerHTML=list.map(c=>`<tr>
+    <td dir="ltr"><b>${escH(c.code)}</b> <button class="btn-edit" style="font-size:.66rem;padding:1px 6px" onclick="navigator.clipboard.writeText('${escH(c.code)}');toast('📋 تم النسخ')">📋</button></td>
+    <td style="font-size:.78rem">${escH(cpName(c))}</td>
+    <td style="font-weight:800">$${Number(c.price||0).toFixed(2)}</td>
+    <td style="font-size:.76rem">${c.used?`<span style="color:var(--er)">🔒 مستخدم</span><br><span style="color:var(--mt)" dir="ltr">${escH(c.usedBy||'')}</span>`:(c.reservedUntil?.toMillis?.()>Date.now()?'<span style="color:var(--p)">⏳ قيد الدفع</span>':'<span style="color:var(--ok)">✅ متاح</span>')}</td>
+    <td style="font-size:.74rem;color:var(--mt)">${escH(c.note||'')}</td>
+    <td>${c.used?'':`<button class="btn-del" style="font-size:.7rem" onclick="cpDel('${escH(c.code)}')">🗑️</button>`}</td></tr>`).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--mt);padding:20px">لا توجد أكواد</td></tr>';
+};
+const CP_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+function cpRand(n){let r='';const a=new Uint32Array(n);crypto.getRandomValues(a);for(const x of a)r+=CP_CH[x%CP_CH.length];return r;}
+window.cpCreate=async()=>{
+  const [col,id]=(document.getElementById('cp-item').value||'').split('/');
+  const price=parseFloat(document.getElementById('cp-price').value);
+  const count=Math.min(200,Math.max(1,parseInt(document.getElementById('cp-count').value)||1));
+  const prefix=(document.getElementById('cp-prefix').value||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,10);
+  const custom=(document.getElementById('cp-custom').value||'').toUpperCase().replace(/[^A-Z0-9-]/g,'').slice(0,32);
+  const note=document.getElementById('cp-note').value.trim().slice(0,120);
+  if(!col||!id){toast('⚠️ اختر العنصر','err');return;}
+  if(!(price>=0)){toast('⚠️ اكتب السعر النهائي','err');return;}
+  const item=cpItems().find(i=>i.col===col&&i.id===id);
+  if(item&&price>=item.price&&!confirm('السعر النهائي مش أقل من السعر الأصلي — متابعة؟'))return;
+  if(custom&&custom.length<4){toast('⚠️ الكود 4 أحرف على الأقل','err');return;}
+  const codes=custom?[custom]:[...Array(count)].map(()=>(prefix?prefix+'-':'')+cpRand(6));
+  try{
+    if(custom){const ex=await getDoc(doc(db,'coupons',custom));if(ex.exists()){toast('⚠️ هالكود موجود من قبل','err');return;}}
+    const b=writeBatch(db);
+    codes.forEach(c=>b.set(doc(db,'coupons',c),{col,id,price:Math.round(price*100)/100,used:false,note,createdAt:serverTimestamp(),by:auth.currentUser?.email||''}));
+    await b.commit();
+    try{await navigator.clipboard.writeText(codes.join('\n'));}catch(e){}
+    toast(`✅ انعمل ${codes.length} كود — وانتسخوا`);
+    ['cp-custom','cp-note'].forEach(x=>document.getElementById(x).value='');
+    cpLoad();
+  }catch(e){toast('⚠️ '+e.message,'err');}
+};
+window.cpDel=async(code)=>{if(!confirm('حذف الكود '+code+'؟'))return;await deleteDoc(doc(db,'coupons',code));toast('🗑️ تم الحذف','warn');cpLoad();};
+window.cpCopyFree=async()=>{const f=document.getElementById('cp-filter').value;const l=window._coupons.filter(c=>!c.used&&(!f||c.col+'/'+c.id===f)).map(c=>c.code);if(!l.length){toast('لا توجد أكواد متاحة','warn');return;}try{await navigator.clipboard.writeText(l.join('\n'));toast('📋 تم نسخ '+l.length+' كود');}catch{prompt('الأكواد:',l.join(' '));}};
+
 // ─── الطلب اليدوي ───
 const MO_COLS=[['_courses','courses','🎓'],['_projects','projects','🔧'],['_prods','products','📦'],['_books','books','📚'],['_allSecItems','section_items','🎟️']];
 // عناصر الأقسام المخصصة (الورش...) — بدون المقالات
@@ -1954,7 +2057,7 @@ window.toast=toast;
 </script>
 
 <script>
-const panelTitles={workshops:'🎟️ الورشات',articles:'📝 المقالات',dashboard:'🏠 الرئيسية',hero:'🎯 القسم الرئيسي',layout:'🧭 ترتيب الصفحة والقائمة',team:'👷 الفريق',products:'📦 المنتجات',courses:'🎓 الدورات',books:'📚 الكتب',projects:'🔧 المشاريع',testimonials:'⭐ آراء الطلاب',sections:'➕ أقسام مخصصة',orders:'🧾 الطلبات',users:'👥 المستخدمون',messages:'💬 الرسائل',newsletter:'📧 النشرة',payment:'💳 إعدادات الدفع',design:'🎨 التصميم',seo:'🔍 SEO',brand:'💡 الهوية',social:'🔗 التواصل'};
+const panelTitles={coupons:'🏷️ أكواد الخصم',workshops:'🎟️ الورشات',articles:'📝 المقالات',dashboard:'🏠 الرئيسية',hero:'🎯 القسم الرئيسي',layout:'🧭 ترتيب الصفحة والقائمة',team:'👷 الفريق',products:'📦 المنتجات',courses:'🎓 الدورات',books:'📚 الكتب',projects:'🔧 المشاريع',testimonials:'⭐ آراء الطلاب',sections:'➕ أقسام مخصصة',orders:'🧾 الطلبات',users:'👥 المستخدمون',messages:'💬 الرسائل',newsletter:'📧 النشرة',payment:'💳 إعدادات الدفع',design:'🎨 التصميم',seo:'🔍 SEO',brand:'💡 الهوية',social:'🔗 التواصل'};
 function showP(id,el){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));

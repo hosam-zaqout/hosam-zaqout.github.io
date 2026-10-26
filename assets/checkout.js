@@ -41,7 +41,22 @@
       + '<option value="XX" data-dial="">🌍 دولة أخرى / مقدمة أخرى</option>';
   }
 
-  var payItems = [];
+  var payItems = [], coupon = "";
+  // 🏷️ فحص الكود بالسيرفر — بيرجع السعر الجديد للعنصر اللي بينطبق عليه
+  function applyCoupon() {
+    var code = $("ck3Coupon").value.trim().toUpperCase(), msg = $("ck3CpMsg");
+    payItems.forEach(function (i) { if (i._list != null) { i.price = i._list; delete i._list; } }); coupon = "";
+    if (!code) { msg.textContent = ""; renderItems(_fromCart); return; }
+    msg.style.color = "var(--mut,#98a2bf)"; msg.textContent = "⏳ جاري التحقق...";
+    fetch("https://us-central1-engs-website.cloudfunctions.net/checkCoupon", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: code, items: payItems.map(function (i) { return { col: i.col, id: i.id }; }) }) })
+      .then(function (r) { return r.json(); }).then(function (d) {
+        if (!d.ok) { msg.style.color = "#f87171"; msg.textContent = "⚠️ " + (d.error || "الكود غير صحيح"); renderItems(_fromCart); return; }
+        payItems.forEach(function (i) { if (i.col === d.col && i.id === d.id) { i._list = i.price; i.price = d.price; } });
+        coupon = d.code; msg.style.color = "#34d399"; msg.textContent = "✅ تم تطبيق الكود — السعر الجديد " + money(d.price);
+        renderItems(_fromCart);
+      }).catch(function () { msg.style.color = "#f87171"; msg.textContent = "⚠️ تعذّر التحقق، حاول مرة أخرى"; });
+  }
   function build() {
     var st = document.createElement("style"); st.textContent = CSS; document.head.appendChild(st);
     var ov = document.createElement("div"); ov.className = "ck3-ov"; ov.id = "ck3Pay";
@@ -53,15 +68,18 @@
       + '<label>رقم الجوال / الواتساب</label><div class="ck3-row"><select id="ck3Cc">' + countryOptions() + '</select><input id="ck3Phone" type="tel" inputmode="tel" maxlength="15" placeholder="592753159" autocomplete="tel-national"></div>'
       + '<div id="ck3OtherWrap" style="display:none;margin-top:8px" class="ck3-row"><input id="ck3Other" type="tel" inputmode="numeric" maxlength="4" placeholder="مقدمة الدولة مثل 49"></div>'
       + '<label>المدينة</label><input id="ck3City" maxlength="60" placeholder="مدينتك">'
+      + '<label>🏷️ كود خصم (اختياري)</label><div class="ck3-row" style="direction:rtl"><input id="ck3Coupon" dir="ltr" maxlength="32" autocomplete="off" placeholder="CODE" style="text-transform:uppercase"><button type="button" id="ck3CpBtn" class="ck3-no" style="flex:0 0 auto;padding:0 14px;border-radius:9px;border:0;font:inherit;font-weight:800;cursor:pointer">تطبيق</button></div><div id="ck3CpMsg" style="font-size:.78rem;margin-top:4px"></div>'
       + '<div class="ck3-tot"><span>المجموع</span><span id="ck3Total"></span></div>'
       + '<div class="ck3-btns"><button type="button" class="ck3-no" id="ck3Cancel">إلغاء</button><button type="button" class="ck3-go" id="ck3Go">انتقل للدفع ⚡</button></div>'
       + '<div class="ck3-err" id="ck3Err"></div>'
-      + '<div class="ck3-note">🔒 بيانات بطاقتك تُدخل في صفحة بوابة الدفع ولا تصل إلينا • ↩️ <a href="/privacy.html#refund" style="color:inherit">استرداد خلال 7 أيام</a><br>طلاب فلسطين بدون بطاقة: <a href="https://wa.me/972592753159" style="color:#25D366">تواصل معنا عبر واتساب</a></div>'
+      + '<div class="ck3-note">🔒 بيانات بطاقتك تُدخل في صفحة بوابة الدفع ولا تصل إلينا • ↩️ <a href="/privacy.html#refund" style="color:inherit">استرداد خلال 7 أيام</a><br>طلاب فلسطين بدون بطاقة: <a href="https://wa.me/970592753159" style="color:#25D366">تواصل معنا عبر واتساب</a></div>'
       + "</div>";
     document.body.appendChild(ov);
     ov.addEventListener("click", function (e) { if (e.target === ov) close(); });
     $("ck3Cancel").onclick = close;
     $("ck3Go").onclick = submit;
+    $("ck3CpBtn").onclick = applyCoupon;
+    $("ck3Coupon").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); applyCoupon(); } });
     $("ck3Cc").onchange = function () { $("ck3OtherWrap").style.display = this.value === "XX" ? "flex" : "none"; };
     document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
     // تعبئة البيانات من آخر مرة (على نفس الجهاز)
@@ -71,7 +89,7 @@
 
   function renderItems(fromCart) {
     $("ck3Items").innerHTML = payItems.map(function (i, k) {
-      return '<div class="ck3-it"><span>' + esc(i.emoji || "📦") + " " + esc(i.name) + '</span><span>' + money(i.price)
+      return '<div class="ck3-it"><span>' + esc(i.emoji || "📦") + " " + esc(i.name) + '</span><span>' + (i._list != null ? '<s style="color:var(--mut);font-size:.8em">' + money(i._list) + "</s> " : "") + money(i.price)
         + (fromCart ? ' <button type="button" data-k="' + k + '" title="حذف">✕</button>' : "") + "</span></div>";
     }).join("") || '<div style="text-align:center;color:var(--mut)">السلة فارغة</div>';
     $("ck3Total").textContent = money(payItems.reduce(function (s, i) { return s + Number(i.price || 0); }, 0));
@@ -82,7 +100,8 @@
   var _fromCart = false;
   function open(items, fromCart) {
     if (!$("ck3Pay")) build();
-    payItems = items; _fromCart = !!fromCart;
+    payItems = items; _fromCart = !!fromCart; coupon = "";
+    if ($("ck3Coupon")) { $("ck3Coupon").value = ""; $("ck3CpMsg").textContent = ""; }
     renderItems(fromCart);
     $("ck3Err").textContent = "";
     $("ck3Go").disabled = false; $("ck3Go").textContent = "انتقل للدفع ⚡";
@@ -106,11 +125,12 @@
       items: JSON.stringify(payItems.map(function (i) { return { col: i.col, id: i.id }; })),
       mobile: dial + num, name: name, email: email, city: city, country: iso, provider: "togo",
       source: location.href.split("#")[0],
+      coupon: coupon,
     };
     var f = document.createElement("form"); f.method = "POST"; f.action = FN; f.style.display = "none";
     Object.keys(fields).forEach(function (k) { var i = document.createElement("input"); i.type = "hidden"; i.name = k; i.value = fields[k]; f.appendChild(i); });
     document.body.appendChild(f);
-    $("ck3Go").disabled = true; $("ck3Go").textContent = "⏳ جاري التحويل لبوابة الدفع...";
+    $("ck3Go").disabled = true; $("ck3Go").textContent = payItems.reduce(function (s, i) { return s + Number(i.price || 0); }, 0) > 0 ? "⏳ جاري التحويل لبوابة الدفع..." : "⏳ جاري التسجيل...";
     f.submit();
   }
 

@@ -44,7 +44,7 @@ const PROJECT_ID = "engs-website";
 const API_KEY = process.env.FIREBASE_API_KEY || "AIzaSyALJiF8l_wnk_6FU6etQpz44Z43lSORXQk"; // مفتاح الويب العام (نفس اللي بالموقع)
 const OUT_DIR = path.resolve(process.env.OUT_DIR || ".");
 const CURRENCY = "USD";
-const WHATSAPP = "972592753159";
+const WHATSAPP = "970592753159";
 const BRAND = "3ENG.s";
 const BRAND_AR = "المهندسون الثلاثة";
 

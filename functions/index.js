@@ -79,6 +79,17 @@ function orderLink(o) {
   return `${RETURN_BASE}?invoice_id=${encodeURIComponent(o.invoiceId)}&k=${encodeURIComponent(o.accessKey || "")}`;
 }
 
+// 🏷️ أكواد الخصم: coupons/{CODE} = {col, id, price (السعر النهائي), used, usedBy, invoiceId, reservedBy, reservedUntil}
+// كل كود لشخص واحد: بيتحجز 30 دقيقة لما يبدأ الدفع، وبيتحرق لما يصير الطلب "paid"
+const normCoupon = (c) => String(c || "").trim().toUpperCase().replace(/[^A-Z0-9-]/g, "").substring(0, 32);
+function couponState(c, invoiceId) {
+  if (!c) return "none";
+  if (c.used) return "used";
+  const until = c.reservedUntil?.toMillis?.() || 0;
+  if (c.reservedBy && c.reservedBy !== invoiceId && until > Date.now()) return "reserved";
+  return "ok";
+}
+
 function isFreeItem(d) {
   return d.isFree === true || !(Number(d.price) > 0);
 }
@@ -312,12 +323,26 @@ exports.createPayment = onRequest(
       });
     }
     if (!items.length) { errorPage(res, 400, "لا توجد منتجات مدفوعة صالحة في السلة"); return; }
+
+    // 🏷️ كود الخصم (لعنصر واحد محدد) — السعر النهائي من السيرفر
+    const couponCode = normCoupon(q.coupon);
+    let coupon = null;
+    if (couponCode) {
+      const c = (await db.collection("coupons").doc(couponCode).get()).data();
+      const st = couponState(c);
+      if (st !== "ok") { errorPage(res, 400, st === "used" ? "كود الخصم مستخدم من قبل" : st === "reserved" ? "كود الخصم قيد الاستخدام حالياً — جرّب بعد قليل" : "كود الخصم غير صحيح"); return; }
+      const it = items.find((i) => i.col === c.col && i.id === c.id);
+      if (!it) { errorPage(res, 400, "كود الخصم لا ينطبق على هذا العنصر"); return; }
+      it.listPrice = it.price;
+      it.price = Math.max(0, Math.round(Number(c.price) * 100) / 100);
+      coupon = couponCode;
+    }
     // الأدوات المتقدمة صلاحية مربوطة بحساب — لازم تسجيل دخول
     if (!user && items.some((i) => i.col === "products" && i.id === TOOLS_PRO_ID)) {
       errorPage(res, 400, "الأدوات المتقدمة تُفعَّل على حسابك في الموقع، لذلك سجّل الدخول أولاً ثم أكمل الشراء"); return;
     }
 
-    const total = Math.round(items.reduce((s, i) => s + i.price, 0) * 100) / 100;
+    const total = Math.round(items.reduce((s, i) => s + i.price, 0) * 100) / 100; // بعد كود الخصم
     const customerName = String(q.name || (user && user.name) || "عميل 3ENG.s").trim().substring(0, 80) || "عميل 3ENG.s";
     const accessKey = crypto.randomBytes(24).toString("hex");
     const invoiceId =
@@ -343,12 +368,29 @@ exports.createPayment = onRequest(
       sourcePage:    String(q.source || req.headers.referer || "").substring(0, 300),
       items,
       total,
+      ...(coupon ? { coupon } : {}),
       currency:      CURRENCY,
       status:        "started",
       method:        "togo",
       createdAt:     FieldValue.serverTimestamp(),
     };
     await orderRef.set(attempt);
+    if (coupon) {
+      const ok = await db.runTransaction(async (t) => {
+        const ref = db.collection("coupons").doc(coupon);
+        const c = (await t.get(ref)).data();
+        if (couponState(c, invoiceId) !== "ok") return false;
+        t.update(ref, { reservedBy: invoiceId, reservedUntil: new Date(Date.now() + 30 * 60 * 1000), lastEmail: email });
+        return true;
+      });
+      if (!ok) { await orderRef.update({ status: "gateway_error", note: "كود الخصم انحجز لشخص آخر" }); errorPage(res, 400, "كود الخصم قيد الاستخدام حالياً — جرّب بعد قليل"); return; }
+    }
+    if (total <= 0) {
+      // كود بخصم كامل: الطلب مدفوع مباشرة (الإيصال والتسجيل بالورشة بيشتغلوا تلقائياً)
+      await orderRef.update({ status: "paid", method: "coupon", verification: "coupon", paidAt: FieldValue.serverTimestamp() });
+      res.redirect(302, back);
+      return;
+    }
     // 🔔 تنبيه للأدمن (ما بيأخّر الزبون أكثر من 4 ثواني)
     await Promise.race([notifyAttempt({ ...attempt, createdAt: new Date() }), new Promise((r) => setTimeout(r, 4000))]).catch(() => {});
 
@@ -467,7 +509,7 @@ exports.adminTogo = onRequest(
         catch (e) { steps.push({ name, ok: false, error: e.message, status: e.status || null, body: e.body || null }); return null; }
       };
       const rcv = await step("receiver", () => togo("POST", "/receivers-addresses", {
-        receiver_name: "3ENG.s Test", receiver_phone_number: "+972592753159", country_code: "PS", country_name: "Palestine",
+        receiver_name: "3ENG.s Test", receiver_phone_number: "+970592753159", country_code: "PS", country_name: "Palestine",
         city: "Gaza", details: "Gaza, Palestine — 3ENG.s gateway test", phone_connected_to_whats: false,
       }));
       const rcvId = rcv && pick(rcv, ["data.id", "data._id", "data.address_id", "data.receiver_address_id", "id"]);
@@ -727,7 +769,7 @@ function mailLayout(title, inner) {
 <div style="max-width:560px;margin:24px auto;background:#fff;border-radius:14px;overflow:hidden;border:1px solid #e2e8f0" dir="rtl">
 <div style="background:#0F172A;padding:18px 22px;color:#F59E0B;font-size:20px;font-weight:bold">3ENG.s <span style="color:#94A3B8;font-size:13px;font-weight:normal">— المهندسون الثلاثة</span></div>
 <div style="padding:22px;color:#0f172a;font-size:15px;line-height:1.9;text-align:right"><h2 style="margin:0 0 12px;font-size:18px">${escMail(title)}</h2>${inner}</div>
-<div style="padding:14px 22px;background:#f8fafc;color:#64748b;font-size:12px;text-align:right">📧 ${MAIL_FROM} • 💬 واتساب +972592753159 • <a href="${SITE}" style="color:#D97706">www.3engs.com</a></div>
+<div style="padding:14px 22px;background:#f8fafc;color:#64748b;font-size:12px;text-align:right">📧 ${MAIL_FROM} • 💬 واتساب +970 59 275 3159 • <a href="${SITE}" style="color:#D97706">www.3engs.com</a></div>
 </div></body></html>`;
 }
 async function sendMail(to, subject, title, inner, text) {
@@ -783,7 +825,7 @@ function msgsHtml(extras) {
 
 // 🔔 تنبيه للأدمن عند كل محاولة دفع
 async function notifyAttempt(o) {
-  const items = (o.items || []).map((i) => `${i.emoji || ""} ${i.name} — ${Number(i.price || 0).toFixed(2)}`).join("\n");
+  const items = (o.items || []).map((i) => `${i.emoji || ""} ${i.name} — $${Number(i.price || 0).toFixed(2)}`).join("\n");
   const wa = o.userMobile ? `https://wa.me/${o.userMobile}` : "";
   const rows = [
     ["الاسم", o.buyerName], ["واتساب / جوال", o.userMobile ? "+" + o.userMobile : "—"], ["الإيميل", o.userEmail],
@@ -795,9 +837,9 @@ async function notifyAttempt(o) {
 <p style="white-space:pre-line;background:#f8fafc;border-radius:8px;padding:10px">${escMail(items)}</p>
 ${wa ? `<p><a href="${wa}" style="background:#25D366;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none;font-weight:bold">💬 راسله واتساب</a></p>` : ""}
 <p><a href="${SITE}/admin.html" style="color:#D97706">🧾 افتح الطلبات بلوحة التحكم</a></p>`;
-  const text = `محاولة دفع جديدة\n${o.buyerName} | +${o.userMobile} | ${o.userEmail}\n${o.countryName || ""} ${o.city || ""}\n${items}\nالمجموع: ${o.total}\nمن: ${o.sourcePage || "—"}\n${o.invoiceId}`;
+  const text = `محاولة دفع جديدة\n${o.buyerName} | +${o.userMobile} | ${o.userEmail}\n${o.countryName || ""} ${o.city || ""}\n${items}\nالمجموع: $${o.total}\nمن: ${o.sourcePage || "—"}\n${o.invoiceId}`;
   try {
-    await sendMail(MAIL_FROM, `🛒 محاولة دفع: ${o.buyerName} — ${Number(o.total || 0).toFixed(2)}`, "🛒 محاولة دفع جديدة", inner, text);
+    await sendMail(MAIL_FROM, `🛒 محاولة دفع: ${o.buyerName} — $${Number(o.total || 0).toFixed(2)}`, "🛒 محاولة دفع جديدة", inner, text);
   } catch (e) { logger.warn("Attempt notify failed", { invoiceId: o.invoiceId, msg: e.message }); }
 }
 
@@ -1016,5 +1058,33 @@ exports.getLessons = onRequest(
     }));
     logger.info("Lessons opened", { col, id, by: email || (invoiceId ? "order-link" : "?") });
     res.status(200).json({ ...head, lessons, fileUrl: /^https?:\/\//.test(priv.fileUrl || "") ? priv.fileUrl : "", message: String(priv.message || "") });
+  }
+);
+
+// 🏷️ فحص كود الخصم قبل الدفع (بيرجع السعر الجديد بس)
+exports.checkCoupon = onRequest(
+  { region: "us-central1" },
+  async (req, res) => {
+    setCORS(req, res);
+    if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+    const code = normCoupon(req.body?.code);
+    const refs = Array.isArray(req.body?.items) ? req.body.items.slice(0, 30) : [];
+    const c = code ? (await db.collection("coupons").doc(code).get()).data() : null;
+    const st = couponState(c);
+    if (st !== "ok") { await new Promise((r) => setTimeout(r, 800)); res.status(200).json({ ok: false, error: st === "used" ? "الكود مستخدم من قبل" : st === "reserved" ? "الكود قيد الاستخدام حالياً، جرّب بعد قليل" : "الكود غير صحيح" }); return; }
+    if (!refs.some((r) => r && r.col === c.col && r.id === c.id)) { res.status(200).json({ ok: false, error: "الكود لا ينطبق على هذا العنصر" }); return; }
+    res.status(200).json({ ok: true, code, col: c.col, id: c.id, price: Math.max(0, Number(c.price) || 0) });
+  }
+);
+
+// 🏷️ حرق الكود لما يصير الطلب مدفوع
+exports.useCoupon = onDocumentWritten(
+  { document: "orders/{orderId}", region: "us-central1" },
+  async (event) => {
+    const after = event.data?.after?.data();
+    const before = event.data?.before?.data();
+    if (!after || !after.coupon || after.status !== "paid" || before?.status === "paid") return;
+    await db.collection("coupons").doc(after.coupon).set({ used: true, usedBy: after.userEmail || "", usedName: after.buyerName || "", invoiceId: after.invoiceId, usedAt: FieldValue.serverTimestamp() }, { merge: true });
+    logger.info("Coupon used", { coupon: after.coupon, invoiceId: after.invoiceId });
   }
 );

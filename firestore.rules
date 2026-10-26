@@ -197,6 +197,11 @@ service cloud.firestore {
         && request.resource.data.count == resource.data.count + 1;
     }
 
+    // 🏷️ أكواد الخصم — الأدمن بس (الزبون بيفحص الكود عبر checkCoupon بالسيرفر)
+    match /coupons/{code} {
+      allow read, write: if isAdmin();
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

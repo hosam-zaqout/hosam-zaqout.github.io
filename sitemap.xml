@@ -284,6 +284,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.3engs.com/sections/workshop/wireless-iot/</loc>
+    <lastmod>2026-10-26</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/section_items/vOirVUb0VWsSzLYvgMUn.webp</image:loc><image:title>مخيم هواة الاتصالات اللاسلكية وإنترنت الأشياء 🚀</image:title></image:image>
+  </url>
+  <url>
     <loc>https://www.3engs.com/sections/workshop/arduino-bootcamp/</loc>
     <lastmod>2026-10-21</lastmod>
     <priority>0.8</priority>

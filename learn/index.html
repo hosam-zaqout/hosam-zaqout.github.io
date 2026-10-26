@@ -68,7 +68,7 @@ function denied(d) {
     ${d.hasCode ? `<form id="cf" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px"><p>🔑 عندك كود دخول؟</p>
       <input id="cv" dir="ltr" maxlength="40" autocomplete="off" placeholder="اكتب الكود" style="padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#0a0f1d;color:var(--txt);font:inherit;text-align:center;width:200px">
       <button class="btn" type="submit">دخول</button>${d.codeWrong ? '<p style="color:#f87171">⚠️ الكود غير صحيح</p>' : ""}</form>` : ""}
-    <p style="margin-top:16px">لم تشترك بعد؟ <a href="/">تصفّح الورشات</a> • <a href="https://wa.me/972592753159" style="color:#25D366">تواصل معنا عبر واتساب</a></p></div>`;
+    <p style="margin-top:16px">لم تشترك بعد؟ <a href="/">تصفّح الورشات</a> • <a href="https://wa.me/970592753159" style="color:#25D366">تواصل معنا عبر واتساب</a></p></div>`;
   $("cf")?.addEventListener("submit", (e) => { e.preventDefault(); code = $("cv").value.trim(); if (code) { $("app").innerHTML = '<div class="spin"></div>'; load(window._u); } });
   $("out")?.addEventListener("click", async () => { await signOut(auth); location.href = "/auth.html?redirect=" + encodeURIComponent(here); });
 }
@@ -105,7 +105,7 @@ async function load(user) {
     if (!r.ok) throw new Error(d.error || r.status);
     show(d);
   } catch (e) {
-    $("app").innerHTML = `<div class="box"><p>⚠️ تعذّر تحميل المحاضرات، حاول لاحقاً أو تواصل معنا.</p><a class="btn" href="https://wa.me/972592753159">💬 واتساب</a></div>`;
+    $("app").innerHTML = `<div class="box"><p>⚠️ تعذّر تحميل المحاضرات، حاول لاحقاً أو تواصل معنا.</p><a class="btn" href="https://wa.me/970592753159">💬 واتساب</a></div>`;
   }
 }
 onAuthStateChanged(auth, (user) => { window._u = user; $("who").textContent = user ? user.email : ""; load(user); });
