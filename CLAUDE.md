@@ -56,6 +56,11 @@
 5. 3ENG CAD منشور على /cad/ — توسيع الترجمة العربية في locale_ar.txt وإضافة دوائر للمكتبة حسب الحاجة.
 6. صور وروابط LinkedIn لـ م. إسراء و م. فرات؛ الدورات الحقيقية (الموقع الآن يعرض العدد الفعلي)؛ مراجعة المقالات المسودّة ونشرها؛ Google Business Profile وتقييمات حقيقية.
 
+## 🔒 حماية الكود (Obfuscation)
+- الكود المقروء لـ `assets/tools.js`، `tools-pro.js`، `cad-pro.js`، `checkout.js`، و`cad/index.html`، و`cad/breadboard/index.html` موجود في `src/` (**على الجهاز فقط، مستثنى من git**). النسخ المنشورة معقّدة.
+- **أي تعديل على هذه الملفات يكون في `src/`** ثم: `npm install --no-save --no-package-lock javascript-obfuscator@4 sharp@0.34` و `node obfuscate.mjs`. لا تعدّل النسخ المنشورة مباشرة.
+- المستودع ما زال عاماً (وتاريخ git فيه النسخ القديمة المقروءة) — الحماية الكاملة تحتاج مستودعاً خاصاً (GitHub Pro أو Firebase Hosting). محرك CircuitJS برخصة GPL ولا يُخفى.
+
 ## قواعد مهمة
 - لا تثق بأي سعر أو حالة دفع من المتصفح. الأدمن يتطلب `email_verified`.
 - لا تكتب مفاتيح/أسرار بالكود أو المحادثة. قبل النشر للموقع أو Firebase أكّد مع حسام.

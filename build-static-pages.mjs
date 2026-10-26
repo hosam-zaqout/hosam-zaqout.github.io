@@ -374,7 +374,7 @@ ${body}
 </main>
 <footer><div class="wrap">
   <nav><a href="/">الرئيسية</a>${SECTIONS.map((s) => `<a href="/${s.dir}/">${s.label}</a>`).join("")}<a href="/tools/">الحاسبات</a><a href="/cad/">3ENG CAD</a><a href="/topics/">التصنيفات</a><a href="/team/">الفريق</a><a href="/about/">من نحن</a><a href="/#faq">الأسئلة الشائعة</a><a href="/privacy.html">سياسة الخصوصية</a></nav>
-  © ${new Date().getFullYear()} ${BRAND} — ${BRAND_AR} • منصة تعليم الهندسة الكهربائية والأنظمة المدمجة
+  © ${new Date().getFullYear()} ${BRAND} — ${BRAND_AR} • جميع الحقوق محفوظة — يُمنع نسخ المحتوى أو الكود دون إذن (<a href="/privacy.html" style="color:inherit">الشروط</a>)
 </div></footer>
 </body>
 </html>`;
