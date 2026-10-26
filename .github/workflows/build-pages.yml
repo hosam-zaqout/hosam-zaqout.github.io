@@ -4,9 +4,19 @@ on:
   schedule:
     - cron: "17 * * * *"   # كل ساعة (دقيقة 17) — مقالات ومنتجات جديدة بتنشر خلال ساعة
   workflow_dispatch:
+  # أي تعديل بيندفع على main بينشر فوراً على Firebase Hosting
+  push:
+    branches: [main]
+    paths-ignore: ["**/*.md"]
 
 permissions:
   contents: write
+  checks: write
+  pull-requests: write
+
+concurrency:
+  group: build-pages
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -42,3 +52,20 @@ jobs:
             git commit -m "Update SEO pages and sitemap"
             git push
           fi
+
+      # 🚀 النشر على Firebase Hosting — بيشتغل بس لما يكون السر FIREBASE_SERVICE_ACCOUNT موجود
+      # (حساب خدمة بصلاحية "Firebase Hosting Admin" — ملف JSON كامل كسر بإعدادات المستودع)
+      - name: Check Firebase secret
+        id: fb
+        env:
+          SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: echo "ok=$([ -n "$SA" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy to Firebase Hosting
+        if: steps.fb.outputs.ok == 'true'
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: engs-website
+          channelId: live

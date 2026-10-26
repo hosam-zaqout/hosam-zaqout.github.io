@@ -17,8 +17,17 @@
       "**/.*",
       "**/node_modules/**",
       "functions/**",
+      "src/**",
       "*.md",
-      "*.rules"
+      "*.mjs",
+      "*.rules",
+      "index-additions.html",
+      "CNAME"
+    ],
+    "trailingSlash": true,
+    "headers": [
+      { "source": "**/*.@(js|css|webp|jpg|png|svg|woff2)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }] },
+      { "source": "**/*.html", "headers": [{ "key": "Cache-Control", "value": "public, max-age=300" }] }
     ]
   },
   "firestore": {
