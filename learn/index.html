@@ -64,7 +64,7 @@ function denied(d) {
   $("app").innerHTML = `<div class="box"><div style="font-size:2.4rem">🔒</div><h1>${esc(d.title || "محاضرات الورشة")}</h1>
     <p>هذا المحتوى متاح للمشتركين فقط.</p>
     ${d.signedIn ? `<p>أنت مسجّل بالإيميل <b dir="ltr">${esc(d.email)}</b>، وهذا الإيميل غير مسجّل بهذه الورشة.</p><button class="btn alt" id="out">🔄 الدخول بإيميل آخر</button>` :
-      `<p>إذا اشتريت الورشة: افتح الرابط المرسل إلى بريدك بعد الدفع، أو سجّل الدخول بنفس الإيميل الذي اشتريت به.</p><a class="btn" href="/auth.html?redirect=${encodeURIComponent(here)}">🔑 تسجيل الدخول</a>`}
+      `<p>إذا اشتركت: سجّل الدخول بالإيميل نفسه الذي كتبته عند الشراء.</p><a class="btn" href="/auth.html?redirect=${encodeURIComponent(here)}">🔑 تسجيل الدخول</a>`}
     ${d.hasCode ? `<form id="cf" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px"><p>🔑 عندك كود دخول؟</p>
       <input id="cv" dir="ltr" maxlength="40" autocomplete="off" placeholder="اكتب الكود" style="padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#0a0f1d;color:var(--txt);font:inherit;text-align:center;width:200px">
       <button class="btn" type="submit">دخول</button>${d.codeWrong ? '<p style="color:#f87171">⚠️ الكود غير صحيح</p>' : ""}</form>` : ""}
@@ -72,22 +72,42 @@ function denied(d) {
   $("cf")?.addEventListener("submit", (e) => { e.preventDefault(); code = $("cv").value.trim(); if (code) { $("app").innerHTML = '<div class="spin"></div>'; load(window._u); } });
   $("out")?.addEventListener("click", async () => { await signOut(auth); location.href = "/auth.html?redirect=" + encodeURIComponent(here); });
 }
+const ICON = { video: "🎬", file: "📁", slides: "📊", link: "🔗", assignment: "📝", text: "📄" };
 function show(d) {
-  document.title = (d.title || "محاضرات الورشة") + " | 3ENG.s";
+  document.title = (d.title || "محتوى الدورة") + " | 3ENG.s";
   const L = d.lessons || [];
-  const extra = `${d.fileUrl ? `<div class="files"><a href="${esc(d.fileUrl)}" target="_blank" rel="noopener">📦 ملف الورشة</a></div>` : ""}${d.message ? `<div class="extra">🔒 ${linkify(d.message)}</div>` : ""}`;
-  if (!L.length) { $("app").innerHTML = `<h1>${esc(d.emoji)} ${esc(d.title)}</h1><div class="box"><p>لم تُضف المحاضرات بعد — ستظهر هنا فور نشرها.</p></div>${extra}`; return; }
+  const extra = `${d.fileUrl ? `<div class="files"><a href="${esc(d.fileUrl)}" target="_blank" rel="noopener">📦 ملف الدورة</a></div>` : ""}${d.message ? `<div class="extra">🔒 ${linkify(d.message)}</div>` : ""}`;
+  if (!L.length) { $("app").innerHTML = `<h1>${esc(d.emoji)} ${esc(d.title)}</h1><div class="box"><p>لم يُضف المحتوى بعد — سيظهر هنا فور نشره.</p></div>${extra}`; return; }
+  const KEY = "learn_done_" + col + id;
+  let done = []; try { done = JSON.parse(localStorage.getItem(KEY) || "[]"); } catch (e) {}
+  const secs = []; L.forEach((l, i) => { const n = l.section || "محتوى الدورة"; let g = secs.find((x) => x.n === n); if (!g) secs.push(g = { n, items: [] }); g.items.push(i); });
   $("app").innerHTML = `<h1>${esc(d.emoji)} ${esc(d.title)}</h1>
-    <div class="grid"><div><div class="player" id="pl"></div><div class="now" id="now"></div>${extra}</div>
-    <div class="list"><div class="hd">📚 المحاضرات (${L.length})</div>${L.map((l, i) => `<button data-i="${i}"><b>${i + 1}</b><span>${esc(l.title || "محاضرة " + (i + 1))}</span></button>`).join("")}</div></div>`;
+    <div class="grid"><div><div class="player" id="pl"></div><div class="now" id="now"></div>
+      <div class="files" style="justify-content:space-between"><button class="btn alt" id="prev">→ السابق</button><button class="btn alt" id="mark"></button><button class="btn" id="next">التالي ←</button></div>${extra}</div>
+    <div class="list"><div class="hd">📚 محتوى الدورة<div id="prog" style="font-size:.78rem;color:var(--mut);font-weight:600"></div><div style="height:6px;background:var(--line);border-radius:4px;margin-top:6px;overflow:hidden"><div id="bar" style="height:100%;width:0;background:var(--ok)"></div></div></div>
+      ${secs.map((g) => `<div style="padding:9px 14px;font-weight:800;font-size:.86rem;background:#0f1528;border-bottom:1px solid var(--line)">${esc(g.n)}</div>${g.items.map((i) => `<button data-i="${i}"><b class="st"></b><span>${ICON[L[i].type] || "🎬"} ${esc(L[i].title || "عنصر " + (i + 1))}</span></button>`).join("")}`).join("")}</div></div>`;
+  let cur = 0;
+  const paint = () => {
+    document.querySelectorAll(".list button").forEach((b) => { const i = +b.dataset.i; b.classList.toggle("on", i === cur); b.querySelector(".st").textContent = done.includes(i) ? "✅" : i + 1; });
+    const pct = Math.round(done.filter((i) => i < L.length).length / L.length * 100);
+    $("prog").textContent = `أنجزت ${pct}%`; $("bar").style.width = pct + "%";
+    $("mark").textContent = done.includes(cur) ? "↩️ إلغاء الإنجاز" : "✅ تم الإنجاز";
+    $("prev").style.visibility = cur > 0 ? "" : "hidden"; $("next").style.visibility = cur < L.length - 1 ? "" : "hidden";
+  };
   const play = (i) => {
-    const l = L[i];
-    $("pl").innerHTML = l.video ? `<iframe src="${esc(l.video)}" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>` : `<div class="none">لا يوجد فيديو لهذه المحاضرة</div>`;
-    $("now").innerHTML = `<h2>${i + 1}. ${esc(l.title)}</h2>${l.desc ? `<p>${linkify(l.desc)}</p>` : ""}${(l.files || []).length ? `<div class="files">${l.files.map((f) => `<a href="${esc(f.url)}" target="_blank" rel="noopener">📎 ${esc(f.name)}</a>`).join("")}</div>` : ""}`;
-    document.querySelectorAll(".list button").forEach((b) => b.classList.toggle("on", +b.dataset.i === i));
+    cur = i; const l = L[i], type = l.type || "video";
+    const hasPlayer = !!l.video;
+    $("pl").style.display = hasPlayer ? "" : "none";
+    $("pl").innerHTML = hasPlayer ? `<iframe src="${esc(l.video)}" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>` : "";
+    const tag = { assignment: "📝 واجب", slides: "📊 عرض تقديمي", file: "📁 ملفات وأكواد", link: "🔗 رابط", text: "📄 قراءة" }[type] || "";
+    $("now").innerHTML = `<h2>${esc(l.title)}</h2>${tag ? `<div style="color:var(--acc);font-size:.85rem;font-weight:700">${tag}</div>` : ""}${l.desc ? `<p>${linkify(l.desc)}</p>` : ""}<div class="files">${l.link ? `<a href="${esc(l.link)}" target="_blank" rel="noopener">⬇️ فتح الرابط / تحميل البرنامج</a>` : ""}${(l.files || []).map((f) => `<a href="${esc(f.url)}" target="_blank" rel="noopener">📎 ${esc(f.name)}</a>`).join("")}</div>`;
+    paint();
     try { localStorage.setItem("learn_" + col + id, i); } catch (e) {}
   };
-  document.querySelectorAll(".list button").forEach((b) => b.onclick = () => { play(+b.dataset.i); if (innerWidth < 860) $("pl").scrollIntoView({ behavior: "smooth" }); });
+  document.querySelectorAll(".list button").forEach((b) => b.onclick = () => { play(+b.dataset.i); if (innerWidth < 860) $("now").scrollIntoView({ behavior: "smooth" }); });
+  $("prev").onclick = () => cur > 0 && play(cur - 1);
+  $("next").onclick = () => cur < L.length - 1 && play(cur + 1);
+  $("mark").onclick = () => { done = done.includes(cur) ? done.filter((x) => x !== cur) : [...done, cur]; try { localStorage.setItem(KEY, JSON.stringify(done)); } catch (e) {} paint(); };
   let last = 0; try { last = Math.min(L.length - 1, +localStorage.getItem("learn_" + col + id) || 0); } catch (e) {}
   play(last);
 }

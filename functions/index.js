@@ -820,7 +820,7 @@ ${para(tpl.receiptFooter)}
 const linkify = (t) => escMail(t).replace(/https?:\/\/[^\s<]+/g, (u) => `<a href="${u}" style="color:#D97706;font-weight:bold;word-break:break-all">${u}</a>`);
 function msgsHtml(extras) {
   const m = (extras || []).filter((x) => x.message || x.learnUrl);
-  return m.length ? `<div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:12px 14px;margin:12px 0"><b>🔒 معلومات خاصة بطلبك</b>${m.map((x) => `<p style="margin:8px 0 0;white-space:pre-line"><b>${escMail(x.name)}:</b>${x.learnUrl ? `\n<a href="${escMail(x.learnUrl)}" style="background:#10B981;color:#fff;padding:7px 14px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block;margin:6px 0">▶️ افتح محاضرات الورشة</a>` : ""}${x.message ? "\n" + linkify(x.message) : ""}</p>`).join("")}</div>` : "";
+  return m.length ? `<div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:12px 14px;margin:12px 0"><b>🔒 معلومات خاصة بطلبك</b>${m.map((x) => `<p style="margin:8px 0 0;white-space:pre-line"><b>${escMail(x.name)}:</b>${x.learnUrl ? `\n<a href="${escMail(x.learnUrl)}" style="background:#10B981;color:#fff;padding:7px 14px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block;margin:6px 0">▶️ افتح المحتوى</a><br><span style="font-size:13px;color:#64748b">سجّل الدخول بهذا الإيميل نفسه: ${escMail(x.email || "")}</span>` : ""}${x.message ? "\n" + linkify(x.message) : ""}</p>`).join("")}</div>` : "";
 }
 
 // 🔔 تنبيه للأدمن عند كل محاولة دفع
@@ -882,7 +882,7 @@ exports.sendReceipt = onDocumentWritten(
     if (!claimed) return;
     const o = after;
     const extras = (await resolveDownloads(o).catch(() => [])).map((x) => ({ ...x,
-      learnUrl: x.hasLessons ? `${SITE}/learn/?item=${encodeURIComponent(x.col)}:${encodeURIComponent(x.id)}&inv=${encodeURIComponent(o.invoiceId)}&k=${encodeURIComponent(o.accessKey || "")}` : "" }));
+      email: o.userEmail, learnUrl: x.hasLessons ? `${SITE}/learn/?item=${encodeURIComponent(x.col)}:${encodeURIComponent(x.id)}` : "" }));
     const r = buildReceipt(o, await receiptTemplate(), o.buyerName || await buyerName(o.userEmail), extras);
     try {
       await sendMail(o.userEmail, r.subject, r.title, r.inner, r.text);
@@ -1057,11 +1057,14 @@ exports.getLessons = onRequest(
     }
     const allowed = codeOk || (user && await isAdmin(user)) ||
       (!!email && user.email_verified === true && (priv.allowEmails || []).map((e) => String(e).toLowerCase()).includes(email)) ||
-      await hasPaidItem(col, id, { user, invoiceId, key });
+      await hasPaidItem(col, id, { user });
     const head = { title: item.title || item.name || "", emoji: item.emoji || "🎓", signedIn: !!user, email, hasCode: norm(priv.accessCode).length >= 4, codeWrong: !!code && !codeOk };
     if (!allowed) { res.status(403).json({ ...head, error: "غير مصرح" }); return; }
     const lessons = (Array.isArray(priv.lessons) ? priv.lessons : []).map((l) => ({
       title: String(l.title || "").substring(0, 200),
+      type: String(l.type || "video").substring(0, 20),
+      section: String(l.section || "").substring(0, 120),
+      link: /^https?:\/\//.test(l.link || "") ? String(l.link).substring(0, 600) : "",
       desc: String(l.desc || "").substring(0, 3000),
       video: lessonVideo(l.video),
       files: (Array.isArray(l.files) ? l.files : []).filter((f) => /^https?:\/\//.test(f.url || "")).map((f) => ({ name: String(f.name || "ملف").substring(0, 120), url: f.url })),

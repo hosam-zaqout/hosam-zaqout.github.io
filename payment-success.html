@@ -243,7 +243,7 @@ function showDownloads(links) {
     name:    esc(l.name),
     emoji:   esc(l.emoji),
     fileUrl: /^https?:\/\//i.test(l.fileUrl || "") ? esc(l.fileUrl) : "",
-    learn:   l.hasLessons && l.col && l.id ? esc(`/learn/?item=${encodeURIComponent(l.col)}:${encodeURIComponent(l.id)}&inv=${encodeURIComponent(invoiceId)}&k=${encodeURIComponent(accessKey)}`) : "",
+    learn:   l.hasLessons && l.col && l.id ? esc(`/learn/?item=${encodeURIComponent(l.col)}:${encodeURIComponent(l.id)}`) : "",
     // 🔒 رسالة بعد الدفع (مثل رابط جروب الورشة) — الروابط قابلة للضغط
     message: esc(l.message).replace(/https?:\/\/[^\s<]+/g, u => `<a href="${u}" target="_blank" rel="noopener" style="color:#10B981;font-weight:700;word-break:break-all">${u}</a>`),
   }));

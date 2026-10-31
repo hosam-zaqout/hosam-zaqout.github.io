@@ -1362,9 +1362,9 @@ const AFTER_PAY=()=>`
         <div style="font-size:.72rem;color:var(--mt);margin-top:4px">ما بتظهر بالصفحة العامة أبداً. بتوصل بإيميل الإيصال، وبصفحة الدفع الناجح، وبـ"مشترياتي".</div></div>
       <div class="cg"><label>🎟️ سجّل المشترين تلقائياً بورشة</label><select class="cs" id="m-workshopId"><option value="">— بدون —</option>${(typeof _ws!=='undefined'?_ws:[]).map(w=>`<option value="${escH(w.id)}">${escH(w.title||w.slug||w.id)}</option>`).join('')}</select>
         <div style="font-size:.72rem;color:var(--mt);margin-top:4px">كل من يدفع بينضاف لمسجلي هالورشة (الاسم والإيميل والجوال) — بتقدر تصدّرهم Excel وتبعتلهم إيميل جماعي.</div></div>
-      <div class="cg"><label>🎬 المحاضرات (فيديو + ملفات) — للمشتركين بس</label>
+      <div class="cg"><label>📚 محتوى الدورة: أقسام وعناصر (فيديو، أكواد، عرض، رابط برنامج، واجب) — للمشتركين بس</label>
         <div id="lsList"></div>
-        <button type="button" class="btn-add" style="margin-top:6px" onclick="lsAdd()">➕ محاضرة</button>
+        <button type="button" class="btn-add" style="margin-top:6px" onclick="lsAdd()">➕ إضافة عنصر</button>
         <div style="font-size:.72rem;color:var(--mt);margin-top:6px">الفيديو: رابط يوتيوب (يُفضّل "غير مدرج") أو Google Drive (مشاركة: أي شخص لديه الرابط) أو Vimeo. المشترك بيفتحهم من صفحة "▶️ محاضرات الورشة".</div></div>
       <div class="cg"><label>🔑 كود الدخول للمحاضرات (اختياري)</label>
         <div style="display:flex;gap:6px"><input class="ci" id="m-accessCode" dir="ltr" maxlength="40" placeholder="مثلاً BOOT-2026" style="flex:1"><button type="button" class="btn-edit" onclick="document.getElementById('m-accessCode').value='3E-'+Math.random().toString(36).slice(2,8).toUpperCase()">🎲 كود عشوائي</button><button type="button" class="btn-del" onclick="document.getElementById('m-accessCode').value=''">مسح</button></div>
@@ -1374,13 +1374,19 @@ const AFTER_PAY=()=>`
     </div></div>`;
 // محرر المحاضرات: window._lessons = [{title, desc, video, files:[{name,url}]}]
 window._lessons=[];
+const LS_TYPES=[['video','🎬 فيديو'],['file','📁 ملفات / أكواد'],['slides','📊 عرض تقديمي'],['link','🔗 رابط برنامج'],['assignment','📝 واجب'],['text','📄 نص / قراءة']];
 function lsRender(){
   const el=document.getElementById('lsList');if(!el)return;
+  if(!document.getElementById('lsSecs')){const d=document.createElement('datalist');d.id='lsSecs';el.after(d);}
+  document.getElementById('lsSecs').innerHTML=[...new Set(window._lessons.map(l=>l.section).filter(Boolean))].map(x=>`<option value="${escH(x)}">`).join('');
   el.innerHTML=window._lessons.map((l,i)=>`<div class="pay-card" style="padding:10px;margin-bottom:8px">
     <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px"><b style="color:var(--p)">${i+1}.</b>
       <input class="ci" value="${escH(l.title||'')}" placeholder="عنوان المحاضرة" oninput="_lessons[${i}].title=this.value">
       <button type="button" class="btn-edit" onclick="lsMove(${i},-1)">⬆️</button><button type="button" class="btn-edit" onclick="lsMove(${i},1)">⬇️</button>
       <button type="button" class="btn-del" onclick="if(confirm('حذف المحاضرة؟')){_lessons.splice(${i},1);lsRender()}">🗑️</button></div>
+    <div class="g2" style="margin-bottom:6px"><input class="ci" list="lsSecs" value="${escH(l.section||'')}" placeholder="القسم (مثلاً: الأسبوع الأول)" oninput="_lessons[${i}].section=this.value">
+      <select class="cs" onchange="_lessons[${i}].type=this.value;lsRender()">${LS_TYPES.map(([k,t])=>`<option value="${k}" ${(l.type||'video')===k?'selected':''}>${t}</option>`).join('')}</select></div>
+    ${(l.type||'video')==='link'?`<input class="ci" dir="ltr" value="${escH(l.link||'')}" placeholder="رابط التحميل أو الموقع https://..." oninput="_lessons[${i}].link=this.value" style="margin-bottom:6px">`:''}
     <input class="ci" dir="ltr" value="${escH(l.video||'')}" placeholder="Bunny Video ID (أو رابط YouTube / Drive / Vimeo)" oninput="_lessons[${i}].video=this.value" style="margin-bottom:6px">
     <textarea class="cta" rows="2" placeholder="وصف قصير (اختياري)" oninput="_lessons[${i}].desc=this.value">${escH(l.desc||'')}</textarea>
     <div style="margin-top:6px">${(l.files||[]).map((f,j)=>`<div style="display:flex;gap:6px;align-items:center;margin-top:4px;font-size:.78rem">📎 <input class="ci" style="flex:1" value="${escH(f.name||'')}" oninput="_lessons[${i}].files[${j}].name=this.value"><a href="${escH(f.url)}" target="_blank" rel="noopener" style="color:var(--ac)">فتح</a><button type="button" class="btn-del" style="padding:2px 8px" onclick="_lessons[${i}].files.splice(${j},1);lsRender()">✕</button></div>`).join('')}
@@ -1390,7 +1396,7 @@ function lsRender(){
         <span id="lsProg${i}" style="font-size:.74rem;color:var(--mt)"></span></div></div>
   </div>`).join('')||'<p style="font-size:.78rem;color:var(--mt)">لا توجد محاضرات بعد</p>';
 }
-window.lsAdd=()=>{window._lessons.push({title:'المحاضرة '+(window._lessons.length+1),desc:'',video:'',files:[]});lsRender();};
+window.lsAdd=()=>{const p=window._lessons[window._lessons.length-1];window._lessons.push({title:'',type:'video',section:p?.section||'',desc:'',video:'',link:'',files:[]});lsRender();};
 window.lsMove=(i,d)=>{const a=window._lessons,j=i+d;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];lsRender();};
 window.lsLink=(i)=>{const u=prompt('رابط الملف (https://...)');if(!u||!/^https?:\/\//.test(u))return;const n=prompt('اسم الملف','ملف المحاضرة')||'ملف';window._lessons[i].files=(window._lessons[i].files||[]);window._lessons[i].files.push({name:n,url:u});lsRender();};
 window.lsUpload=async(input,i)=>{
@@ -1803,7 +1809,7 @@ window.saveModal=async()=>{
   if(document.getElementById('m-workshopId'))data.workshopId=g('m-workshopId');
   const afterMsg=document.getElementById('m-afterMsg')?g('m-afterMsg').trim().slice(0,2000):null;
   const hasLs=!!document.getElementById('lsList');
-  const lessons=hasLs?window._lessons.map(l=>({title:String(l.title||'').trim().slice(0,200),desc:String(l.desc||'').trim().slice(0,3000),video:String(l.video||'').trim().slice(0,500),files:(l.files||[]).filter(f=>f&&f.url).map(f=>({name:String(f.name||'ملف').slice(0,120),url:f.url}))})).filter(l=>l.title||l.video||l.files.length):null;
+  const lessons=hasLs?window._lessons.map(l=>({title:String(l.title||'').trim().slice(0,200),type:l.type||'video',section:String(l.section||'').trim().slice(0,120),link:String(l.link||'').trim().slice(0,600),desc:String(l.desc||'').trim().slice(0,3000),video:String(l.video||'').trim().slice(0,500),files:(l.files||[]).filter(f=>f&&f.url).map(f=>({name:String(f.name||'ملف').slice(0,120),url:f.url}))})).filter(l=>l.title||l.video||l.link||l.files.length):null;
   const allowEmails=document.getElementById('m-allowEmails')?[...new Set(g('m-allowEmails').split(/[\s,;]+/).map(e=>e.trim().toLowerCase()).filter(e=>/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)))].slice(0,500):null;
   if(hasLs)data.lessonsOutline=lessons.map(l=>l.title||'محاضرة');
   const accessCode=document.getElementById('m-accessCode')?g('m-accessCode').trim().slice(0,40):null;
