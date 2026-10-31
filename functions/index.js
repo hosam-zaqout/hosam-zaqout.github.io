@@ -999,8 +999,18 @@ exports.registerWorkshopBuyer = onDocumentWritten(
 // private_files/{col}__{id}.lessons = [{title, desc, video, files:[{name,url}]}] و allowEmails = [...]
 // الصلاحية: أدمن، أو إيميل مؤكَّد بقائمة المسموح لهم، أو طلب مدفوع فيه العنصر (بالحساب أو الإيميل المؤكَّد أو رابط الطلب الخاص)
 // ─────────────────────────────────────────────
+// 🎬 Bunny Stream: خانة الفيديو تقبل Video ID أو رابط mediadelivery — رابط موقّع مؤقت (6 ساعات)
+const BUNNY_LIBRARY = "795609";
+const BUNNY_TOKEN_KEY = defineSecret("BUNNY_TOKEN_KEY");
+function bunnyEmbed(videoId) {
+  const expires = Math.floor(Date.now() / 1000) + 6 * 3600;
+  const token = crypto.createHash("sha256").update(BUNNY_TOKEN_KEY.value() + videoId + expires).digest("hex");
+  return `https://iframe.mediadelivery.net/embed/${BUNNY_LIBRARY}/${videoId}?token=${token}&expires=${expires}&responsive=true`;
+}
 function lessonVideo(url = "") {
-  const u = String(url);
+  const u = String(url).trim();
+  const bunny = (u.match(/^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i) || u.match(/mediadelivery\.net\/(?:embed|play)\/\d+\/([0-9a-f-]{36})/i) || [])[1];
+  if (bunny) return bunnyEmbed(bunny.toLowerCase());
   const yt = (u.match(/(?:youtu\.be\/|v=|embed\/|shorts\/|live\/)([\w-]{11})/) || [])[1];
   if (yt) return `https://www.youtube-nocookie.com/embed/${yt}?rel=0&modestbranding=1`;
   const d = (u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:export=\w+&)?id=)([\w-]{20,})/) || [])[1];
@@ -1025,7 +1035,7 @@ async function hasPaidItem(col, id, { user, invoiceId, key }) {
   return false;
 }
 exports.getLessons = onRequest(
-  { region: "us-central1" },
+  { region: "us-central1", secrets: [BUNNY_TOKEN_KEY] },
   async (req, res) => {
     setCORS(req, res);
     if (req.method === "OPTIONS") { res.status(204).send(""); return; }
@@ -1071,6 +1081,8 @@ exports.checkCoupon = onRequest(
     const refs = Array.isArray(req.body?.items) ? req.body.items.slice(0, 30) : [];
     const c = code ? (await db.collection("coupons").doc(code).get()).data() : null;
     const st = couponState(c);
+    const match = st === "ok" && refs.some((r) => r && r.col === c.col && r.id === c.id);
+    logger.info("Coupon check", { code, state: st, match, couponItem: c ? c.col + "/" + c.id : "", items: refs.map((r) => (r && r.col) + "/" + (r && r.id)).join(",") });
     if (st !== "ok") { await new Promise((r) => setTimeout(r, 800)); res.status(200).json({ ok: false, error: st === "used" ? "الكود مستخدم من قبل" : st === "reserved" ? "الكود قيد الاستخدام حالياً، جرّب بعد قليل" : "الكود غير صحيح" }); return; }
     if (!refs.some((r) => r && r.col === c.col && r.id === c.id)) { res.status(200).json({ ok: false, error: "الكود لا ينطبق على هذا العنصر" }); return; }
     res.status(200).json({ ok: true, code, col: c.col, id: c.id, price: Math.max(0, Number(c.price) || 0) });

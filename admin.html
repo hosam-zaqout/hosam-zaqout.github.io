@@ -846,7 +846,7 @@ async function loadCourses(){
   document.getElementById('cc').textContent=window._courses.length;
   const el=document.getElementById('courseList');
   if(!window._courses.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد دورات</p>';return;}
-  el.innerHTML=window._courses.map(c=>`<div class="irow"><div class="iemoji">${c.emoji||'🎓'}</div><div class="iinfo"><div class="ititle">${c.title||''}</div><div class="imeta">${c.category||''} • $${c.price||0}${c.oldPrice?` <span style="text-decoration:line-through;color:var(--mt);font-size:.7rem">$${c.oldPrice}</span>`:''}${c.imageUrl?' • <span style="color:var(--ok)">🖼️</span>':''}${c.videoUrl?' • <span style="color:var(--ac)">▶️</span>':''}</div></div><div class="iacts">${moveBtns('courses','_courses',c.id,'loadCourses')}<button class="btn-edit" title="نسخ رابط الصفحة" onclick="copyItemLink('courses','${c.id}')">🔗</button><button class="btn-edit" onclick="editItem('course','${c.id}')">✏️</button><button class="btn-del" onclick="delItem('courses','${c.id}',loadCourses)">🗑️</button></div></div>`).join('');
+  el.innerHTML=window._courses.map(c=>`<div class="irow"><div class="iemoji">${c.emoji||'🎓'}</div><div class="iinfo"><div class="ititle">${c.title||''}</div><div class="imeta">${c.category||''} • $${c.price||0}${c.oldPrice?` <span style="text-decoration:line-through;color:var(--mt);font-size:.7rem">$${c.oldPrice}</span>`:''}${c.imageUrl?' • <span style="color:var(--ok)">🖼️</span>':''}${c.videoUrl?' • <span style="color:var(--ac)">▶️</span>':''}</div></div><div class="iacts">${moveBtns('courses','_courses',c.id,'loadCourses')}<button class="btn-edit" title="نسخ رابط الصفحة" onclick="copyItemLink('courses','${c.id}')">🔗</button><button class="btn-edit" title="نسخ رابط المحاضرات (للمشتركين)" onclick="copyLearnLink('courses','${c.id}')">🎬</button><button class="btn-edit" onclick="editItem('course','${c.id}')">✏️</button><button class="btn-del" onclick="delItem('courses','${c.id}',loadCourses)">🗑️</button></div></div>`).join('');
 }
 window.loadCourses=loadCourses;
 
@@ -1381,11 +1381,11 @@ function lsRender(){
       <input class="ci" value="${escH(l.title||'')}" placeholder="عنوان المحاضرة" oninput="_lessons[${i}].title=this.value">
       <button type="button" class="btn-edit" onclick="lsMove(${i},-1)">⬆️</button><button type="button" class="btn-edit" onclick="lsMove(${i},1)">⬇️</button>
       <button type="button" class="btn-del" onclick="if(confirm('حذف المحاضرة؟')){_lessons.splice(${i},1);lsRender()}">🗑️</button></div>
-    <input class="ci" dir="ltr" value="${escH(l.video||'')}" placeholder="رابط الفيديو (YouTube / Google Drive / Vimeo)" oninput="_lessons[${i}].video=this.value" style="margin-bottom:6px">
+    <input class="ci" dir="ltr" value="${escH(l.video||'')}" placeholder="Bunny Video ID (أو رابط YouTube / Drive / Vimeo)" oninput="_lessons[${i}].video=this.value" style="margin-bottom:6px">
     <textarea class="cta" rows="2" placeholder="وصف قصير (اختياري)" oninput="_lessons[${i}].desc=this.value">${escH(l.desc||'')}</textarea>
     <div style="margin-top:6px">${(l.files||[]).map((f,j)=>`<div style="display:flex;gap:6px;align-items:center;margin-top:4px;font-size:.78rem">📎 <input class="ci" style="flex:1" value="${escH(f.name||'')}" oninput="_lessons[${i}].files[${j}].name=this.value"><a href="${escH(f.url)}" target="_blank" rel="noopener" style="color:var(--ac)">فتح</a><button type="button" class="btn-del" style="padding:2px 8px" onclick="_lessons[${i}].files.splice(${j},1);lsRender()">✕</button></div>`).join('')}
       <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
-        <label class="btn-edit" style="cursor:pointer">📤 رفع ملف<input type="file" style="display:none" onchange="lsUpload(this,${i})"></label>
+        <label class="btn-edit" style="cursor:pointer">📤 رفع ملف / كود<input type="file" style="display:none" onchange="lsUpload(this,${i})"></label>
         <button type="button" class="btn-edit" onclick="lsLink(${i})">🔗 إضافة رابط ملف</button>
         <span id="lsProg${i}" style="font-size:.74rem;color:var(--mt)"></span></div></div>
   </div>`).join('')||'<p style="font-size:.78rem;color:var(--mt)">لا توجد محاضرات بعد</p>';

@@ -1235,19 +1235,22 @@ window.applyPayCoupon=async function(){
   const msg=document.getElementById('payCouponMsg');const tot=document.querySelector('#phoneTotalRow span:last-child');
   const base=cart.reduce((s,i)=>s+parseFloat(i.price||0),0);
   window._payCoupon='';if(tot)tot.textContent='$'+base.toFixed(2);
-  if(!code){msg.textContent='';return;}
+  if(!code){msg.textContent='';return true;}
   msg.style.color='var(--mt)';msg.textContent='⏳ جاري التحقق...';
   try{
     const r=await fetch('https://us-central1-engs-website.cloudfunctions.net/checkCoupon',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code,items:cart.filter(i=>i.col&&i.id).map(i=>({col:i.col,id:i.id}))})});
     const d=await r.json();
-    if(!d.ok){msg.style.color='var(--er)';msg.textContent='⚠️ '+(d.error||'الكود غير صحيح');return;}
+    if(!d.ok){msg.style.color='var(--er)';msg.textContent='⚠️ '+(d.error||'الكود غير صحيح');return false;}
     const it=cart.find(i=>i.col===d.col&&i.id===d.id);
     const nt=base-parseFloat(it?.price||0)+Number(d.price);
     window._payCoupon=d.code;if(tot)tot.innerHTML='<s style="color:var(--mt);font-size:.8em">$'+base.toFixed(2)+'</s> $'+nt.toFixed(2);
-    msg.style.color='var(--ok)';msg.textContent='✅ تم تطبيق الكود';
-  }catch(e){msg.style.color='var(--er)';msg.textContent='⚠️ تعذّر التحقق، حاول مرة أخرى';}
+    msg.style.color='var(--ok)';msg.textContent='✅ تم تطبيق الكود';return true;
+  }catch(e){msg.style.color='var(--er)';msg.textContent='⚠️ تعذّر التحقق، حاول مرة أخرى';return false;}
 };
 window.confirmPhoneAndPay = async function() {
+  // كود مكتوب بس ما انضغط "تطبيق" ← نطبّقه أول، وما بندفع إلا لو انطبق
+  const typedCp=(document.getElementById('payCoupon')?.value||'').trim().toUpperCase();
+  if(typedCp&&typedCp!==window._payCoupon){const ok=await window.applyPayCoupon();if(!ok){toast('⚠️ كود الخصم ما انطبق — صحّحه أو امسحه لتكمل بالسعر الكامل','err');document.getElementById('payCoupon')?.focus();return;}}
   const sel    = document.getElementById('phoneCountryCode');
   const other  = sel?.value === 'XX' ? (document.getElementById('otherDial')?.value || '').replace(/\D/g, '') : '';
   if (sel?.value === 'XX' && !/^[1-9]\d{0,3}$/.test(other)) { toast('⚠️ اكتب مقدمة دولتك (أرقام فقط، مثل 49)','err'); document.getElementById('otherDial')?.focus(); return; }
