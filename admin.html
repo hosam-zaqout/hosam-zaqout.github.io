@@ -162,6 +162,7 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
   <div class="ni" onclick="showP('testimonials',this)"><span class="ic">⭐</span> آراء الطلاب</div>
   <div class="ni" onclick="showP('sections',this)"><span class="ic">➕</span> أقسام مخصصة</div>
   <div class="ns">إدارة الموقع</div>
+  <div class="ni" onclick="showP('progress',this);prLoad()"><span class="ic">📈</span> تقدم الطلاب</div>
   <div class="ni" onclick="showP('coupons',this);cpInit()"><span class="ic">🏷️</span> أكواد الخصم</div>
   <div class="ni" onclick="showP('orders',this);loadOrders();moRenderItems();moFillUsers()"><span class="ic">🧾</span> الطلبات <span class="nb" id="oc">0</span></div>
   <div class="ni" onclick="showP('users',this)"><span class="ic">👥</span> المستخدمون <span class="nb" id="uc">0</span></div>
@@ -327,6 +328,9 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
         <div id="sectionItemsList"></div>
       </div>
     </div>
+
+    <!-- PROGRESS -->
+    <div class="panel" id="p-progress"><div class="pc"><h3>📈 تقدم الطلاب</h3><div class="tbl-wrap"><table class="dtbl"><thead><tr><th>الطالب</th><th>الدورة</th><th>الإنجاز</th><th>كويز</th><th>واجبات</th></tr></thead><tbody id="prTable"></tbody></table></div></div></div>
 
     <!-- COUPONS -->
     <div class="panel" id="p-coupons">
@@ -1374,7 +1378,7 @@ const AFTER_PAY=()=>`
     </div></div>`;
 // محرر المحاضرات: window._lessons = [{title, desc, video, files:[{name,url}]}]
 window._lessons=[];
-const LS_TYPES=[['video','🎬 فيديو'],['file','📁 ملفات / أكواد'],['slides','📊 عرض تقديمي'],['link','🔗 رابط برنامج'],['assignment','📝 واجب'],['text','📄 نص / قراءة']];
+const LS_TYPES=[['quiz','❓ كويز'],['video','🎬 فيديو'],['file','📁 ملفات / أكواد'],['slides','📊 عرض تقديمي'],['link','🔗 رابط برنامج'],['assignment','📝 واجب'],['text','📄 نص / قراءة']];
 function lsRender(){
   const el=document.getElementById('lsList');if(!el)return;
   if(!document.getElementById('lsSecs')){const d=document.createElement('datalist');d.id='lsSecs';el.after(d);}
@@ -1387,6 +1391,8 @@ function lsRender(){
     <div class="g2" style="margin-bottom:6px"><input class="ci" list="lsSecs" value="${escH(l.section||'')}" placeholder="القسم (مثلاً: الأسبوع الأول)" oninput="_lessons[${i}].section=this.value">
       <select class="cs" onchange="_lessons[${i}].type=this.value;lsRender()">${LS_TYPES.map(([k,t])=>`<option value="${k}" ${(l.type||'video')===k?'selected':''}>${t}</option>`).join('')}</select></div>
     ${(l.type||'video')==='link'?`<input class="ci" dir="ltr" value="${escH(l.link||'')}" placeholder="رابط التحميل أو الموقع https://..." oninput="_lessons[${i}].link=this.value" style="margin-bottom:6px">`:''}
+    ${l.type==='assignment'?`<select class="cs" style="margin-bottom:6px" onchange="_lessons[${i}].lang=this.value">${['Arduino','ESP32','Python'].map(x=>`<option ${l.lang===x?'selected':''}>${x}</option>`).join('')}</select>`:''}
+    ${l.type==='quiz'||l.type==='assignment'?`<textarea class="cta" rows="7" placeholder="${l.type==='quiz'?'س: ما وظيفة delay؟&#10;- تشغيل LED&#10;* إيقاف البرنامج مؤقتاً&#10;&#10;س: السؤال التالي...':'س: اكتب كوداً يضيء LED كل ثانية&#10;معيار: يستخدم pinMode و digitalWrite و delay(1000)&#10;&#10;س: السؤال التالي...'}" oninput="_lessons[${i}].spec=this.value">${escH(l.spec||'')}</textarea>`:''}
     <input class="ci" dir="ltr" value="${escH(l.video||'')}" placeholder="Bunny Video ID (أو رابط YouTube / Drive / Vimeo)" oninput="_lessons[${i}].video=this.value" style="margin-bottom:6px">
     <textarea class="cta" rows="2" placeholder="وصف قصير (اختياري)" oninput="_lessons[${i}].desc=this.value">${escH(l.desc||'')}</textarea>
     <div style="margin-top:6px">${(l.files||[]).map((f,j)=>`<div style="display:flex;gap:6px;align-items:center;margin-top:4px;font-size:.78rem">📎 <input class="ci" style="flex:1" value="${escH(f.name||'')}" oninput="_lessons[${i}].files[${j}].name=this.value"><a href="${escH(f.url)}" target="_blank" rel="noopener" style="color:var(--ac)">فتح</a><button type="button" class="btn-del" style="padding:2px 8px" onclick="_lessons[${i}].files.splice(${j},1);lsRender()">✕</button></div>`).join('')}
@@ -1809,7 +1815,7 @@ window.saveModal=async()=>{
   if(document.getElementById('m-workshopId'))data.workshopId=g('m-workshopId');
   const afterMsg=document.getElementById('m-afterMsg')?g('m-afterMsg').trim().slice(0,2000):null;
   const hasLs=!!document.getElementById('lsList');
-  const lessons=hasLs?window._lessons.map(l=>({title:String(l.title||'').trim().slice(0,200),type:l.type||'video',section:String(l.section||'').trim().slice(0,120),link:String(l.link||'').trim().slice(0,600),desc:String(l.desc||'').trim().slice(0,3000),video:String(l.video||'').trim().slice(0,500),files:(l.files||[]).filter(f=>f&&f.url).map(f=>({name:String(f.name||'ملف').slice(0,120),url:f.url}))})).filter(l=>l.title||l.video||l.link||l.files.length):null;
+  const lessons=hasLs?window._lessons.map(l=>({lid:l.lid||Math.random().toString(36).slice(2,10),spec:String(l.spec||'').slice(0,20000),lang:l.type==='assignment'?(l.lang||'Arduino'):'',title:String(l.title||'').trim().slice(0,200),type:l.type||'video',section:String(l.section||'').trim().slice(0,120),link:String(l.link||'').trim().slice(0,600),desc:String(l.desc||'').trim().slice(0,3000),video:String(l.video||'').trim().slice(0,500),files:(l.files||[]).filter(f=>f&&f.url).map(f=>({name:String(f.name||'ملف').slice(0,120),url:f.url}))})).filter(l=>l.title||l.video||l.link||l.files.length):null;
   const allowEmails=document.getElementById('m-allowEmails')?[...new Set(g('m-allowEmails').split(/[\s,;]+/).map(e=>e.trim().toLowerCase()).filter(e=>/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)))].slice(0,500):null;
   if(hasLs)data.lessonsOutline=lessons.map(l=>l.title||'محاضرة');
   const accessCode=document.getElementById('m-accessCode')?g('m-accessCode').trim().slice(0,40):null;
@@ -1933,6 +1939,11 @@ window.renderOrders=()=>{
 };
 const METHOD_LBL={togo:'💳 Togo',paysky:'💳 PaySky','crosspay-paypal':'🅿️ PayPal (Crosspay)','manual-whatsapp':'✋ يدوي — واتساب','manual-paypal':'✋ يدوي — PayPal','manual-transfer':'✋ يدوي — تحويل','manual-cash':'✋ يدوي — نقداً','manual-other':'✋ يدوي'};
 
+window.prLoad=async()=>{
+  const sn=await getDocs(collection(db,'course_progress'));const r=[];sn.forEach(d=>r.push(d.data()));
+  document.getElementById('prTable').innerHTML=r.map(p=>{const q=Object.values(p.quiz||{}),a=Object.values(p.asg||{});
+    return `<tr><td dir="ltr" style="font-size:.76rem">${escH(p.email)}</td><td style="font-size:.76rem">${escH(p.title)}</td><td>${(p.done||[]).length}/${p.total||0}</td><td>${q.map(x=>x.best+'%').join('، ')||'—'}</td><td>${a.map(x=>x.score+'%').join('، ')||'—'}</td></tr>`;}).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--mt);padding:20px">لا يوجد بعد</td></tr>';
+};
 // ─── 🏷️ أكواد الخصم (coupons/{CODE}) ───
 window._coupons=[];
 function cpItems(){return moAllItems().filter(i=>i.price>0);}
@@ -2063,7 +2074,7 @@ window.toast=toast;
 </script>
 
 <script>
-const panelTitles={coupons:'🏷️ أكواد الخصم',workshops:'🎟️ الورشات',articles:'📝 المقالات',dashboard:'🏠 الرئيسية',hero:'🎯 القسم الرئيسي',layout:'🧭 ترتيب الصفحة والقائمة',team:'👷 الفريق',products:'📦 المنتجات',courses:'🎓 الدورات',books:'📚 الكتب',projects:'🔧 المشاريع',testimonials:'⭐ آراء الطلاب',sections:'➕ أقسام مخصصة',orders:'🧾 الطلبات',users:'👥 المستخدمون',messages:'💬 الرسائل',newsletter:'📧 النشرة',payment:'💳 إعدادات الدفع',design:'🎨 التصميم',seo:'🔍 SEO',brand:'💡 الهوية',social:'🔗 التواصل'};
+const panelTitles={progress:'📈 تقدم الطلاب',coupons:'🏷️ أكواد الخصم',workshops:'🎟️ الورشات',articles:'📝 المقالات',dashboard:'🏠 الرئيسية',hero:'🎯 القسم الرئيسي',layout:'🧭 ترتيب الصفحة والقائمة',team:'👷 الفريق',products:'📦 المنتجات',courses:'🎓 الدورات',books:'📚 الكتب',projects:'🔧 المشاريع',testimonials:'⭐ آراء الطلاب',sections:'➕ أقسام مخصصة',orders:'🧾 الطلبات',users:'👥 المستخدمون',messages:'💬 الرسائل',newsletter:'📧 النشرة',payment:'💳 إعدادات الدفع',design:'🎨 التصميم',seo:'🔍 SEO',brand:'💡 الهوية',social:'🔗 التواصل'};
 function showP(id,el){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
