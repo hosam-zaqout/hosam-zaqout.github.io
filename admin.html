@@ -330,7 +330,7 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
     </div>
 
     <!-- PROGRESS -->
-    <div class="panel" id="p-progress"><div class="pc"><h3>📈 تقدم الطلاب</h3><div class="tbl-wrap"><table class="dtbl"><thead><tr><th>الطالب</th><th>الدورة</th><th>الإنجاز</th><th>كويز</th><th>واجبات</th></tr></thead><tbody id="prTable"></tbody></table></div></div></div>
+    <div class="panel" id="p-progress"><div class="pc"><h3>📈 تقدم الطلاب</h3><div class="tbl-wrap"><table class="dtbl"><thead><tr><th>الطالب</th><th>الدورة</th><th>الإنجاز</th><th>كويز</th><th>واجبات</th><th>المشروع والشهادة</th></tr></thead><tbody id="prTable"></tbody></table></div></div></div>
 
     <!-- COUPONS -->
     <div class="panel" id="p-coupons">
@@ -1378,7 +1378,7 @@ const AFTER_PAY=()=>`
     </div></div>`;
 // محرر المحاضرات: window._lessons = [{title, desc, video, files:[{name,url}]}]
 window._lessons=[];
-const LS_TYPES=[['quiz','❓ كويز'],['video','🎬 فيديو'],['file','📁 ملفات / أكواد'],['slides','📊 عرض تقديمي'],['link','🔗 رابط برنامج'],['assignment','📝 واجب'],['text','📄 نص / قراءة']];
+const LS_TYPES=[['project','🎓 المشروع النهائي'],['quiz','❓ كويز'],['video','🎬 فيديو'],['file','📁 ملفات / أكواد'],['slides','📊 عرض تقديمي'],['link','🔗 رابط برنامج'],['assignment','📝 واجب'],['text','📄 نص / قراءة']];
 function lsRender(){
   const el=document.getElementById('lsList');if(!el)return;
   if(!document.getElementById('lsSecs')){const d=document.createElement('datalist');d.id='lsSecs';el.after(d);}
@@ -1940,10 +1940,14 @@ window.renderOrders=()=>{
 const METHOD_LBL={togo:'💳 Togo',paysky:'💳 PaySky','crosspay-paypal':'🅿️ PayPal (Crosspay)','manual-whatsapp':'✋ يدوي — واتساب','manual-paypal':'✋ يدوي — PayPal','manual-transfer':'✋ يدوي — تحويل','manual-cash':'✋ يدوي — نقداً','manual-other':'✋ يدوي'};
 
 window.prLoad=async()=>{
-  const sn=await getDocs(collection(db,'course_progress'));const r=[];sn.forEach(d=>r.push(d.data()));
+  const sn=await getDocs(collection(db,'course_progress'));const r=[];sn.forEach(d=>r.push({_id:d.id,...d.data()}));window._prog=r;
   document.getElementById('prTable').innerHTML=r.map(p=>{const q=Object.values(p.quiz||{}),a=Object.values(p.asg||{});
-    return `<tr><td dir="ltr" style="font-size:.76rem">${escH(p.email)}</td><td style="font-size:.76rem">${escH(p.title)}</td><td>${(p.done||[]).length}/${p.total||0}</td><td>${q.map(x=>x.best+'%').join('، ')||'—'}</td><td>${a.map(x=>x.score+'%').join('، ')||'—'}</td></tr>`;}).join('')||'<tr><td colspan="5" style="text-align:center;color:var(--mt);padding:20px">لا يوجد بعد</td></tr>';
+    return `<tr><td dir="ltr" style="font-size:.76rem">${escH(p.email)}</td><td style="font-size:.76rem">${escH(p.title)}</td><td>${(p.done||[]).length}/${p.total||0}</td><td>${q.map(x=>x.best+'%').join('، ')||'—'}</td><td>${Object.keys(p.asg||{}).map(k=>`<button class="btn-edit" style="font-size:.7rem" onclick="prAsg('${p._id}','${k}')">${p.asg[k].score}% ✏️</button>`).join(' ')||'—'}</td>
+      <td style="font-size:.74rem">${p.project?`<a href="${escH(p.project.fileUrl)}" target="_blank" rel="noopener" style="color:var(--ac)">📎 ${escH(p.project.name)}</a><br>${({pending:'⏳ بانتظارك',approved:'✅ موافق',rejected:'⚠️ مرفوض'})[p.project.status]||''}<br><button class="btn-edit" style="font-size:.7rem" onclick="prProj('${p._id}','approved')">✅</button> <button class="btn-del" style="font-size:.7rem" onclick="prProj('${p._id}','rejected')">❌</button> <label class="btn-edit" style="font-size:.7rem;cursor:pointer">🎓 ${p.certUrl?'تغيير الشهادة':'رفع الشهادة'}<input type="file" style="display:none" onchange="prCert('${p._id}',this)"></label>`:'—'}</td></tr>`;}).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--mt);padding:20px">لا يوجد بعد</td></tr>';
 };
+window.prAsg=async(id,k)=>{const p=window._prog.find(x=>x._id===id),a=p.asg[k];const txt=(a.answers||[]).map((c,i)=>`── سؤال ${i+1} (${a.results?.[i]?.score??'?'}%) ──\n${c}\n${a.results?.[i]?.feedback||''}`).join('\n\n');const v=prompt('حل الطالب:\n\n'+txt.slice(0,1500)+'\n\nالعلامة النهائية:',a.score);if(v===null)return;const n=Math.max(0,Math.min(100,parseInt(v)||0));await updateDoc(doc(db,'course_progress',id),{['asg.'+k+'.score']:n});toast('✅ تم تعديل العلامة');prLoad();};
+window.prProj=async(id,st)=>{const note=st==='rejected'?prompt('شو لازم يعدّل الطالب؟'):'';if(note===null)return;await updateDoc(doc(db,'course_progress',id),{'project.status':st,'project.adminNote':note||''});toast('✅ تم، وبيوصل الطالب إيميل');prLoad();};
+window.prCert=async(id,input)=>{const f=input.files[0];if(!f)return;const r=ref(storage,'section-files/cert_'+Date.now()+'_'+f.name.replace(/[^a-zA-Z0-9.]/g,'_'));await uploadBytesResumable(r,f);await updateDoc(doc(db,'course_progress',id),{certUrl:await getDownloadURL(r)});toast('🎓 تم رفع الشهادة وإبلاغ الطالب');prLoad();};
 // ─── 🏷️ أكواد الخصم (coupons/{CODE}) ───
 window._coupons=[];
 function cpItems(){return moAllItems().filter(i=>i.price>0);}

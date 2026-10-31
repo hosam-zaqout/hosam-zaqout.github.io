@@ -199,8 +199,7 @@ service cloud.firestore {
 
     // 🏷️ أكواد الخصم — الأدمن بس (الزبون بيفحص الكود عبر checkCoupon بالسيرفر)
     match /course_progress/{doc} {
-      allow read: if isAdmin();
-      allow write: if false;
+      allow read, update: if isAdmin();
     }
     match /coupons/{code} {
       allow read, write: if isAdmin();

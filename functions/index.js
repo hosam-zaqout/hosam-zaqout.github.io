@@ -6,6 +6,7 @@ const { defineSecret } = require("firebase-functions/params");
 const { initializeApp } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
+const { getStorage } = require("firebase-admin/storage");
 const logger = require("firebase-functions/logger");
 
 initializeApp();
@@ -1076,7 +1077,7 @@ exports.getLessons = onRequest(
     }));
     const progress = user ? (await db.collection("course_progress").doc(`${col}__${id}__${user.uid}`).get()).data() || {} : {};
     logger.info("Lessons opened", { col, id, by: email || (invoiceId ? "order-link" : "?") });
-    res.status(200).json({ ...head, lessons, progress: { done: progress.done || [], quiz: progress.quiz || {}, asg: progress.asg || {} }, fileUrl: /^https?:\/\//.test(priv.fileUrl || "") ? priv.fileUrl : "", message: String(priv.message || "") });
+    res.status(200).json({ ...head, lessons, progress: { done: progress.done || [], quiz: progress.quiz || {}, asg: progress.asg || {}, project: progress.project || null, certUrl: progress.certUrl || "" }, fileUrl: /^https?:\/\//.test(priv.fileUrl || "") ? priv.fileUrl : "", message: String(priv.message || "") });
   }
 );
 
@@ -1193,6 +1194,37 @@ exports.courseAction = onRequest(
       await ref.set({ ...base, asg: { [lid]: r } }, { merge: true });
       res.status(200).json(r); return;
     }
+    // 🎓 تسليم المشروع النهائي (ملف حتى 10MB) = طلب الشهادة
+    if (action === "project") {
+      if (cur.project?.status === "approved") { res.status(400).json({ error: "تمت الموافقة على مشروعك" }); return; }
+      const name = String(req.body.name || "project").replace(/[^\w.\-]+/g, "_").substring(0, 80);
+      const buf = Buffer.from(String(req.body.data || ""), "base64");
+      if (!buf.length || buf.length > 10 * 1024 * 1024) { res.status(400).json({ error: "الملف مطلوب، وأقصى حجم 10MB" }); return; }
+      const token = crypto.randomUUID();
+      const path = `project-submissions/${col}__${id}/${user.uid}/${Date.now()}_${name}`;
+      const bucket = getStorage().bucket("engs-website.firebasestorage.app");
+      await bucket.file(path).save(buf, { metadata: { metadata: { firebaseStorageDownloadTokens: token } } });
+      const fileUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(path)}?alt=media&token=${token}`;
+      const project = { status: "pending", fileUrl, name, note: String(req.body.note || "").substring(0, 2000), at: Date.now() };
+      await ref.set({ ...base, project }, { merge: true });
+      res.status(200).json({ project }); return;
+    }
     res.status(400).json({ error: "طلب غير صحيح" });
+  }
+);
+
+// 🎓 إيميل للطالب لما الأدمن يراجع المشروع أو يرفع الشهادة
+exports.notifyProject = onDocumentWritten(
+  { document: "course_progress/{pid}", region: "us-central1", secrets: [SMTP_PASS] },
+  async (event) => {
+    const a = event.data?.after?.data(), b = event.data?.before?.data();
+    if (!a?.email) return;
+    const link = `${SITE}/learn/?item=${a.col}:${a.id}`;
+    let t = "";
+    if (a.certUrl && a.certUrl !== b?.certUrl) t = "شهادتك جاهزة، ويمكنك تحميلها من صفحة الدورة.";
+    else if (a.project?.status !== b?.project?.status && a.project?.status === "approved") t = "تمت الموافقة على مشروعك النهائي.";
+    else if (a.project?.status !== b?.project?.status && a.project?.status === "rejected") t = "يحتاج مشروعك إلى تعديل: " + (a.project.adminNote || "راجع صفحة الدورة.");
+    if (!t) return;
+    await sendMail(a.email, "🎓 تحديث مشروعك — " + (a.title || "3ENG.s"), a.title || "مشروعك", `<p>${escMail(t)}</p><p><a href="${link}" style="color:#D97706;font-weight:bold">افتح صفحة الدورة</a></p>`, t + "\n" + link).catch((e) => logger.warn("Project mail failed", { msg: e.message }));
   }
 );

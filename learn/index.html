@@ -78,7 +78,7 @@ async function act(body) {
   const r = await fetch(FN, { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + await u.getIdToken() }, body: JSON.stringify({ col, id, ...body }) });
   const d = await r.json().catch(() => ({})); if (!r.ok) throw new Error(d.error || "تعذّر الطلب"); return d;
 }
-const ICON = { quiz: "❓", video: "🎬", file: "📁", slides: "📊", link: "🔗", assignment: "📝", text: "📄" };
+const ICON = { project: "🎓", quiz: "❓", video: "🎬", file: "📁", slides: "📊", link: "🔗", assignment: "📝", text: "📄" };
 function show(d) {
   document.title = (d.title || "محتوى الدورة") + " | 3ENG.s";
   const L = d.lessons || [];
@@ -102,6 +102,19 @@ function show(d) {
     $("qs").onclick = async () => { const answers = (l.quiz || []).map((q, n) => { const c = b.querySelector(`input[name=q${n}]:checked`); return c ? +c.value : -1; });
       $("qm").textContent = "⏳ جاري التصحيح..."; try { const x = await act({ action: "quiz", lid: l.lid, answers }); (P_.quiz = P_.quiz || {})[l.lid] = x; $("qm").textContent = `نتيجتك ${x.last}% — ${x.passed ? "✅ ناجح" : "لم تنجح بعد"} — المحاولات ${x.tries}/3`; } catch (e) { $("qm").textContent = "⚠️ " + e.message; } };
   }
+  function renderProject() {
+    const b = box(), p = P_.project;
+    const ST = { pending: "⏳ قيد المراجعة", approved: "✅ تمت الموافقة", rejected: "⚠️ يحتاج تعديلاً" };
+    b.innerHTML = `${p ? `<div class="extra">${ST[p.status] || ""} — ${esc(p.name)}${p.adminNote ? `<br>${esc(p.adminNote)}` : ""}</div>` : ""}
+      ${P_.certUrl ? `<div class="files"><a href="${esc(P_.certUrl)}" target="_blank" rel="noopener">🎓 تحميل الشهادة</a></div>` : ""}
+      ${p?.status === "approved" ? "" : `<p style="margin-top:10px">ارفع ملف مشروعك (حتى 10MB). تسليم المشروع هو طلب الشهادة.</p><input type="file" id="pf" style="margin-top:8px;display:block"><textarea id="pn" rows="3" placeholder="ملاحظات (اختياري)" style="width:100%;margin-top:8px;background:#0a0f1d;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit"></textarea><button class="btn" id="ps" style="margin-top:8px">📤 تسليم المشروع</button><p id="pm"></p>`}`;
+    if (!$("ps")) return;
+    $("ps").onclick = () => { const f = $("pf").files[0]; if (!f) { $("pm").textContent = "⚠️ اختر الملف"; return; } if (f.size > 10 * 1024 * 1024) { $("pm").textContent = "⚠️ أقصى حجم 10MB"; return; }
+      const rd = new FileReader(); $("pm").textContent = "⏳ جاري الرفع...";
+      rd.onload = async () => { try { const x = await act({ action: "project", name: f.name, note: $("pn").value, data: String(rd.result).split(",")[1] }); P_.project = x.project; renderNow(); } catch (e) { $("pm").textContent = "⚠️ " + e.message; } };
+      rd.readAsDataURL(f); };
+  }
+  const renderNow = () => play(cur);
   function renderTasks(l) {
     const b = box(), r = (P_.asg || {})[l.lid];
     b.innerHTML = (l.tasks || []).map((t, n) => `<div class="extra" style="background:#0f1528;border-color:var(--line)"><b>${n + 1}. ${esc(t.q)}</b><textarea id="t${n}" dir="ltr" rows="9" style="width:100%;margin-top:8px;background:#0a0f1d;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:8px;font-family:Consolas,monospace">${esc(r?.answers?.[n] || "")}</textarea><div id="f${n}" style="margin-top:6px;white-space:pre-line">${r?.results?.[n] ? `${r.results[n].score}% — ${esc(r.results[n].feedback)}` : ""}</div></div>`).join("") + `<button class="btn" id="as" style="margin-top:10px">🤖 تسليم وتصحيح (${esc(l.lang)})</button><p id="am" style="margin-top:8px">${r ? `أفضل علامة: ${r.score}% — المحاولات: ${r.tries}/2` : ""}</p>`;
@@ -123,7 +136,7 @@ function show(d) {
     const tag = { assignment: "📝 واجب", slides: "📊 عرض تقديمي", file: "📁 ملفات وأكواد", link: "🔗 رابط", text: "📄 قراءة" }[type] || "";
     $("now").innerHTML = `<h2>${esc(l.title)}</h2>${tag ? `<div style="color:var(--acc);font-size:.85rem;font-weight:700">${tag}</div>` : ""}${l.desc ? `<p>${linkify(l.desc)}</p>` : ""}<div class="files">${l.link ? `<a href="${esc(l.link)}" target="_blank" rel="noopener">⬇️ فتح الرابط / تحميل البرنامج</a>` : ""}${(l.files || []).map((f) => `<a href="${esc(f.url)}" target="_blank" rel="noopener">📎 ${esc(f.name)}</a>`).join("")}</div>`;
     paint();
-    if (type === "quiz") renderQuiz(l); if (type === "assignment") renderTasks(l);
+    if (type === "quiz") renderQuiz(l); if (type === "assignment") renderTasks(l); if (type === "project") renderProject();
     try { localStorage.setItem("learn_" + col + id, i); } catch (e) {}
   };
   document.querySelectorAll(".list button").forEach((b) => b.onclick = () => { play(+b.dataset.i); if (innerWidth < 860) $("now").scrollIntoView({ behavior: "smooth" }); });
