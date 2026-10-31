@@ -1069,7 +1069,7 @@ exports.getLessons = onRequest(
       lid: String(l.lid || ""),
       lang: String(l.lang || ""),
       // الأسئلة بدون الإجابات أو معايير التصحيح
-      quiz: l.type === "quiz" ? parseQuiz(l.spec).map((x) => ({ q: x.q, options: x.options })) : undefined,
+      quiz: l.type === "quiz" ? parseQuiz(l.spec).map((x) => ({ q: x.q, options: x.options, free: !!x.free })) : undefined,
       tasks: l.type === "assignment" ? parseTasks(l.spec).map((x) => ({ q: x.q })) : undefined,
       desc: String(l.desc || "").substring(0, 3000),
       video: lessonVideo(l.video),
@@ -1119,13 +1119,20 @@ exports.useCoupon = onDocumentWritten(
 const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
 const GRADE_MODEL = "claude-haiku-4-5-20251001";
 const QUIZ_TRIES = 3, ASG_TRIES = 2, QUIZ_PASS = 60;
-const blocks = (t) => String(t || "").replace(/\r/g, "").split(/\n\s*\n/).map((b) => b.trim()).filter(Boolean);
+// كل سؤال يبدأ بسطر "س:" — فنص السؤال يقدر يحتوي أسطراً فارغة
+const blocks = (t) => String(t || "").replace(/\r/g, "").split(/\n(?=\s*س\s*[:：])/).map((b) => b.trim()).filter(Boolean);
+// سؤال بخيارات ("-" و"*") يُصحَّح فوراً، وسؤال بدون خيارات يُصحَّح بالذكاء الاصطناعي
 function parseQuiz(t) {
   return blocks(t).map((b) => {
-    const L = b.split("\n").map((x) => x.trim()).filter(Boolean);
-    const opts = L.slice(1).filter((x) => /^[-*]/.test(x));
-    return { q: L[0].replace(/^س\s*[:：]\s*/, ""), options: opts.map((x) => x.replace(/^[-*]\s*/, "")), correct: opts.findIndex((x) => x.startsWith("*")) };
-  }).filter((x) => x.options.length >= 2 && x.correct >= 0);
+    const [head, ...crit] = b.split(/\n\s*معيار\s*[:：]\s*/);
+    const L = head.split("\n");
+    const isOpt = (x) => /^\s*[-*]\s/.test(x);
+    const opts = L.filter(isOpt).map((x) => x.trim());
+    const correct = opts.findIndex((x) => x.startsWith("*"));
+    const q = L.filter((x) => opts.length < 2 || correct < 0 || !isOpt(x)).join("\n").replace(/^\s*س\s*[:：]\s*/, "").trim();
+    if (opts.length >= 2 && correct >= 0) return { q, options: opts.map((x) => x.replace(/^[-*]\s*/, "")), correct };
+    return { q, options: [], correct: -1, free: true, criteria: crit.join("\n").trim() };
+  }).filter((x) => x.q);
 }
 function parseTasks(t) {
   return blocks(t).map((b) => {
@@ -1175,9 +1182,16 @@ exports.courseAction = onRequest(
       const Q = parseQuiz(L.spec), prev = cur.quiz?.[lid] || { tries: 0, best: 0 };
       if (prev.tries >= QUIZ_TRIES) { res.status(400).json({ error: "استنفدت محاولات هذا الاختبار" }); return; }
       const ans = Array.isArray(req.body.answers) ? req.body.answers : [];
-      const right = Q.filter((q, i) => Number(ans[i]) === q.correct).length;
-      const score = Q.length ? Math.round(right / Q.length * 100) : 0;
-      const r = { tries: prev.tries + 1, best: Math.max(prev.best, score), last: score, passed: Math.max(prev.best, score) >= QUIZ_PASS };
+      let results;
+      try {
+        results = await Promise.all(Q.map(async (q, i) => {
+          if (!q.free) return { score: Number(ans[i]) === q.correct ? 100 : 0, feedback: "" };
+          const a = String(ans[i] ?? "").substring(0, 8000);
+          return a.trim() ? gradeTask(q, a, L.lang) : { score: 0, feedback: "لم تكتب إجابة" };
+        }));
+      } catch (e) { logger.error("Quiz grading failed", { msg: e.message }); res.status(502).json({ error: "تعذّر التصحيح حالياً، حاول لاحقاً (لم تُحتسب المحاولة)" }); return; }
+      const score = Q.length ? Math.round(results.reduce((s, x) => s + x.score, 0) / Q.length) : 0;
+      const r = { tries: prev.tries + 1, best: Math.max(prev.best, score), last: score, passed: Math.max(prev.best, score) >= QUIZ_PASS, results };
       await ref.set({ ...base, quiz: { [lid]: r } }, { merge: true });
       res.status(200).json(r); return;
     }
