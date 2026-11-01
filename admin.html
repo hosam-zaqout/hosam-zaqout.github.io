@@ -162,7 +162,7 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
   <div class="ni" onclick="showP('testimonials',this)"><span class="ic">⭐</span> آراء الطلاب</div>
   <div class="ni" onclick="showP('sections',this)"><span class="ic">➕</span> أقسام مخصصة</div>
   <div class="ns">إدارة الموقع</div>
-  <div class="ni" onclick="showP('progress',this);prLoad()"><span class="ic">📈</span> تقدم الطلاب</div>
+  <div class="ni" onclick="showP('progress',this);prLoad()"><span class="ic">👨‍🏫</span> متابعة الطلاب</div>
   <div class="ni" onclick="showP('coupons',this);cpInit()"><span class="ic">🏷️</span> أكواد الخصم</div>
   <div class="ni" onclick="showP('orders',this);loadOrders();moRenderItems();moFillUsers()"><span class="ic">🧾</span> الطلبات <span class="nb" id="oc">0</span></div>
   <div class="ni" onclick="showP('users',this)"><span class="ic">👥</span> المستخدمون <span class="nb" id="uc">0</span></div>
@@ -330,7 +330,7 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
     </div>
 
     <!-- PROGRESS -->
-    <div class="panel" id="p-progress"><div class="pc"><h3>📈 تقدم الطلاب</h3><div class="tbl-wrap"><table class="dtbl"><thead><tr><th>الطالب</th><th>الدورة</th><th>الإنجاز</th><th>كويز</th><th>واجبات</th><th>المشروع والشهادة</th></tr></thead><tbody id="prTable"></tbody></table></div></div></div>
+    <div class="panel" id="p-progress"><div class="pc"><h3>👨‍🏫 صفحة المدرس: متابعة الطلاب</h3><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px"><select class="cs" id="prCourse" style="width:auto;min-width:240px" onchange="prRender()"></select><input class="ci" id="prQ" placeholder="ابحث بالإيميل" style="width:220px" oninput="prRender()"><button class="btn-sm" onclick="prLoad()">🔄 تحديث</button></div><div class="tbl-wrap"><table class="dtbl"><thead><tr><th>الطالب</th><th>الدورة</th><th>الإنجاز</th><th>الحضور</th><th>كويز</th><th>واجبات</th><th>المشروع والشهادة</th></tr></thead><tbody id="prTable"></tbody></table></div></div></div>
 
     <!-- COUPONS -->
     <div class="panel" id="p-coupons">
@@ -1942,9 +1942,12 @@ const METHOD_LBL={togo:'💳 Togo',paysky:'💳 PaySky','crosspay-paypal':'🅿�
 
 window.prLoad=async()=>{
   const sn=await getDocs(collection(db,'course_progress'));const r=[];sn.forEach(d=>r.push({_id:d.id,...d.data()}));window._prog=r;
+  const sel=document.getElementById('prCourse'),v=sel.value;sel.innerHTML='<option value="">كل الدورات</option>'+[...new Set(r.map(p=>p.col+'/'+p.id))].map(k=>`<option value="${k}">${escH(r.find(p=>p.col+'/'+p.id===k).title||k)}</option>`).join('');sel.value=v;prRender();
+};
+window.prRender=()=>{const f=document.getElementById('prCourse').value,qq=document.getElementById('prQ').value.toLowerCase();const r=window._prog.filter(p=>(!f||p.col+'/'+p.id===f)&&(!qq||(p.email||'').includes(qq)));
   document.getElementById('prTable').innerHTML=r.map(p=>{const q=Object.values(p.quiz||{}),a=Object.values(p.asg||{});
-    return `<tr><td dir="ltr" style="font-size:.76rem">${escH(p.email)}</td><td style="font-size:.76rem">${escH(p.title)}</td><td>${(p.done||[]).length}/${p.total||0}</td><td>${q.map(x=>x.best+'%').join('، ')||'—'}</td><td>${Object.keys(p.asg||{}).map(k=>`<button class="btn-edit" style="font-size:.7rem" onclick="prAsg('${p._id}','${k}')">${p.asg[k].score}% ✏️</button>`).join(' ')||'—'}</td>
-      <td style="font-size:.74rem">${p.project?`<a href="${escH(p.project.fileUrl)}" target="_blank" rel="noopener" style="color:var(--ac)">📎 ${escH(p.project.name)}</a><br>${({pending:'⏳ بانتظارك',approved:'✅ موافق',rejected:'⚠️ مرفوض'})[p.project.status]||''}<br><button class="btn-edit" style="font-size:.7rem" onclick="prProj('${p._id}','approved')">✅</button> <button class="btn-del" style="font-size:.7rem" onclick="prProj('${p._id}','rejected')">❌</button> <label class="btn-edit" style="font-size:.7rem;cursor:pointer">🎓 ${p.certUrl?'تغيير الشهادة':'رفع الشهادة'}<input type="file" style="display:none" onchange="prCert('${p._id}',this)"></label>`:'—'}</td></tr>`;}).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--mt);padding:20px">لا يوجد بعد</td></tr>';
+    return `<tr><td dir="ltr" style="font-size:.76rem">${escH(p.email)}</td><td style="font-size:.76rem">${escH(p.title)}</td><td>${(p.done||[]).length}/${p.total||0}</td><td>${(()=>{const w=Object.values(p.watch||{});return w.length?Math.round(w.reduce((s,x)=>s+(x.pct||0),0)/w.length)+'% ('+w.length+' فيديو)':'—';})()}</td><td>${q.map(x=>x.best+'%').join('، ')||'—'}</td><td>${Object.keys(p.asg||{}).map(k=>`<button class="btn-edit" style="font-size:.7rem" onclick="prAsg('${p._id}','${k}')">${p.asg[k].score}% ✏️</button>`).join(' ')||'—'}</td>
+      <td style="font-size:.74rem">${p.project?`<a href="${escH(p.project.fileUrl)}" target="_blank" rel="noopener" style="color:var(--ac)">📎 ${escH(p.project.name)}</a><br>${({pending:'⏳ بانتظارك',approved:'✅ موافق',rejected:'⚠️ مرفوض'})[p.project.status]||''}<br><button class="btn-edit" style="font-size:.7rem" onclick="prProj('${p._id}','approved')">✅</button> <button class="btn-del" style="font-size:.7rem" onclick="prProj('${p._id}','rejected')">❌</button> <label class="btn-edit" style="font-size:.7rem;cursor:pointer">🎓 ${p.certUrl?'تغيير الشهادة':'رفع الشهادة'}<input type="file" style="display:none" onchange="prCert('${p._id}',this)"></label>`:'—'}</td></tr>`;}).join('')||'<tr><td colspan="7" style="text-align:center;color:var(--mt);padding:20px">لا يوجد بعد</td></tr>';
 };
 window.prAsg=async(id,k)=>{const p=window._prog.find(x=>x._id===id),a=p.asg[k];const txt=(a.answers||[]).map((c,i)=>`── سؤال ${i+1} (${a.results?.[i]?.score??'?'}%) ──\n${c}\n${a.results?.[i]?.feedback||''}`).join('\n\n');const v=prompt('حل الطالب:\n\n'+txt.slice(0,1500)+'\n\nالعلامة النهائية:',a.score);if(v===null)return;const n=Math.max(0,Math.min(100,parseInt(v)||0));await updateDoc(doc(db,'course_progress',id),{['asg.'+k+'.score']:n});toast('✅ تم تعديل العلامة');prLoad();};
 window.prProj=async(id,st)=>{const note=st==='rejected'?prompt('شو لازم يعدّل الطالب؟'):'';if(note===null)return;await updateDoc(doc(db,'course_progress',id),{'project.status':st,'project.adminNote':note||''});toast('✅ تم، وبيوصل الطالب إيميل');prLoad();};
@@ -2079,7 +2082,7 @@ window.toast=toast;
 </script>
 
 <script>
-const panelTitles={progress:'📈 تقدم الطلاب',coupons:'🏷️ أكواد الخصم',workshops:'🎟️ الورشات',articles:'📝 المقالات',dashboard:'🏠 الرئيسية',hero:'🎯 القسم الرئيسي',layout:'🧭 ترتيب الصفحة والقائمة',team:'👷 الفريق',products:'📦 المنتجات',courses:'🎓 الدورات',books:'📚 الكتب',projects:'🔧 المشاريع',testimonials:'⭐ آراء الطلاب',sections:'➕ أقسام مخصصة',orders:'🧾 الطلبات',users:'👥 المستخدمون',messages:'💬 الرسائل',newsletter:'📧 النشرة',payment:'💳 إعدادات الدفع',design:'🎨 التصميم',seo:'🔍 SEO',brand:'💡 الهوية',social:'🔗 التواصل'};
+const panelTitles={progress:'👨‍🏫 متابعة الطلاب',coupons:'🏷️ أكواد الخصم',workshops:'🎟️ الورشات',articles:'📝 المقالات',dashboard:'🏠 الرئيسية',hero:'🎯 القسم الرئيسي',layout:'🧭 ترتيب الصفحة والقائمة',team:'👷 الفريق',products:'📦 المنتجات',courses:'🎓 الدورات',books:'📚 الكتب',projects:'🔧 المشاريع',testimonials:'⭐ آراء الطلاب',sections:'➕ أقسام مخصصة',orders:'🧾 الطلبات',users:'👥 المستخدمون',messages:'💬 الرسائل',newsletter:'📧 النشرة',payment:'💳 إعدادات الدفع',design:'🎨 التصميم',seo:'🔍 SEO',brand:'💡 الهوية',social:'🔗 التواصل'};
 function showP(id,el){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));

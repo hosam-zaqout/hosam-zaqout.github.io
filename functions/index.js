@@ -1077,7 +1077,7 @@ exports.getLessons = onRequest(
     }));
     const progress = user ? (await db.collection("course_progress").doc(`${col}__${id}__${user.uid}`).get()).data() || {} : {};
     logger.info("Lessons opened", { col, id, by: email || (invoiceId ? "order-link" : "?") });
-    res.status(200).json({ ...head, lessons, progress: { done: progress.done || [], quiz: progress.quiz || {}, asg: progress.asg || {}, project: progress.project || null, certUrl: progress.certUrl || "" }, fileUrl: /^https?:\/\//.test(priv.fileUrl || "") ? priv.fileUrl : "", message: String(priv.message || "") });
+    res.status(200).json({ ...head, lessons, progress: { done: progress.done || [], quiz: progress.quiz || {}, asg: progress.asg || {}, project: progress.project || null, certUrl: progress.certUrl || "", watch: progress.watch || {}, bookmarks: progress.bookmarks || {} }, name: (user && user.name) || "", fileUrl: /^https?:\/\//.test(priv.fileUrl || "") ? priv.fileUrl : "", message: String(priv.message || "") });
   }
 );
 
@@ -1177,6 +1177,21 @@ exports.courseAction = onRequest(
       req.body.value ? done.add(lid) : done.delete(lid);
       await ref.set({ ...base, done: [...done] }, { merge: true });
       res.status(200).json({ done: [...done] }); return;
+    }
+    // ⏱ الحضور: آخر موضع وأعلى نسبة مشاهدة — 80% = منجز تلقائياً
+    if (action === "watch" && L) {
+      const prev = cur.watch?.[lid] || {};
+      const pos = Math.max(0, Math.round(Number(req.body.pos) || 0)), dur = Math.max(0, Math.round(Number(req.body.dur) || 0));
+      const pct = Math.max(Number(prev.pct) || 0, Math.min(100, Math.round(Number(req.body.pct) || 0)));
+      const done = new Set(cur.done || []); if (pct >= 80) done.add(lid);
+      await ref.set({ ...base, watch: { [lid]: { pos, dur, pct } }, done: [...done] }, { merge: true });
+      res.status(200).json({ pct, done: [...done] }); return;
+    }
+    // 🔖 علامات مرجعية داخل الفيديو
+    if (action === "bookmarks" && L) {
+      const list = (Array.isArray(req.body.list) ? req.body.list : []).slice(0, 50).map((b) => ({ t: Math.max(0, Math.round(Number(b.t) || 0)), note: String(b.note || "").substring(0, 200) }));
+      await ref.set({ ...base, bookmarks: { [lid]: list } }, { merge: true });
+      res.status(200).json({ list }); return;
     }
     if (action === "quiz" && L?.type === "quiz") {
       const Q = parseQuiz(L.spec), prev = cur.quiz?.[lid] || { tries: 0, best: 0 };

@@ -85,17 +85,39 @@ function show(d) {
   const extra = `${d.fileUrl ? `<div class="files"><a href="${esc(d.fileUrl)}" target="_blank" rel="noopener">📦 ملف الدورة</a></div>` : ""}${d.message ? `<div class="extra">🔒 ${linkify(d.message)}</div>` : ""}`;
   if (!L.length) { $("app").innerHTML = `<h1>${esc(d.emoji)} ${esc(d.title)}</h1><div class="box"><p>لم يُضف المحتوى بعد — سيظهر هنا فور نشره.</p></div>${extra}`; return; }
   const KEY = "learn_done_" + col + id;
-  const P_ = d.progress || {}; const lidOf = (i) => L[i].lid || String(i);
+  const P_ = d.progress || {}; P_.watch = P_.watch || {}; P_.bookmarks = P_.bookmarks || {}; const lidOf = (i) => L[i].lid || String(i);
   let done = (P_.done || []).map((x) => L.findIndex((l) => l.lid === x)).filter((i) => i >= 0);
   if (!auth.currentUser) try { done = JSON.parse(localStorage.getItem(KEY) || "[]"); } catch (e) {}
   const secs = []; L.forEach((l, i) => { const n = l.section || "محتوى الدورة"; let g = secs.find((x) => x.n === n); if (!g) secs.push(g = { n, items: [] }); g.items.push(i); });
   $("app").innerHTML = `<h1>${esc(d.emoji)} ${esc(d.title)}</h1>
+    <p style="color:var(--mut);margin:-6px 0 12px">${d.name ? "أهلاً، " + esc(d.name.split(" ")[0]) + " 👋 — " : ""}<span id="hi"></span></p>
     <div class="grid"><div><div class="player" id="pl"></div><div class="now" id="now"></div>
       <div class="files" style="justify-content:space-between"><button class="btn alt" id="prev">→ السابق</button><button class="btn alt" id="mark"></button><button class="btn" id="next">التالي ←</button></div>${extra}</div>
     <div class="list"><div class="hd">📚 محتوى الدورة<div id="prog" style="font-size:.78rem;color:var(--mut);font-weight:600"></div><div style="height:6px;background:var(--line);border-radius:4px;margin-top:6px;overflow:hidden"><div id="bar" style="height:100%;width:0;background:var(--ok)"></div></div></div>
-      ${secs.map((g) => `<div style="padding:9px 14px;font-weight:800;font-size:.86rem;background:#0f1528;border-bottom:1px solid var(--line)">${esc(g.n)}</div>${g.items.map((i) => `<button data-i="${i}"><b class="st"></b><span>${ICON[L[i].type] || "🎬"} ${esc(L[i].title || "عنصر " + (i + 1))}</span></button>`).join("")}`).join("")}</div></div>`;
+      ${secs.map((g) => `<div style="padding:9px 14px;font-weight:800;font-size:.86rem;background:#0f1528;border-bottom:1px solid var(--line)">${esc(g.n)}<div class="sum" data-s="${secs.indexOf(g)}" style="font-weight:500;font-size:.74rem;color:var(--mut)"></div></div>${g.items.map((i) => `<button data-i="${i}"><b class="st"></b><span>${ICON[L[i].type] || "🎬"} ${esc(L[i].title || "عنصر " + (i + 1))}</span></button>`).join("")}`).join("")}</div></div>`;
   let cur = 0;
   const box = () => { const b = document.createElement("div"); b.style.marginTop = "12px"; $("now").appendChild(b); return b; };
+  // ⏱ Bunny: استكمال من آخر موضع، وحفظ الحضور، وعلامات مرجعية
+  let player = null;
+  const fmt = (t) => Math.floor(t / 60) + ":" + String(t % 60).padStart(2, "0");
+  async function bindPlayer(l) {
+    if (!window.playerjs) await new Promise((ok) => { const s = document.createElement("script"); s.src = "https://assets.mediadelivery.net/playerjs/player-0.1.0.min.js"; s.onload = ok; s.onerror = ok; document.head.appendChild(s); });
+    if (!window.playerjs || !auth.currentUser) return;
+    const p = new playerjs.Player($("pl").querySelector("iframe")); player = p;
+    let last = 0, now = 0, max = P_.watch[l.lid]?.pct || 0;
+    const save = (pos, dur) => { const pct = dur ? Math.max(max, Math.round(pos / dur * 100)) : max; max = pct; P_.watch[l.lid] = { pos, dur, pct };
+      act({ action: "watch", lid: l.lid, pos, dur, pct }).then((x) => { const nd = (x.done || []).map((v) => L.findIndex((q) => q.lid === v)).filter((i) => i >= 0); done = nd; paint(); }).catch(() => {}); };
+    p.on("ready", () => {
+      const pos = P_.watch[l.lid]?.pos || 0; if (pos > 5) p.setCurrentTime(pos);
+      p.on("timeupdate", (e) => { now = Math.floor(e.seconds); if (now - last >= 20 || now < last) { last = now; save(now, Math.floor(e.duration)); } });
+    });
+    const b = box(); const list = () => (P_.bookmarks[l.lid] || []);
+    const draw = () => { b.innerHTML = `<button class="btn alt" id="bm">🔖 أضف علامة هنا</button><div class="files">${list().map((m, i) => `<a href="#" data-t="${m.t}">🔖 ${fmt(m.t)} ${esc(m.note)}</a><a href="#" data-x="${i}">✕</a>`).join("")}</div>`;
+      $("bm").onclick = () => { const note = prompt("ملاحظة على هذه الدقيقة:", "") ; if (note === null) return; P_.bookmarks[l.lid] = [...list(), { t: now, note }]; act({ action: "bookmarks", lid: l.lid, list: list() }).catch(() => {}); draw(); };
+      b.querySelectorAll("a[data-t]").forEach((a) => a.onclick = (e) => { e.preventDefault(); p.setCurrentTime(+a.dataset.t); });
+      b.querySelectorAll("a[data-x]").forEach((a) => a.onclick = (e) => { e.preventDefault(); P_.bookmarks[l.lid] = list().filter((_, i) => i !== +a.dataset.x); act({ action: "bookmarks", lid: l.lid, list: list() }).catch(() => {}); draw(); }); };
+    draw();
+  }
   function renderQuiz(l) {
     const b = box(), r = (P_.quiz || {})[l.lid];
     b.innerHTML = (l.quiz || []).map((q, n) => `<div class="extra" style="background:#0f1528;border-color:var(--line)"><b style="white-space:pre-line">${n + 1}. ${esc(q.q)}</b>${q.free ? `<textarea id="qa${n}" dir="ltr" rows="8" style="width:100%;margin-top:8px;background:#0a0f1d;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:8px;font-family:Consolas,monospace"></textarea><div id="qf${n}" style="margin-top:6px;white-space:pre-line"></div>` : ""}${q.options.map((o, k) => `<label style="display:block;margin-top:6px;cursor:pointer"><input type="radio" name="q${n}" value="${k}"> ${esc(o)}</label>`).join("")}</div>`).join("") + `<button class="btn" id="qs" style="margin-top:10px">إرسال الإجابات</button><p id="qm" style="margin-top:8px">${r ? `أفضل نتيجة: ${r.best}% — المحاولات: ${r.tries}/3` : ""}</p>`;
@@ -125,6 +147,14 @@ function show(d) {
     document.querySelectorAll(".list button").forEach((b) => { const i = +b.dataset.i; b.classList.toggle("on", i === cur); b.querySelector(".st").textContent = done.includes(i) ? "✅" : i + 1; });
     const pct = Math.round(done.filter((i) => i < L.length).length / L.length * 100);
     $("prog").textContent = `أنجزت ${pct}%`; $("bar").style.width = pct + "%";
+    $("hi").textContent = `أنجزت ${pct}% من الدورة`;
+    document.querySelectorAll(".sum").forEach((el) => {
+      const g = secs[+el.dataset.s], vids = g.items.filter((i) => L[i].video), qs = g.items.filter((i) => L[i].type === "quiz" && (P_.quiz || {})[L[i].lid]);
+      const parts = [];
+      if (vids.length) parts.push("حضرت " + Math.round(vids.reduce((s, i) => s + (done.includes(i) ? 100 : (P_.watch[L[i].lid]?.pct || 0)), 0) / vids.length) + "%");
+      if (qs.length) parts.push("الكويز " + Math.round(qs.reduce((s, i) => s + P_.quiz[L[i].lid].best, 0) / qs.length) + "%");
+      el.textContent = parts.join(" • ");
+    });
     $("mark").textContent = done.includes(cur) ? "↩️ إلغاء الإنجاز" : "✅ تم الإنجاز";
     $("prev").style.visibility = cur > 0 ? "" : "hidden"; $("next").style.visibility = cur < L.length - 1 ? "" : "hidden";
   };
@@ -136,6 +166,7 @@ function show(d) {
     const tag = { assignment: "📝 واجب", slides: "📊 عرض تقديمي", file: "📁 ملفات وأكواد", link: "🔗 رابط", text: "📄 قراءة" }[type] || "";
     $("now").innerHTML = `<h2>${esc(l.title)}</h2>${tag ? `<div style="color:var(--acc);font-size:.85rem;font-weight:700">${tag}</div>` : ""}${l.desc ? `<p>${linkify(l.desc)}</p>` : ""}<div class="files">${l.link ? `<a href="${esc(l.link)}" target="_blank" rel="noopener">⬇️ فتح الرابط / تحميل البرنامج</a>` : ""}${(l.files || []).map((f) => `<a href="${esc(f.url)}" target="_blank" rel="noopener">📎 ${esc(f.name)}</a>`).join("")}</div>`;
     paint();
+    if (/mediadelivery\.net/.test(l.video || "")) bindPlayer(l);
     if (type === "quiz") renderQuiz(l); if (type === "assignment") renderTasks(l); if (type === "project") renderProject();
     try { localStorage.setItem("learn_" + col + id, i); } catch (e) {}
   };
