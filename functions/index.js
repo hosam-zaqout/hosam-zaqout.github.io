@@ -1257,3 +1257,36 @@ exports.notifyProject = onDocumentWritten(
     await sendMail(a.email, "🎓 تحديث مشروعك — " + (a.title || "3ENG.s"), a.title || "مشروعك", `<p>${escMail(t)}</p><p><a href="${link}" style="color:#D97706;font-weight:bold">افتح صفحة الدورة</a></p>`, t + "\n" + link).catch((e) => logger.warn("Project mail failed", { msg: e.message }));
   }
 );
+
+// 🎓 دوراتي: كل ما يملكه الطالب — طلبات مدفوعة (بالحساب أو الإيميل المؤكَّد) + إيميلات مسموح لها
+exports.myCourses = onRequest(
+  { region: "us-central1" },
+  async (req, res) => {
+    setCORS(req, res);
+    if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+    const user = await verifyToken(req);
+    if (!user) { res.status(401).json({ error: "سجّل الدخول" }); return; }
+    const email = user.email_verified === true ? String(user.email || "").toLowerCase() : "";
+    const keys = new Set();
+    const addOrder = (o) => { if (o.status === "paid") for (const i of o.items || []) if (i.col && i.id) keys.add(i.col + "/" + i.id); };
+    (await db.collection("orders").where("userId", "==", user.uid).limit(100).get()).forEach((d) => addOrder(d.data()));
+    if (email) {
+      (await db.collection("orders").where("userEmail", "==", email).limit(100).get()).forEach((d) => addOrder(d.data()));
+      (await db.collection("private_files").where("allowEmails", "array-contains", email).limit(100).get()).forEach((d) => {
+        const m = d.id.match(/^(.+?)__(.+)$/); if (m) keys.add(m[1] + "/" + m[2]);
+      });
+    }
+    const courses = [];
+    for (const k of keys) {
+      const [col, id] = k.split("/");
+      const priv = (await db.collection("private_files").doc(`${col}__${id}`).get()).data() || {};
+      const total = (priv.lessons || []).length;
+      if (!total) continue; // الملفات والكتب تبقى في "مشترياتي"
+      const it = (await db.collection(col).doc(id).get()).data();
+      if (!it) continue;
+      const p = (await db.collection("course_progress").doc(`${col}__${id}__${user.uid}`).get()).data() || {};
+      courses.push({ col, id, title: it.title || it.name || "", emoji: it.emoji || "🎓", imageUrl: it.imageUrl || "", pct: Math.min(100, Math.round((p.done || []).length / total * 100)) });
+    }
+    res.status(200).json({ courses });
+  }
+);
