@@ -1290,3 +1290,23 @@ exports.myCourses = onRequest(
     res.status(200).json({ courses });
   }
 );
+
+// 📧 دعوة تلقائية للإيميلات الجديدة فقط بقائمة "إيميلات مسموح لها"
+exports.inviteAllowedEmails = onDocumentWritten(
+  { document: "private_files/{pid}", region: "us-central1", secrets: [SMTP_PASS], timeoutSeconds: 300 },
+  async (event) => {
+    const a = event.data?.after?.data();
+    if (!a) return;
+    const old = new Set((event.data?.before?.data()?.allowEmails || []).map((e) => String(e).toLowerCase()));
+    const fresh = (a.allowEmails || []).map((e) => String(e).toLowerCase()).filter((e) => !old.has(e));
+    if (!fresh.length) return;
+    const title = a.title || "دورتك";
+    const link = SITE + "/my-courses/";
+    for (const to of fresh) {
+      const inner = '<p>تم تسجيلك في: <b>' + escMail(title) + '</b></p><p><a href="' + link + '" style="background:#F59E0B;color:#0F172A;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block">▶️ ادخل إلى الدورة</a></p><p>سجّل الدخول بهذا الإيميل نفسه: <b dir="ltr">' + escMail(to) + '</b></p>';
+      const text = "تم تسجيلك في: " + title + "\nادخل من هنا: " + link + "\nسجّل الدخول بهذا الإيميل نفسه: " + to;
+      await sendMail(to, "🎓 تم تسجيلك في " + title, "مرحباً بك في الدورة", inner, text).catch((e) => logger.warn("Invite failed", { to, msg: e.message }));
+    }
+    logger.info("Invites sent", { pid: event.params.pid, count: fresh.length });
+  }
+);
