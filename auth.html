@@ -109,7 +109,7 @@ body{font-family:'Cairo',sans-serif;background:var(--dk);color:var(--tx);min-hei
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendPasswordResetEmail, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, sendPasswordResetEmail, onAuthStateChanged, updateProfile, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const CFG={apiKey:"AIzaSyALJiF8l_wnk_6FU6etQpz44Z43lSORXQk",authDomain:"engs-website.firebaseapp.com",projectId:"engs-website",storageBucket:"engs-website.firebasestorage.app",messagingSenderId:"1028163586505",appId:"1:1028163586505:web:c09de00bb30a3369ca4018",measurementId:"G-GZJCYL5YM8"};
@@ -174,6 +174,8 @@ window.doSignup=async()=>{
   showOv(true,'جاري إنشاء الحساب...');
   try{
     const c=await createUserWithEmailAndPassword(auth,email,pass);
+    // رابط تأكيد الإيميل — لازم لفتح الدورات المسجّلة على هذا الإيميل
+    try{await sendEmailVerification(c.user,{url:"https://www.3engs.com/my-courses/"});}catch(e){}
     await updateProfile(c.user,{displayName:`${fn} ${ln}`.trim()});
     await saveUser(c.user,'email');
   }catch(e){showOv(false);showAlert(errs[e.code]||e.message);}

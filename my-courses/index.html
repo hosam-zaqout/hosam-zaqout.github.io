@@ -35,7 +35,7 @@ h1{font-size:1.4rem;margin-bottom:16px}
 <main class="wrap" id="app"><p style="text-align:center;color:var(--mut);padding:50px">جارٍ التحميل...</p></main>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signOut, sendEmailVerification, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 const auth = getAuth(initializeApp({ apiKey: "AIzaSyALJiF8l_wnk_6FU6etQpz44Z43lSORXQk", authDomain: "engs-website.firebaseapp.com", projectId: "engs-website", appId: "1:1028163586505:web:c09de00bb30a3369ca4018" }));
 const $ = (x) => document.getElementById(x);
 const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -47,7 +47,10 @@ onAuthStateChanged(auth, async (user) => {
     const r = await fetch("https://us-central1-engs-website.cloudfunctions.net/myCourses", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + await user.getIdToken() }, body: "{}" });
     const d = await r.json(); if (!r.ok) throw new Error(d.error);
     const L = d.courses || [];
-    if (!L.length) { $("app").innerHTML = `<div class="box"><p>لا توجد دورات مسجلة على الإيميل <b dir="ltr">${esc(user.email)}</b>.</p>${user.emailVerified ? "" : "<p>يجب تأكيد بريدك الإلكتروني أولاً.</p>"}<a class="btn" href="/courses/">تصفّح الدورات</a> <button class="btn alt" id="out">الدخول بإيميل آخر</button></div>`; $("out").onclick = async () => { await signOut(auth); location.href = login; }; return; }
+    if (!L.length) { $("app").innerHTML = `<div class="box"><p>لا توجد دورات مسجلة على الإيميل <b dir="ltr">${esc(user.email)}</b>.</p>${user.emailVerified ? "" : `<p>⚠️ بريدك غير مؤكَّد، لذلك لا تظهر دوراتك. اختر أحد الحلين:</p><button class="btn" id="gl">الدخول بحساب Google (الأسرع)</button> <button class="btn alt" id="vf">📧 أرسل رابط التأكيد إلى بريدي</button><p id="vm"></p><hr style="border-color:var(--line);margin:16px 0">`}<a class="btn" href="/courses/">تصفّح الدورات</a> <button class="btn alt" id="out">الدخول بإيميل آخر</button></div>`; $("out").onclick = async () => { await signOut(auth); location.href = login; };
+      $("gl")?.addEventListener("click", async () => { try { await signInWithPopup(auth, new GoogleAuthProvider().setCustomParameters({ login_hint: user.email })); location.reload(); } catch (e) { $("vm").textContent = "⚠️ " + e.message; } });
+      $("vf")?.addEventListener("click", async () => { try { await sendEmailVerification(user, { url: "https://www.3engs.com/my-courses/" }); $("vm").textContent = "✅ أرسلنا رابط التأكيد إلى " + user.email + " — افتحه (وافحص Spam) ثم ارجع وحدّث الصفحة."; } catch (e) { $("vm").textContent = "⚠️ " + e.message; } });
+      return; }
     $("app").innerHTML = `<h1>🎓 دوراتي</h1><div class="cards">${L.map((c) => `<div class="card">${/^https?:/.test(c.imageUrl || "") ? `<img src="${esc(c.imageUrl)}" alt="${esc(c.title)}" loading="lazy">` : `<div class="ph">${esc(c.emoji || "🎓")}</div>`}<div class="b"><h3>${esc(c.title)}</h3><div class="bar"><i style="width:${c.pct}%"></i></div><div class="pct">أنجزت ${c.pct}%</div><a class="btn" href="/learn/?item=${encodeURIComponent(c.col)}:${encodeURIComponent(c.id)}">▶️ ${c.pct ? "متابعة التعلم" : "ابدأ الآن"}</a></div></div>`).join("")}</div>`;
   } catch (e) { $("app").innerHTML = `<div class="box"><p>⚠️ تعذّر تحميل دوراتك، حاول لاحقاً.</p></div>`; }
 });

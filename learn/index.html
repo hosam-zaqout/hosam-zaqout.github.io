@@ -47,7 +47,7 @@ h1{font-size:1.3rem;margin-bottom:12px}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signOut, sendEmailVerification, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 const app = initializeApp({ apiKey: "AIzaSyALJiF8l_wnk_6FU6etQpz44Z43lSORXQk", authDomain: "engs-website.firebaseapp.com", projectId: "engs-website", appId: "1:1028163586505:web:c09de00bb30a3369ca4018" });
 const auth = getAuth(app);
 const P = new URLSearchParams(location.search);
@@ -63,7 +63,7 @@ const here = "https://www.3engs.com" + location.pathname + location.search;
 function denied(d) {
   $("app").innerHTML = `<div class="box"><div style="font-size:2.4rem">🔒</div><h1>${esc(d.title || "محاضرات الورشة")}</h1>
     <p>هذا المحتوى متاح للمشتركين فقط.</p>
-    ${d.signedIn ? `<p>أنت مسجّل بالإيميل <b dir="ltr">${esc(d.email)}</b>، وهذا الإيميل غير مسجّل بهذه الورشة.</p><button class="btn alt" id="out">🔄 الدخول بإيميل آخر</button>` :
+    ${d.signedIn ? `<p>أنت مسجّل بالإيميل <b dir="ltr">${esc(d.email)}</b>${auth.currentUser && !auth.currentUser.emailVerified ? "، لكنه غير مؤكَّد — <a href=\"/my-courses/\">أكِّده من هنا</a>" : "، وهذا الإيميل غير مسجّل بهذه الدورة"}.</p><button class="btn alt" id="out">🔄 الدخول بإيميل آخر</button>` :
       `<p>إذا اشتركت: سجّل الدخول بالإيميل نفسه الذي كتبته عند الشراء.</p><a class="btn" href="/auth.html?redirect=${encodeURIComponent(here)}">🔑 تسجيل الدخول</a>`}
     ${d.hasCode ? `<form id="cf" style="margin-top:18px;border-top:1px solid var(--line);padding-top:16px"><p>🔑 عندك كود دخول؟</p>
       <input id="cv" dir="ltr" maxlength="40" autocomplete="off" placeholder="اكتب الكود" style="padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:#0a0f1d;color:var(--txt);font:inherit;text-align:center;width:200px">
