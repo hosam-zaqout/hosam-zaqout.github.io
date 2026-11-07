@@ -309,17 +309,20 @@ exports.createPayment = onRequest(
     for (const r of refs) {
       const col = String(r?.col || "");
       const id  = String(r?.id || "");
+      const variant = col === "courses" && r?.variant === "live" ? "live" : "";
       const key = col + "/" + id;
       if (!SELLABLE.includes(col) || !/^[A-Za-z0-9_-]{1,64}$/.test(id) || seen.has(key)) continue;
       seen.add(key);
       const snap = await db.collection(col).doc(id).get();
       if (!snap.exists) continue;
       const d = snap.data();
-      if (isFreeItem(d)) continue;
+      // 🔴 الدورة اللايف: سعرها الخاص، ومسموحة بس لما تكون متاحة من لوحة التحكم
+      if (variant && !(d.liveOpen === true && Number(d.livePrice) > 0)) { errorPage(res, 400, "التسجيل في الدورة المباشرة (لايف) مغلق حالياً"); return; }
+      if (!variant && isFreeItem(d)) continue;
       items.push({
-        col, id,
-        name:  String(d.title || d.name || "منتج").substring(0, 100),
-        price: Math.round(Number(d.price) * 100) / 100,
+        col, id, ...(variant ? { variant } : {}),
+        name:  String(d.title || d.name || "منتج").substring(0, 100) + (variant ? " — لايف 🔴" : ""),
+        price: Math.round(Number(variant ? d.livePrice : d.price) * 100) / 100,
         emoji: String(d.emoji || ""),
       });
     }

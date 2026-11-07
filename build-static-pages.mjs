@@ -842,12 +842,14 @@ ${bc.html}
     <div class="price">${!free ? `<b>$${price}</b>` : `<b>مجاني</b>`}${!free && oldPrice && oldPrice > price ? `<s>$${oldPrice}</s><span class="off">وفّر ${off}%</span>` : ""}</div>
     <div class="cta">
       ${!free
-        ? `<a class="btn main" href="/?buy=${sec.col}:${item.id}" rel="nofollow" data-buy="${sec.col}:${item.id}" data-name="${esc(title)}" data-price="${price}" data-emoji="${esc(item.emoji || "🛒")}">🛒 اشترِ الآن</a>`
+        ? `<a class="btn main" href="/?buy=${sec.col}:${item.id}" rel="nofollow" data-buy="${sec.col}:${item.id}" data-name="${esc(title)}" data-price="${price}" data-emoji="${esc(item.emoji || "🛒")}">🛒 ${sec.col === "courses" && num(item.livePrice) > 0 ? "اشترِ الدورة المسجّلة" : "اشترِ الآن"}</a>`
         : item.fileUrl
           ? `<a class="btn main" href="${esc(item.fileUrl)}" target="_blank" rel="nofollow noopener">📥 تحميل مجاني</a>`
           : `<a class="btn main" href="/?open=${sec.col}:${item.id}">📥 احصل عليه مجاناً</a>`}
+      ${sec.col === "courses" && num(item.livePrice) > 0 ? `<a class="btn main" hidden style="background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff" href="/?buy=${sec.col}:${item.id}" rel="nofollow" data-buy="${sec.col}:${item.id}" data-variant="live" data-name="${esc(title)} — لايف 🔴" data-price="${num(item.livePrice)}" data-emoji="🔴">🔴 احجز الدورة المباشرة (لايف) <b data-live-price>$${num(item.livePrice)}</b></a>` : ""}
       <a class="btn wa" href="https://wa.me/${WHATSAPP}?text=${waMsg}" rel="nofollow">💬 استفسار واتساب</a>
     </div>
+    ${sec.col === "courses" && num(item.livePrice) > 0 ? `<p class="trust" data-live-info hidden>🔴 ${esc(clean(item.liveInfo || "الدورة المباشرة متاحة للحجز الآن"))}</p>` : ""}
     ${!free ? `<p class="trust">🔒 دفع آمن عبر بوابة Togo — بيانات بطاقتك لا تصل إلينا • ↩️ <a href="/privacy.html#refund">استرداد خلال 7 أيام</a> حسب السياسة</p>` : ""}
   </div>
 </section>
