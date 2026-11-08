@@ -1395,7 +1395,7 @@ async function loadCourses(){
     const snap=await getDocs(collection(db,'courses'));
     if(snap.empty){grid.innerHTML=defaultCourses();reObs();return;}
     const cls=['cv1','cv2','cv3'];let i=0;
-    const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()}));arr.sort(byOrder);
+    const arr=[]; snap.forEach(d=>{const x={id:d.id,...d.data()};if(x.hidden!==true&&x.published!==false)arr.push(x);});arr.sort(byOrder);
     window._coursesData=arr;
     let html='';
     arr.forEach((c,idx)=>{

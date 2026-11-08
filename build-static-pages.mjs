@@ -542,7 +542,7 @@ async function optimizeImages(data) {
       let exists = false;
       try { await fs.access(path.join(OUT_DIR, big)); await fs.access(path.join(OUT_DIR, small)); exists = true; } catch {}
       if (prev && prev.hash === hash && exists) {
-        Object.assign(it, { _img: "/" + big, _thumb: "/" + small, _w: prev.w, _h: prev.h });
+        Object.assign(it, { _img: "/" + big + "?v=" + hash, _thumb: "/" + small + "?v=" + hash, _w: prev.w, _h: prev.h });
         keep.add(key); reused++; continue;
       }
       if (!sharp) continue;
@@ -555,7 +555,7 @@ async function optimizeImages(data) {
         await fs.writeFile(path.join(OUT_DIR, big), out.data);
         await fs.writeFile(path.join(OUT_DIR, small), await sharp(buf).rotate().resize({ width: 480, withoutEnlargement: true }).webp({ quality: 72 }).toBuffer());
         manifest[key] = { hash, w: out.info.width, h: out.info.height, fromKB: Math.round(buf.length / 1024), toKB: Math.round(out.data.length / 1024) };
-        Object.assign(it, { _img: "/" + big, _thumb: "/" + small, _w: out.info.width, _h: out.info.height });
+        Object.assign(it, { _img: "/" + big + "?v=" + hash, _thumb: "/" + small + "?v=" + hash, _w: out.info.width, _h: out.info.height });
         keep.add(key); done++;
       } catch (e) {
         console.warn(`⚠️  صورة ${key}: ${e.message}`);
