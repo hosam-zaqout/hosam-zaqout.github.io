@@ -7,6 +7,7 @@
  *  > اقتباس         **عريض**   `كود`
  *  [نص](https://…)  ![وصف](https://…صورة)
  *  ``` … ```  كتلة كود
+ *  :::quiz  اختبر نفسك:  ? سؤال  /  - خيار خاطئ  /  + خيار صحيح  /  = شرح  ثم :::
  */
 (function (root) {
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -41,8 +42,25 @@
       out.push(`<div class="tbl"><table><thead><tr>${head.map((c) => `<th>${inline(c)}</th>`).join("")}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${inline(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`);
       table = null;
     };
+    let quiz = null;
+    const flushQuiz = () => {
+      if (!quiz) return;
+      const qs = quiz.filter((q) => q.opts.length >= 2 && q.opts.some((o) => o.ok));
+      if (qs.length) out.push(`<div class="quiz"><div class="quiz-h">📝 اختبر نفسك</div>${qs.map((q, n) => `<div class="qz"><p class="qz-q">${n + 1}. ${inline(q.q)}</p><div class="qz-o">${q.opts.map((o) => `<button type="button" data-ok="${o.ok ? 1 : 0}">${inline(o.t)}</button>`).join("")}</div>${q.why ? `<p class="qz-w" hidden>💡 ${inline(q.why)}</p>` : ""}</div>`).join("")}<p class="qz-s" hidden></p></div>`);
+      quiz = null;
+    };
     for (let li = 0; li < lines.length; li++) {
       const raw = lines[li];
+      if (!code && !quiz && /^:::quiz\s*$/.test(raw.trim())) { flushPara(); flushList(); flushTable(); quiz = []; continue; }
+      if (quiz) {
+        const qt = esc(raw.trim());
+        if (/^:::\s*$/.test(raw.trim())) { flushQuiz(); continue; }
+        let qm;
+        if ((qm = qt.match(/^\?\s*(.+)$/))) quiz.push({ q: qm[1], opts: [], why: "" });
+        else if (quiz.length && (qm = qt.match(/^([+-])\s*(.+)$/))) quiz[quiz.length - 1].opts.push({ ok: qm[1] === "+", t: qm[2] });
+        else if (quiz.length && (qm = qt.match(/^=\s*(.+)$/))) quiz[quiz.length - 1].why = qm[1];
+        continue;
+      }
       if (!code) {
         const tt = raw.trim();
         if (/^\|.*\|$/.test(tt)) {
@@ -82,7 +100,7 @@
       }
     }
     if (code) out.push(`<pre><code>${code.join("\n")}</code></pre>`);
-    flushTable(); flushPara(); flushList();
+    flushQuiz(); flushTable(); flushPara(); flushList();
     return out.join("\n");
   }
 
@@ -90,6 +108,7 @@
   function plain(src) {
     return String(src || "")
       .replace(/```[\s\S]*?```/g, " ")
+      .replace(/^:::quiz[\s\S]*?^:::\s*$/gm, " ")
       .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
       .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
       .replace(/^\s*\|?[\s:|-]+\|?\s*$/gm, " ")

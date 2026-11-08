@@ -1727,7 +1727,9 @@ try{cart=JSON.parse(localStorage.getItem('3engs_cart')||'[]').filter(i=>i&&i.col
 const byOrder=(a,b)=>(a.order??1e9)-(b.order??1e9);
 function isFreeItem(d){return d.isFree===true||!(parseFloat(d.price)>0);}
 // صور WebP مضغوطة يولّدها سكربت البناء في /img/ — ولو مش موجودة بعد نرجع للأصلية
-function optImg(col,id,orig,small){return orig&&id?`/img/${col}/${id}${small?'-480':''}.webp`:(orig||'');}
+// النسخة المضغوطة فقط إذا كانت لنفس الصورة الحالية (وإلا الصورة الأصلية مباشرة — حتى يظهر الغلاف الجديد فوراً)
+let _imgMan=null;try{fetch('/img/manifest.json',{cache:'no-cache'}).then(r=>r.ok?r.json():{}).then(j=>{_imgMan=j;}).catch(()=>{_imgMan={};});}catch(e){_imgMan={};}
+function optImg(col,id,orig,small){if(!orig||!id)return orig||'';const m=_imgMan&&_imgMan[col+'/'+id];if(!m||m.src!==orig)return orig;return `/img/${col}/${id}${small?'-480':''}.webp?v=${m.hash}`;}
 function imgFb(el){const o=el.dataset.orig;if(o&&!el.dataset.fb){el.dataset.fb='1';el.src=o;}else{el.style.display='none';}}
 window.optImg=optImg;window.imgFb=imgFb;
 // يعرض أول 4 عناصر فقط، والباقي مخفي (موجود بالصفحة عشان روابط ?open=) + زر "اكتشف المزيد"

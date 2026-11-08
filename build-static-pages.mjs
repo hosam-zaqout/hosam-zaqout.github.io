@@ -55,6 +55,14 @@ const EXTRA_URLS = [
 const OG_DEFAULT = `${SITE}/og-image.jpg`;
 
 // الأقسام: اسم الـ collection بـ Firestore ← إعدادات الصفحة
+// تصنيفات المقالات (حقل category بالمقال)
+const ART_CATS = [
+  { key: "solar", ar: "الطاقة الشمسية", en: "Solar Energy", emoji: "☀️", desc: "تصميم أنظمة الطاقة الشمسية وحساباتها، والبطاريات والإنفرترات والطاقة المتجددة." },
+  { key: "embedded", ar: "الأنظمة المدمجة", en: "Embedded Systems", emoji: "🔌", desc: "Arduino و ESP32 والحساسات والبروتوكولات وإنترنت الأشياء والإلكترونيات." },
+  { key: "students", ar: "طلاب الهندسة", en: "Engineering Students", emoji: "🎓", desc: "نصائح الدراسة والمهارات والبرامج والمشاريع والانتقال إلى سوق العمل." },
+  { key: "automation", ar: "الأتمتة الصناعية", en: "Industrial Automation", emoji: "🏭", desc: "PLC والتحكم الكهربائي والمحركات والمقارنات التقنية في الصناعة." },
+];
+const artCat = (it) => ART_CATS.find((c) => c.key === it.category) || null;
 const SECTIONS = [
   { col: "courses",  dir: "courses",  label: "الدورات",          one: "دورة",        type: "Course",  emoji: "🎓", anchor: "#courses"  },
   { col: "projects", dir: "projects", label: "المشاريع الجاهزة", one: "مشروع",       type: "Product", emoji: "🛠️", anchor: "#projects" },
@@ -294,6 +302,21 @@ footer nav{display:flex;justify-content:center;flex-wrap:wrap;gap:16px;margin-bo
 .prose a{color:var(--acc);text-decoration:underline}
 .prose img{max-width:100%;height:auto;border-radius:12px;margin:10px 0}
 .prose blockquote{border-right:4px solid var(--acc);padding:8px 16px;margin:14px 0;background:var(--card);border-radius:8px;color:#dfe4f1}
+.prose img[src$=".svg"]{background:#fff;padding:8px;display:block;margin:14px auto}
+.quiz{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:24px 0}
+.quiz-h{font-weight:800;color:var(--acc2);margin-bottom:10px;font-size:1.1rem}
+.qz{padding:10px 0;border-top:1px dashed var(--line)}.qz:first-of-type{border-top:0}
+.qz-q{font-weight:700;margin-bottom:8px!important}
+.qz-o{display:grid;gap:6px}
+.qz-o button{text-align:right;unicode-bidi:plaintext;font:inherit;font-size:.95rem;background:transparent;color:inherit;border:1px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer}
+.qz-o button:hover{border-color:var(--acc)}
+.qz-o button.ok{background:rgba(34,197,94,.15);border-color:#22c55e}.qz-o button.bad{background:rgba(239,68,68,.15);border-color:#ef4444}
+.qz-o button:disabled{cursor:default}
+.qz-w{font-size:.92rem;color:#c8d0e4;margin-top:8px!important}
+.qz-s{font-weight:800;color:var(--acc2);margin-top:10px!important}
+.cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:18px 0 26px}
+.cat{display:block;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;transition:.2s}.cat:hover{border-color:var(--acc);transform:translateY(-2px)}
+.cat .e{font-size:2rem}.cat h3{margin:6px 0 2px}.cat .en{font-size:.8rem;color:var(--acc2)}.cat p{font-size:.88rem;color:#c8d0e4;margin-top:6px}.cat .n{font-size:.8rem;color:var(--acc);margin-top:8px}
 .prose code{background:#1a2340;padding:1px 6px;border-radius:6px;direction:ltr;unicode-bidi:embed}
 .prose pre{background:#0a0f1d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto;direction:ltr;text-align:left;margin:14px 0}
 .prose pre code{background:none;padding:0}
@@ -542,6 +565,7 @@ async function optimizeImages(data) {
       let exists = false;
       try { await fs.access(path.join(OUT_DIR, big)); await fs.access(path.join(OUT_DIR, small)); exists = true; } catch {}
       if (prev && prev.hash === hash && exists) {
+        prev.src = src;
         Object.assign(it, { _img: "/" + big + "?v=" + hash, _thumb: "/" + small + "?v=" + hash, _w: prev.w, _h: prev.h });
         keep.add(key); reused++; continue;
       }
@@ -554,7 +578,7 @@ async function optimizeImages(data) {
         const out = await sharp(buf).rotate().resize({ width: 1200, withoutEnlargement: true }).webp({ quality: 78 }).toBuffer({ resolveWithObject: true });
         await fs.writeFile(path.join(OUT_DIR, big), out.data);
         await fs.writeFile(path.join(OUT_DIR, small), await sharp(buf).rotate().resize({ width: 480, withoutEnlargement: true }).webp({ quality: 72 }).toBuffer());
-        manifest[key] = { hash, w: out.info.width, h: out.info.height, fromKB: Math.round(buf.length / 1024), toKB: Math.round(out.data.length / 1024) };
+        manifest[key] = { hash, src, w: out.info.width, h: out.info.height, fromKB: Math.round(buf.length / 1024), toKB: Math.round(out.data.length / 1024) };
         Object.assign(it, { _img: "/" + big + "?v=" + hash, _thumb: "/" + small + "?v=" + hash, _w: out.info.width, _h: out.info.height });
         keep.add(key); done++;
       } catch (e) {
@@ -888,6 +912,26 @@ ${related.length ? `<h2 class="sec-title">🔗 قد يهمك أيضاً</h2><div
   });
 }
 
+function catTiles(sec, items, cur = "") {
+  return `<div class="cats">${ART_CATS.map((c) => { const n = items.filter((i) => i.category === c.key).length; return `<a class="cat" href="/${sec.dir}/c/${c.key}/"${c.key === cur ? ' style="border-color:var(--acc)"' : ""}><div class="e">${c.emoji}</div><h3>${esc(c.ar)}</h3><div class="en" dir="ltr">${c.en}</div><p>${esc(c.desc)}</p><div class="n">${n ? n + " مقال" : "قريباً"}</div></a>`; }).join("")}</div>`;
+}
+function artHub(sec, items) {
+  const other = items.filter((i) => !artCat(i));
+  return catTiles(sec, items) + ART_CATS.map((c) => { const l = items.filter((i) => i.category === c.key); return l.length ? `<h2 class="sec-title" id="${c.key}">${c.emoji} ${esc(c.ar)} <a href="/${sec.dir}/c/${c.key}/" style="font-size:.8rem;color:var(--acc)">عرض الكل ←</a></h2><div class="cards">${l.slice(0, 6).map((it) => card(sec, it)).join("")}</div>` : ""; }).join("")
+    + (other.length ? `<h2 class="sec-title">📝 مقالات أخرى</h2><div class="cards">${other.map((it) => card(sec, it)).join("")}</div>` : "");
+}
+function catPage(sec, c, items) {
+  const url = `/${sec.dir}/c/${c.key}/`;
+  const list = items.filter((i) => i.category === c.key);
+  const bc = crumbs([{ name: "الرئيسية", url: "/" }, { name: sec.label, url: `/${sec.dir}/` }, { name: c.ar, url }]);
+  const listSchema = { "@context": "https://schema.org", "@type": "ItemList", name: `${c.ar} — ${BRAND}`, itemListElement: list.map((it, i) => ({ "@type": "ListItem", position: i + 1, url: `${SITE}/${sec.dir}/${it._slug}/`, name: clean(it.title) })) };
+  const body = `${bc.html}
+<h1>${c.emoji} ${esc(c.ar)} <span style="font-size:.55em;color:var(--acc2)" dir="ltr">${c.en}</span></h1>
+<p class="lead">${esc(c.desc)}</p>
+${catTiles(sec, items, c.key)}
+${list.length ? `<div class="cards">${list.map((it) => card(sec, it)).join("")}</div>` : `<p class="lead">المقالات في هذا القسم قيد الإعداد، وستُنشر قريباً.</p>`}`;
+  return layout({ title: `${c.ar} (${c.en}) — مقالات | ${BRAND}`, description: cut(`مقالات ${c.ar} على منصة ${BRAND}: ${c.desc}`, 155), canonical: SITE + url, schemas: [listSchema, bc.schema], body });
+}
 function card(sec, it, showType = false) {
   const img = it._thumb || it.imageUrl || it.coverUrl || it.image;
   const price = num(it.price) ?? 0;
@@ -904,6 +948,7 @@ function articleDate(it) {
   const d = isoDate(it.publishedAt || it.createdAt);
   return d ? d.slice(0, 10) : "";
 }
+const QUIZ_JS = `<script>document.addEventListener("click",function(e){var b=e.target.closest(".qz-o button");if(!b)return;var q=b.closest(".qz");if(q.dataset.done)return;q.dataset.done="1";var bs=q.querySelectorAll("button");bs.forEach(function(x){x.disabled=true;if(x.dataset.ok==="1")x.classList.add("ok");});if(b.dataset.ok!=="1")b.classList.add("bad");var w=q.querySelector(".qz-w");if(w)w.hidden=false;var z=q.closest(".quiz"),all=z.querySelectorAll(".qz"),d=z.querySelectorAll(".qz[data-done]");if(b.dataset.ok==="1")z.dataset.s=(+z.dataset.s||0)+1;if(all.length===d.length){var s=z.querySelector(".qz-s");s.hidden=false;s.textContent="نتيجتك: "+(+z.dataset.s||0)+" من "+all.length+((+z.dataset.s||0)===all.length?" — ممتاز! 🎉":" — راجع الشرح أعلاه وحاول مجدداً بعد تحديث الصفحة.");}});</script>`;
 function articlePage(sec, item, all) {
   const title = clean(item.title);
   const url = `/${sec.dir}/${item._slug}/`;
@@ -920,7 +965,8 @@ function articlePage(sec, item, all) {
   const minutes = md.readingMinutes(item.body);
   const yt = videoEmbed(item.videoUrl);
 
-  const bc = crumbs([{ name: "الرئيسية", url: "/" }, { name: sec.label, url: `/${sec.dir}/` }, { name: cut(title, 60), url }]);
+  const cat = artCat(item);
+  const bc = crumbs([{ name: "الرئيسية", url: "/" }, { name: sec.label, url: `/${sec.dir}/` }, ...(cat ? [{ name: cat.ar, url: `/${sec.dir}/c/${cat.key}/` }] : []), { name: cut(title, 60), url }]);
   const schemas = [{
     "@context": "https://schema.org",
     "@type": "BlogPosting",
@@ -948,12 +994,13 @@ function articlePage(sec, item, all) {
   const score = (o) => itemTopics(o).filter((t) => topics.includes(t)).length;
   const related = all
     .filter((o) => o !== item)
-    .map((o) => [o, score(o) * 10 + (o._sec === sec ? 1 : 0)])
+    .map((o) => [o, score(o) * 10 + (o._sec === sec ? 1 : 0) + (cat && o.category === cat.key ? 15 : 0)])
     .filter(([, sc]) => sc > 0)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 4)
     .map(([o]) => o);
 
+  const body0 = md.render(item.body);
   const body = `
 ${bc.html}
 <article class="article">
@@ -962,12 +1009,14 @@ ${bc.html}
   ${topics.length ? `<div class="chips" style="margin-bottom:16px">${topics.map((t) => `<a class="chip" href="/topics/${t.slug}/">${esc(t.ar)}</a>`).join("")}</div>` : ""}
   ${img ? `<img class="cover" src="${esc(img)}" alt="${esc(title)}" width="${item._w || 1200}" height="${item._h || 675}" fetchpriority="high" decoding="async">` : ""}
   ${item.desc ? `<p class="lead">${esc(clean(item.desc))}</p>` : ""}
-  <div class="prose">${md.render(item.body)}</div>
+  <div class="prose">${body0}</div>
   ${yt ? `<section class="box" style="margin-top:20px"><h2>🎬 فيديو</h2><div class="video"><iframe src="${yt}" allow="autoplay; fullscreen" title="${esc(title)}" loading="lazy" allowfullscreen></iframe></div></section>` : ""}
+  ${cat ? (() => { const more = all.filter((o) => o !== item && o._sec === sec && o.category === cat.key).slice(0, 6); return more.length ? `<section class="box" style="margin-top:20px"><h2>${cat.emoji} المزيد من ${esc(cat.ar)}</h2><ul style="margin:0 20px 0 0;display:grid;gap:6px">${more.map((o) => `<li><a href="/${sec.dir}/${o._slug}/" style="color:var(--acc)">${esc(clean(o.title))}</a></li>`).join("")}</ul><p style="margin-top:10px"><a href="/${sec.dir}/c/${cat.key}/" style="color:var(--acc2)">كل مقالات ${esc(cat.ar)} ←</a></p></section>` : ""; })() : ""}
   ${faqs.length ? `<section class="box faq" style="margin-top:20px"><h2>❓ أسئلة شائعة</h2>${faqs.map((f) => `<details><summary>${esc(clean(f.q))}</summary><p>${esc(clean(f.a))}</p></details>`).join("")}</section>` : ""}
   <section class="box" style="margin-top:20px"><h2>👷 عن ${BRAND}</h2><p>${BRAND} (${BRAND_AR}) منصة عربية من فلسطين يديرها مهندسون كهربائيون ومدربون جامعيون، تقدّم دورات ومشاريع جاهزة وكتباً ومقالات في الهندسة الكهربائية والأنظمة المدمجة وإنترنت الأشياء. <a href="/#about" style="color:var(--acc)">تعرّف على الفريق</a> • <a href="/courses/" style="color:var(--acc)">الدورات</a> • <a href="/projects/" style="color:var(--acc)">المشاريع</a></p></section>
 </article>
 ${related.length ? `<h2 class="sec-title">🔗 قد يهمك أيضاً</h2><div class="cards">${related.map((r) => card(r._sec, r, r._sec !== sec)).join("")}</div>` : ""}
+${/class="quiz"/.test(body0) ? QUIZ_JS : ""}
 `;
   return layout({ title: `${cut(title, 55)} | ${BRAND}`, description: metaDescription(sec, item), canonical, image: imgAbs, ogType: "article", schemas, body, itemId: item.id });
 }
@@ -1237,7 +1286,7 @@ function hubPage(sec, items) {
   const body = `${bc.html}
 <h1>${sec.emoji} ${esc(sec.label)}</h1>
 <p class="lead">${sec.custom && sec.tagline ? esc(sec.tagline) : `كل ${esc(sec.label)} المتوفرة على منصة ${BRAND} في الهندسة الكهربائية، ESP32، Arduino، إنترنت الأشياء والذكاء الاصطناعي.`}</p>
-<div class="cards">${items.map((it) => card(sec, it)).join("")}</div>`;
+${sec.type === "Article" && items.some(artCat) ? artHub(sec, items) : `<div class="cards">${items.map((it) => card(sec, it)).join("")}</div>`}`;
   return layout({
     title: `${sec.label} | ${BRAND} ${BRAND_AR}`,
     description: cut(`${sec.custom && sec.tagline ? clean(sec.tagline) + " — " : `تصفح ${sec.label} على منصة ${BRAND}: `}${items.slice(0, 4).map((i) => clean(i.title)).join("، ")}`, 155),
@@ -1407,7 +1456,7 @@ async function main() {
     const byId = new Map(items.map((it) => [it.id, it]));
     try {
       for (const d of await fs.readdir(dir, { withFileTypes: true })) {
-        if (!d.isDirectory() || seenBy[sec.key].has(d.name)) continue;
+        if (!d.isDirectory() || seenBy[sec.key].has(d.name) || (sec.type === "Article" && d.name === "c")) continue;
         let html = "";
         try { html = await fs.readFile(path.join(dir, d.name, "index.html"), "utf8"); } catch {}
         const id = (html.match(/name="3engs-id" content="([^"]+)"/) || html.match(/"sku":"([^"]+)"/) || html.match(/[?&]open=[a-z_]+:([A-Za-z0-9_-]+)/) || [])[1];
@@ -1424,6 +1473,10 @@ async function main() {
 
     if (await writeFile(`${sec.dir}/index.html`, hubPage(sec, items))) changed.push(`${SITE}/${sec.dir}/`);
     entries.push({ loc: `/${sec.dir}/`, priority: sec.custom ? 0.8 : 0.9 });
+    if (sec.type === "Article" && items.some(artCat)) for (const c of ART_CATS) {
+      if (await writeFile(`${sec.dir}/c/${c.key}/index.html`, catPage(sec, c, items))) changed.push(`${SITE}/${sec.dir}/c/${c.key}/`);
+      entries.push({ loc: `/${sec.dir}/c/${c.key}/`, priority: 0.7 });
+    }
 
     for (const [old, to, id] of redirectsBy[sec.key]) await writeFile(`${sec.dir}/${old}/index.html`, redirectPage(`${SITE}/${sec.dir}/${to}/`, id));
 

@@ -271,6 +271,22 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.3engs.com/sections/articles/c/solar/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/sections/articles/c/embedded/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/sections/articles/c/students/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/sections/articles/c/automation/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.3engs.com/sections/articles/pwm-vs-mppt-charge-controller/</loc>
     <lastmod>2026-11-08</lastmod>
     <priority>0.7</priority>
@@ -403,6 +419,14 @@
   </url>
   <url>
     <loc>https://www.3engs.com/tools/uart-baud/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/tools/solar-battery-bank/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.3engs.com/tools/inverter-size/</loc>
     <priority>0.7</priority>
   </url>
   <url>
