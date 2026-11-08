@@ -839,7 +839,7 @@ ${bc.html}
     <h1>${esc(title)}</h1>
     ${item.shortDesc ? `<p class="lead">${esc(clean(item.shortDesc))}</p>` : ""}
     <div class="tags">${tags.map((t) => `<span class="tag">${esc(t)}</span>`).join("")}</div>
-    <div class="price">${!free ? `<b>$${price}</b>` : `<b>مجاني</b>`}${!free && oldPrice && oldPrice > price ? `<s>$${oldPrice}</s><span class="off">وفّر ${off}%</span>` : ""}</div>
+    <div class="price">${!free ? (sec.col === "courses" && num(item.livePrice) > 0 ? `<span style="font-size:.6em;color:var(--mut)">🎬 مسجّلة</span> <b>$${price}</b> <span style="font-size:.6em;color:#ef4444;margin-inline-start:14px">🔴 لايف</span> <b style="color:#ef4444">$${num(item.livePrice)}</b>` : `<b>$${price}</b>`) : `<b>مجاني</b>`}${!free && oldPrice && oldPrice > price ? `<s>$${oldPrice}</s><span class="off">وفّر ${off}%</span>` : ""}</div>
     <div class="cta">
       ${!free
         ? `<a class="btn main" href="/?buy=${sec.col}:${item.id}" rel="nofollow" data-buy="${sec.col}:${item.id}" data-name="${esc(title)}" data-price="${price}" data-emoji="${esc(item.emoji || "🛒")}">🛒 ${sec.col === "courses" && num(item.livePrice) > 0 ? "اشترِ الدورة المسجّلة" : "اشترِ الآن"}</a>`
@@ -895,7 +895,7 @@ function card(sec, it, showType = false) {
     ? `<img src="${esc(img)}" alt="${esc(clean(it.title))}" loading="lazy" decoding="async" width="480" height="${h}">`
     : `<div class="ph">${it.emoji || sec.emoji}</div>`}<div class="b">${showType ? `<div class="k">${sec.emoji} ${esc(sec.one)}</div>` : ""}<h3>${esc(cut(it.title, 70))}</h3>${sec.type === "Article"
       ? `<div class="k">${articleDate(it) ? "📅 " + articleDate(it) + " • " : ""}⏱ ${md.readingMinutes(it.body)} دقائق قراءة</div>`
-      : `<div class="p">${price > 0 && !isFree(it) ? "$" + price : "مجاني"}</div>`}</div></a>`;
+      : `<div class="p">${price > 0 && !isFree(it) ? (num(it.livePrice) > 0 ? `🎬 مسجّلة $${price} <span style="color:#ef4444">• 🔴 لايف $${num(it.livePrice)}</span>` : "$" + price) : "مجاني"}</div>`}</div></a>`;
 }
 
 // ---------------- صفحة المقال ----------------

@@ -1413,7 +1413,7 @@ async function loadCourses(){
           </div>
           <div class="cov-foot">
             <div class="instr"><div class="iav">3E</div><div><div class="inm">فريق 3ENG.s</div><div class="irl">مهندسون</div></div></div>
-            <div class="price-wrap">${oldP}<span class="price-new-s">$${c.price||0}</span></div>
+            <div class="price-wrap">${oldP}<span class="price-new-s">${c.livePrice>0?'🎬 ':''}$${c.price||0}</span>${c.livePrice>0?`<span class="price-new-s" style="color:#ef4444;margin-inline-start:8px">🔴 $${c.livePrice}</span>`:''}</div>
           </div>
         </div>
       </div>`;
