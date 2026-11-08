@@ -326,7 +326,7 @@ footer nav{display:flex;justify-content:center;flex-wrap:wrap;gap:16px;margin-bo
 .vd input.auto{border-color:var(--ok);color:var(--ok);background:#0d2a22;box-shadow:0 0 0 3px #34d39933}
 .calc .clr{background:none;border:0;color:var(--acc);text-decoration:underline;cursor:pointer;font:inherit}
 @media(max-width:480px){.vd input{font-size:.8rem;padding:4px}.vd .lbl{font-size:18px}}
-@media(max-width:820px){.hero,.grid2{grid-template-columns:1fr}.nav{display:none}h1{font-size:1.4rem}.facts th{white-space:normal}}
+@media(max-width:820px){.hero,.grid2{grid-template-columns:1fr}header.top .wrap{flex-wrap:wrap;height:auto;padding-top:8px;padding-bottom:6px;row-gap:4px}.nav{order:3;width:100%;overflow-x:auto;white-space:nowrap;gap:16px;padding:4px 0 6px;-webkit-overflow-scrolling:touch;scrollbar-width:none}.nav::-webkit-scrollbar{display:none}h1{font-size:1.4rem}.facts th{white-space:normal}}
 `;
 
 function layout({ title, description, canonical, image, schemas, body, ogType = "website", itemId = "" }) {
