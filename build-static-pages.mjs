@@ -653,7 +653,8 @@ function itemPage(sec, item, siblings, all) {
   const canonical = SITE + url;
   const desc = cut(item.shortDesc || item.desc || `${sec.one} ${title} من منصة ${BRAND}`, 155);
   const price = num(item.price) ?? 0;
-  const free = isFree(item);
+  const liveOnly = sec.col === "courses" && item.liveOnly === true && num(item.livePrice) > 0;
+  const free = isFree(item) && !liveOnly;
   const oldPrice = num(item.oldPrice);
   const orig = item.imageUrl || item.coverUrl || item.image || "";
   const img = item._img || orig;
@@ -839,14 +840,14 @@ ${bc.html}
     <h1>${esc(title)}</h1>
     ${item.shortDesc ? `<p class="lead">${esc(clean(item.shortDesc))}</p>` : ""}
     <div class="tags">${tags.map((t) => `<span class="tag">${esc(t)}</span>`).join("")}</div>
-    <div class="price">${!free ? (sec.col === "courses" && num(item.livePrice) > 0 ? `<span style="font-size:.6em;color:var(--mut)">🎬 مسجّلة</span> <b>$${price}</b> <span style="font-size:.6em;color:#ef4444;margin-inline-start:14px">🔴 لايف</span> <b style="color:#ef4444">$${num(item.livePrice)}</b>` : `<b>$${price}</b>`) : `<b>مجاني</b>`}${!free && oldPrice && oldPrice > price ? `<s>$${oldPrice}</s><span class="off">وفّر ${off}%</span>` : ""}</div>
+    <div class="price">${!free ? (liveOnly ? `<span style="font-size:.6em;color:#0ea5e9">🔴 لايف</span> <b style="color:#0ea5e9">$${num(item.livePrice)}</b>` : sec.col === "courses" && num(item.livePrice) > 0 ? `<span style="font-size:.6em;color:var(--mut)">🎬 مسجّلة</span> <b>$${price}</b> <span style="font-size:.6em;color:#0ea5e9;margin-inline-start:14px">🔴 لايف</span> <b style="color:#0ea5e9">$${num(item.livePrice)}</b>` : `<b>$${price}</b>`) : `<b>مجاني</b>`}${!free && oldPrice && oldPrice > price ? `<s>$${oldPrice}</s><span class="off">وفّر ${off}%</span>` : ""}</div>
     <div class="cta">
-      ${!free
+      ${liveOnly ? "" : !free
         ? `<a class="btn main" href="/?buy=${sec.col}:${item.id}" rel="nofollow" data-buy="${sec.col}:${item.id}" data-name="${esc(title)}" data-price="${price}" data-emoji="${esc(item.emoji || "🛒")}">🛒 ${sec.col === "courses" && num(item.livePrice) > 0 ? "اشترِ الدورة المسجّلة" : "اشترِ الآن"}</a>`
         : item.fileUrl
           ? `<a class="btn main" href="${esc(item.fileUrl)}" target="_blank" rel="nofollow noopener">📥 تحميل مجاني</a>`
           : `<a class="btn main" href="/?open=${sec.col}:${item.id}">📥 احصل عليه مجاناً</a>`}
-      ${sec.col === "courses" && num(item.livePrice) > 0 ? `<a class="btn main" style="background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;opacity:.55" href="/?buy=${sec.col}:${item.id}" rel="nofollow" data-buy="${sec.col}:${item.id}" data-variant="live" data-name="${esc(title)} — لايف 🔴" data-price="${num(item.livePrice)}" data-emoji="🔴"><span data-live-label>🔴 الدورة المباشرة (لايف) — التسجيل مغلق حالياً</span> <b data-live-price>$${num(item.livePrice)}</b></a>` : ""}
+      ${sec.col === "courses" && num(item.livePrice) > 0 ? `<a class="btn main" style="background:linear-gradient(135deg,#0ea5e9,#0369a1);color:#fff;opacity:.55" href="/?buy=${sec.col}:${item.id}" rel="nofollow" data-buy="${sec.col}:${item.id}" data-variant="live" data-name="${esc(title)} — لايف 🔴" data-price="${num(item.livePrice)}" data-emoji="🔴"><span data-live-label>🔴 الدورة المباشرة (لايف) — التسجيل مغلق حالياً</span> <b data-live-price>$${num(item.livePrice)}</b></a>` : ""}
       <a class="btn wa" href="https://wa.me/${WHATSAPP}?text=${waMsg}" rel="nofollow">💬 استفسار واتساب</a>
     </div>
     ${sec.col === "courses" && num(item.livePrice) > 0 ? `<p class="trust" data-live-info hidden>🔴 ${esc(clean(item.liveInfo || "الدورة المباشرة متاحة للحجز الآن"))}</p>` : ""}
@@ -895,7 +896,7 @@ function card(sec, it, showType = false) {
     ? `<img src="${esc(img)}" alt="${esc(clean(it.title))}" loading="lazy" decoding="async" width="480" height="${h}">`
     : `<div class="ph">${it.emoji || sec.emoji}</div>`}<div class="b">${showType ? `<div class="k">${sec.emoji} ${esc(sec.one)}</div>` : ""}<h3>${esc(cut(it.title, 70))}</h3>${sec.type === "Article"
       ? `<div class="k">${articleDate(it) ? "📅 " + articleDate(it) + " • " : ""}⏱ ${md.readingMinutes(it.body)} دقائق قراءة</div>`
-      : `<div class="p">${price > 0 && !isFree(it) ? (num(it.livePrice) > 0 ? `🎬 مسجّلة $${price} <span style="color:#ef4444">• 🔴 لايف $${num(it.livePrice)}</span>` : "$" + price) : "مجاني"}</div>`}</div></a>`;
+      : `<div class="p">${(price > 0 && !isFree(it)) || (it.liveOnly === true && num(it.livePrice) > 0) ? (it.liveOnly === true && num(it.livePrice) > 0 ? `<span style="color:#0ea5e9">🔴 لايف $${num(it.livePrice)}</span>` : num(it.livePrice) > 0 ? `🎬 مسجّلة $${price} <span style="color:#0ea5e9">• 🔴 لايف $${num(it.livePrice)}</span>` : "$" + price) : "مجاني"}</div>`}</div></a>`;
 }
 
 // ---------------- صفحة المقال ----------------

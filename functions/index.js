@@ -318,6 +318,7 @@ exports.createPayment = onRequest(
       const d = snap.data();
       // 🔴 الدورة اللايف: سعرها الخاص، ومسموحة بس لما تكون متاحة من لوحة التحكم
       if (variant && !(d.liveOpen === true && Number(d.livePrice) > 0)) { errorPage(res, 400, "التسجيل في الدورة المباشرة (لايف) مغلق حالياً"); return; }
+      if (!variant && col === "courses" && d.liveOnly === true) { errorPage(res, 400, "هذه الدورة متاحة بنظام اللايف فقط"); return; }
       if (!variant && isFreeItem(d)) continue;
       items.push({
         col, id, ...(variant ? { variant } : {}),
