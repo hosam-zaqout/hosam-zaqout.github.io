@@ -11,22 +11,22 @@
     <priority>0.9</priority>
   </url>
   <url>
+    <loc>https://www.3engs.com/courses/arduino-course/</loc>
+    <lastmod>2026-11-08</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/courses/ppgf4S766bSU8H1BO85r.webp?v=9374616797e6</image:loc><image:title>برمجة الاردوينو روبوتيكس</image:title></image:image>
+  </url>
+  <url>
     <loc>https://www.3engs.com/courses/solar-energy-systems-course/</loc>
     <lastmod>2026-11-08</lastmod>
     <priority>0.8</priority>
-    <image:image><image:loc>https://www.3engs.com/img/courses/BNw1S9OlGE4Yfpbr2Iba.webp?v=c8665a56fc37</image:loc><image:title>الدورة المتكاملة في أنظمة الطاقة الشمسية: من الحساب إلى التصميم على PVsyst إلى التركيب</image:title></image:image>
+    <image:image><image:loc>https://www.3engs.com/img/courses/BNw1S9OlGE4Yfpbr2Iba.webp?v=2214fe61fba6</image:loc><image:title>الدورة المتكاملة في أنظمة الطاقة الشمسية: من الحساب إلى التصميم على PVsyst إلى التركيب</image:title></image:image>
   </url>
   <url>
     <loc>https://www.3engs.com/courses/python-ai-course/</loc>
     <lastmod>2026-11-08</lastmod>
     <priority>0.8</priority>
     <image:image><image:loc>https://www.3engs.com/img/courses/OP0pkdjuaBl2hE9AhZNG.webp?v=5875dd110b25</image:loc><image:title>اساسيات البايثون والذكاء الاصطناعي</image:title></image:image>
-  </url>
-  <url>
-    <loc>https://www.3engs.com/courses/arduino-course/</loc>
-    <lastmod>2026-11-08</lastmod>
-    <priority>0.8</priority>
-    <image:image><image:loc>https://www.3engs.com/img/courses/ppgf4S766bSU8H1BO85r.webp?v=9374616797e6</image:loc><image:title>برمجة الاردوينو روبوتيكس</image:title></image:image>
   </url>
   <url>
     <loc>https://www.3engs.com/courses/electronic-pcb-course/</loc>
@@ -272,12 +272,13 @@
   </url>
   <url>
     <loc>https://www.3engs.com/sections/articles/pwm-vs-mppt-charge-controller/</loc>
-    <lastmod>2026-09-28</lastmod>
+    <lastmod>2026-11-08</lastmod>
     <priority>0.7</priority>
+    <image:image><image:loc>https://www.3engs.com/img/section_items/4iyRXYNqlmbwJ9S5koFr.webp?v=a11a67b6c1d2</image:loc><image:title>الفرق بين منظم الشحن PWM و MPPT في أنظمة الطاقة الشمسية: أيهما تختار؟</image:title></image:image>
   </url>
   <url>
     <loc>https://www.3engs.com/sections/articles/laptop-for-engineering-students/</loc>
-    <lastmod>2026-09-28</lastmod>
+    <lastmod>2026-11-08</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
@@ -287,7 +288,7 @@
   </url>
   <url>
     <loc>https://www.3engs.com/sections/articles/esp32-vs-arduino/</loc>
-    <lastmod>2026-09-27</lastmod>
+    <lastmod>2026-11-08</lastmod>
     <priority>0.7</priority>
   </url>
   <url>

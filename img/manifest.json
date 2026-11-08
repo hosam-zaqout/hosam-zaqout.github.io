@@ -287,10 +287,17 @@
   "toKB": 68
  },
  "courses/BNw1S9OlGE4Yfpbr2Iba": {
-  "hash": "c8665a56fc37",
+  "hash": "2214fe61fba6",
   "w": 1200,
-  "h": 600,
-  "fromKB": 83,
-  "toKB": 46
+  "h": 675,
+  "fromKB": 90,
+  "toKB": 50
+ },
+ "section_items/4iyRXYNqlmbwJ9S5koFr": {
+  "hash": "a11a67b6c1d2",
+  "w": 1200,
+  "h": 675,
+  "fromKB": 95,
+  "toKB": 56
  }
 }
