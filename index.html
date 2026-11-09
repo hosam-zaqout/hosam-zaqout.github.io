@@ -1411,7 +1411,7 @@ async function loadCourses(){
     let html='';
     arr.forEach((c,idx)=>{
       const thumb=c.imageUrl?`<img src="${optImg('courses',c.id,c.imageUrl,1)}" data-orig="${escAttr(c.imageUrl)}" alt="${escAttr(c.title)}" loading="lazy" decoding="async" onerror="imgFb(this)"><span class="cov-emoji" style="display:none">${c.emoji||'🎓'}</span>`:`<span class="cov-emoji">${c.emoji||'🎓'}</span>`;
-      const oldP=c.oldPrice?`<span class="price-old-s">$${c.oldPrice}</span> `:'';
+      const _cp=c.liveOnly&&c.livePrice>0?Number(c.livePrice):Number(c.price||0);const oldP=Number(c.oldPrice)>_cp?`<span class="price-old-s">$${c.oldPrice}</span> `:'';
       html+=`<div class="ccard reveal" onclick="goPage(event,'/courses/${itemSlug3(c)}/')" data-fb="course" data-idx="${idx}">
         <div class="cov-thumb ${cls[i%3]}">${thumb}<div class="cov-overlay">${c.category||''}</div></div>
         <div class="cov-body">
@@ -1541,7 +1541,7 @@ window.openDetail=function(type,idx){
 
   // Price
   const free=isFreeItem(item);
-  document.getElementById('dmPriceOld').textContent=!free&&item.oldPrice?`$${item.oldPrice}`:'';
+  document.getElementById('dmPriceOld').textContent=!free&&Number(item.oldPrice)>Number(item.liveOnly&&item.livePrice>0?item.livePrice:(item.price||0))?`$${item.oldPrice}`:'';
   document.getElementById('dmTrust').style.display=free?'none':'';
   document.getElementById('dmPriceNew').textContent=free?'مجاني':`$${item.price||0}`;
   document.getElementById('dmBuyBtn').textContent=free

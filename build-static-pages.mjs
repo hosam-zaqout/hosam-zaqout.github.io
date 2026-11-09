@@ -879,7 +879,7 @@ ${bc.html}
     <h1>${esc(title)}</h1>
     ${item.shortDesc ? `<p class="lead">${esc(clean(item.shortDesc))}</p>` : ""}
     <div class="tags">${tags.map((t) => `<span class="tag">${esc(t)}</span>`).join("")}</div>
-    <div class="price">${!free ? (liveOnly ? `<span style="font-size:.6em;color:#0ea5e9">🔴 لايف</span> <b style="color:#0ea5e9">$${num(item.livePrice)}</b>` : sec.col === "courses" && num(item.livePrice) > 0 ? `<span style="font-size:.6em;color:var(--mut)">🎬 مسجّلة</span> <b>$${price}</b> <span style="font-size:.6em;color:#0ea5e9;margin-inline-start:14px">🔴 لايف</span> <b style="color:#0ea5e9">$${num(item.livePrice)}</b>` : `<b>$${price}</b>`) : `<b>مجاني</b>`}${!free && oldPrice && oldPrice > price ? `<s>$${oldPrice}</s><span class="off">وفّر ${off}%</span>` : ""}</div>
+    <div class="price">${!free ? (liveOnly ? `<span style="font-size:.6em;color:#0ea5e9">🔴 لايف</span> <b style="color:#0ea5e9">$${num(item.livePrice)}</b>` : sec.col === "courses" && num(item.livePrice) > 0 ? `<span style="font-size:.6em;color:var(--mut)">🎬 مسجّلة</span> <b>$${price}</b> <span style="font-size:.6em;color:#0ea5e9;margin-inline-start:14px">🔴 لايف</span> <b style="color:#0ea5e9">$${num(item.livePrice)}</b>` : `<b>$${price}</b>`) : `<b>مجاني</b>`}${!free && oldPrice && oldPrice > (liveOnly ? num(item.livePrice) : price) ? `<s>$${oldPrice}</s>` : ""}</div>
     <div class="cta">
       ${liveOnly ? "" : !free
         ? `<a class="btn main" href="/?buy=${sec.col}:${item.id}" rel="nofollow" data-buy="${sec.col}:${item.id}" data-name="${esc(title)}" data-price="${price}" data-emoji="${esc(item.emoji || "🛒")}">🛒 ${sec.col === "courses" && num(item.livePrice) > 0 ? "اشترِ الدورة المسجّلة" : "اشترِ الآن"}</a>`
