@@ -57,10 +57,10 @@ const OG_DEFAULT = `${SITE}/og-image.jpg`;
 // الأقسام: اسم الـ collection بـ Firestore ← إعدادات الصفحة
 // تصنيفات المقالات (حقل category بالمقال)
 const ART_CATS = [
-  { key: "solar", ar: "الطاقة الشمسية", en: "Solar Energy", emoji: "☀️", desc: "تصميم أنظمة الطاقة الشمسية وحساباتها، والبطاريات والإنفرترات والطاقة المتجددة." },
-  { key: "embedded", ar: "الأنظمة المدمجة", en: "Embedded Systems", emoji: "🔌", desc: "Arduino و ESP32 والحساسات والبروتوكولات وإنترنت الأشياء والإلكترونيات." },
-  { key: "students", ar: "طلاب الهندسة", en: "Engineering Students", emoji: "🎓", desc: "نصائح الدراسة والمهارات والبرامج والمشاريع والانتقال إلى سوق العمل." },
-  { key: "automation", ar: "الأتمتة الصناعية", en: "Industrial Automation", emoji: "🏭", desc: "PLC والتحكم الكهربائي والمحركات والمقارنات التقنية في الصناعة." },
+  { key: "solar", ar: "الطاقة الشمسية", en: "Solar Energy", emoji: "☀️", short: "تصميم الأنظمة والطاقة المتجددة.", desc: "تصميم أنظمة الطاقة الشمسية وحساباتها، والبطاريات والإنفرترات والطاقة المتجددة." },
+  { key: "embedded", ar: "الأنظمة المدمجة", en: "Embedded Systems", emoji: "🔌", short: "Arduino و ESP32 والإلكترونيات.", desc: "Arduino و ESP32 والحساسات والبروتوكولات وإنترنت الأشياء والإلكترونيات." },
+  { key: "students", ar: "طلاب الهندسة", en: "Engineering Students", emoji: "🎓", short: "نصائح الدراسة والمهارات والتخصصات.", desc: "نصائح الدراسة والمهارات والبرامج والمشاريع والانتقال إلى سوق العمل." },
+  { key: "automation", ar: "الأتمتة الصناعية", en: "Industrial Automation", emoji: "🏭", short: "PLC والتحكم والمحركات الصناعية.", desc: "PLC والتحكم الكهربائي والمحركات والمقارنات التقنية في الصناعة." },
 ];
 const artCat = (it) => ART_CATS.find((c) => c.key === it.category) || null;
 const SECTIONS = [
@@ -314,9 +314,16 @@ footer nav{display:flex;justify-content:center;flex-wrap:wrap;gap:16px;margin-bo
 .qz-o button:disabled{cursor:default}
 .qz-w{font-size:.92rem;color:#c8d0e4;margin-top:8px!important}
 .qz-s{font-weight:800;color:var(--acc2);margin-top:10px!important}
-.cats{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:18px 0 26px}
-.cat{display:block;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;transition:.2s}.cat:hover{border-color:var(--acc);transform:translateY(-2px)}
-.cat .e{font-size:2rem}.cat h3{margin:6px 0 2px}.cat .en{font-size:.8rem;color:var(--acc2)}.cat p{font-size:.88rem;color:#c8d0e4;margin-top:6px}.cat .n{font-size:.8rem;color:var(--acc);margin-top:8px}
+.cats{display:grid;grid-template-columns:repeat(2,1fr);gap:22px 20px;margin:20px 0 30px}
+@media(max-width:640px){.cats{grid-template-columns:1fr}}
+.cat{display:block;color:inherit;text-decoration:none}
+.cat .im{display:block;aspect-ratio:16/9;border-radius:22px;overflow:hidden;background:var(--card);border:2px solid transparent;transition:.25s}
+.cat .im img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s}
+.cat:hover .im{border-color:var(--acc)}.cat:hover .im img{transform:scale(1.04)}
+.cat.on .im{border-color:var(--acc)}
+.cat h3{margin:12px 0 2px;font-size:1.45rem;font-weight:800;direction:ltr;text-align:right}
+.cat p{font-size:1rem;color:#c8d0e4;margin:0}
+.cat .n{font-size:.8rem;color:var(--acc);margin-top:4px}
 .prose code{background:#1a2340;padding:1px 6px;border-radius:6px;direction:ltr;unicode-bidi:embed}
 .prose pre{background:#0a0f1d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto;direction:ltr;text-align:left;margin:14px 0}
 .prose pre code{background:none;padding:0}
@@ -913,7 +920,7 @@ ${related.length ? `<h2 class="sec-title">🔗 قد يهمك أيضاً</h2><div
 }
 
 function catTiles(sec, items, cur = "") {
-  return `<div class="cats">${ART_CATS.map((c) => { const n = items.filter((i) => i.category === c.key).length; return `<a class="cat" href="/${sec.dir}/c/${c.key}/"${c.key === cur ? ' style="border-color:var(--acc)"' : ""}><div class="e">${c.emoji}</div><h3>${esc(c.ar)}</h3><div class="en" dir="ltr">${c.en}</div><p>${esc(c.desc)}</p><div class="n">${n ? n + " مقال" : "قريباً"}</div></a>`; }).join("")}</div>`;
+  return `<div class="cats">${ART_CATS.map((c) => { const n = items.filter((i) => i.category === c.key).length; return `<a class="cat${c.key === cur ? " on" : ""}" href="/${sec.dir}/c/${c.key}/" aria-label="${esc(c.ar)}"><span class="im"><img src="/img/articles/cats/${c.key}.webp" alt="${esc(c.ar)} — ${c.en}" width="960" height="540" loading="lazy" decoding="async"></span><h3>${c.en}</h3><p>${esc(c.short)}</p><div class="n">${n ? n + " مقال" : "قريباً"}</div></a>`; }).join("")}</div>`;
 }
 function artHub(sec, items) {
   const other = items.filter((i) => !artCat(i));
