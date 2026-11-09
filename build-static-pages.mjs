@@ -324,6 +324,14 @@ footer nav{display:flex;justify-content:center;flex-wrap:wrap;gap:16px;margin-bo
 .cat h3{margin:12px 0 2px;font-size:1.45rem;font-weight:800;direction:ltr;text-align:right}
 .cat p{font-size:1rem;color:#c8d0e4;margin:0}
 .cat .n{font-size:.8rem;color:var(--acc);margin-top:4px}
+.cat-hero{position:relative;border-radius:24px;overflow:hidden;margin:14px 0 26px;aspect-ratio:21/9;min-height:240px;background:var(--card)}
+.cat-hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.cat-hero .ov{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:28px;background:linear-gradient(0deg,rgba(5,8,20,.92) 0%,rgba(5,8,20,.55) 45%,rgba(5,8,20,.05) 100%)}
+.cat-hero .en{font-weight:800;color:var(--acc);letter-spacing:.5px;text-align:right}
+.cat-hero h1{margin:4px 0 6px;font-size:2rem}
+.cat-hero p{color:#dfe4f1;max-width:640px;margin:0}
+.cat-hero .n{margin-top:8px;font-size:.85rem;color:var(--acc2)}
+@media(max-width:640px){.cat-hero{aspect-ratio:auto;min-height:300px}.cat-hero h1{font-size:1.5rem}.cat-hero .ov{padding:18px}}
 .prose code{background:#1a2340;padding:1px 6px;border-radius:6px;direction:ltr;unicode-bidi:embed}
 .prose pre{background:#0a0f1d;border:1px solid var(--line);border-radius:10px;padding:14px;overflow:auto;direction:ltr;text-align:left;margin:14px 0}
 .prose pre code{background:none;padding:0}
@@ -932,11 +940,11 @@ function catPage(sec, c, items) {
   const list = items.filter((i) => i.category === c.key);
   const bc = crumbs([{ name: "الرئيسية", url: "/" }, { name: sec.label, url: `/${sec.dir}/` }, { name: c.ar, url }]);
   const listSchema = { "@context": "https://schema.org", "@type": "ItemList", name: `${c.ar} — ${BRAND}`, itemListElement: list.map((it, i) => ({ "@type": "ListItem", position: i + 1, url: `${SITE}/${sec.dir}/${it._slug}/`, name: clean(it.title) })) };
+  const others = ART_CATS.filter((o) => o.key !== c.key).map((o) => `<a class="chip" href="/${sec.dir}/c/${o.key}/">${o.emoji} ${esc(o.ar)}</a>`).join("");
   const body = `${bc.html}
-<h1>${c.emoji} ${esc(c.ar)} <span style="font-size:.55em;color:var(--acc2)" dir="ltr">${c.en}</span></h1>
-<p class="lead">${esc(c.desc)}</p>
-${catTiles(sec, items, c.key)}
-${list.length ? `<div class="cards">${list.map((it) => card(sec, it)).join("")}</div>` : `<p class="lead">المقالات في هذا القسم قيد الإعداد، وستُنشر قريباً.</p>`}`;
+<section class="cat-hero"><img src="/img/articles/cats/${c.key}.webp" alt="${esc(c.ar)}" width="960" height="540" fetchpriority="high"><div class="ov"><div class="en" dir="ltr">${c.en}</div><h1>${esc(c.ar)}</h1><p>${esc(c.desc)}</p><div class="n">${list.length} مقال</div></div></section>
+${list.length ? `<div class="cards">${list.map((it) => card(sec, it)).join("")}</div>` : `<p class="lead">المقالات في هذا القسم قيد الإعداد، وستُنشر قريباً.</p>`}
+<section class="box" style="margin-top:26px"><h2>📚 أقسام أخرى</h2><div class="chips">${others}<a class="chip" href="/${sec.dir}/">كل المقالات</a></div></section>`;
   return layout({ title: `${c.seoT} | ${BRAND}`, description: cut(c.seoD, 158), canonical: SITE + url, schemas: [listSchema, bc.schema], body });
 }
 function card(sec, it, showType = false) {
