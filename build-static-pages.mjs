@@ -57,10 +57,10 @@ const OG_DEFAULT = `${SITE}/og-image.jpg`;
 // الأقسام: اسم الـ collection بـ Firestore ← إعدادات الصفحة
 // تصنيفات المقالات (حقل category بالمقال)
 const ART_CATS = [
-  { key: "solar", ar: "الطاقة الشمسية", en: "Solar Energy", emoji: "☀️", short: "تصميم الأنظمة والطاقة المتجددة.", desc: "تصميم أنظمة الطاقة الشمسية وحساباتها، والبطاريات والإنفرترات والطاقة المتجددة." },
-  { key: "embedded", ar: "الأنظمة المدمجة", en: "Embedded Systems", emoji: "🔌", short: "Arduino و ESP32 والإلكترونيات.", desc: "Arduino و ESP32 والحساسات والبروتوكولات وإنترنت الأشياء والإلكترونيات." },
-  { key: "students", ar: "طلاب الهندسة", en: "Engineering Students", emoji: "🎓", short: "نصائح الدراسة والمهارات والتخصصات.", desc: "نصائح الدراسة والمهارات والبرامج والمشاريع والانتقال إلى سوق العمل." },
-  { key: "automation", ar: "الأتمتة الصناعية", en: "Industrial Automation", emoji: "🏭", short: "PLC والتحكم والمحركات الصناعية.", desc: "PLC والتحكم الكهربائي والمحركات والمقارنات التقنية في الصناعة." },
+  { key: "solar", seoT: "تصميم أنظمة الطاقة الشمسية بالعربي: مقالات وحسابات", seoD: "تعلّم تصميم أنظمة الطاقة الشمسية بالعربي: حساب الألواح والبطاريات والإنفرتر، والفرق بين PWM و MPPT و On-Grid و Off-Grid، بأمثلة محسوبة وحاسبات مجانية.", ar: "الطاقة الشمسية", en: "Solar Energy", emoji: "☀️", short: "تصميم الأنظمة والطاقة المتجددة.", desc: "تصميم أنظمة الطاقة الشمسية وحساباتها، والبطاريات والإنفرترات والطاقة المتجددة." },
+  { key: "embedded", seoT: "تعلّم ESP32 و Arduino بالعربي: مقالات الأنظمة المدمجة", seoD: "تعلّم ESP32 و Arduino بالعربي: مقارنات اللوحات والحساسات وبروتوكولات I2C و SPI و UART وإنترنت الأشياء، وأفضل مشاريع Arduino للمهندسين بأمثلة عملية.", ar: "الأنظمة المدمجة", en: "Embedded Systems", emoji: "🔌", short: "Arduino و ESP32 والإلكترونيات.", desc: "Arduino و ESP32 والحساسات والبروتوكولات وإنترنت الأشياء والإلكترونيات." },
+  { key: "students", seoT: "دليل طالب الهندسة: البرامج والمهارات ومشروع التخرج", seoD: "دليل طالب الهندسة بالعربي: أهم البرامج الهندسية، وتعلّم البرمجة، واختيار مشروع التخرج، وبناء Portfolio و GitHub، والمهارات المطلوبة في سوق العمل.", ar: "طلاب الهندسة", en: "Engineering Students", emoji: "🎓", short: "نصائح الدراسة والمهارات والتخصصات.", desc: "نصائح الدراسة والمهارات والبرامج والمشاريع والانتقال إلى سوق العمل." },
+  { key: "automation", seoT: "الأتمتة الصناعية بالعربي: PLC والتحكم والمحركات", seoD: "مقالات الأتمتة الصناعية بالعربي: الفرق بين PLC والمتحكم الدقيق، والريليه والكونتاكتور، ومحركات AC و DC، والتصنيع الرقمي بأمثلة وحسابات عملية.", ar: "الأتمتة الصناعية", en: "Industrial Automation", emoji: "🏭", short: "PLC والتحكم والمحركات الصناعية.", desc: "PLC والتحكم الكهربائي والمحركات والمقارنات التقنية في الصناعة." },
 ];
 const artCat = (it) => ART_CATS.find((c) => c.key === it.category) || null;
 const SECTIONS = [
@@ -924,7 +924,7 @@ function catTiles(sec, items, cur = "") {
 }
 function artHub(sec, items) {
   const other = items.filter((i) => !artCat(i));
-  return catTiles(sec, items) + ART_CATS.map((c) => { const l = items.filter((i) => i.category === c.key); return l.length ? `<h2 class="sec-title" id="${c.key}">${c.emoji} ${esc(c.ar)} <a href="/${sec.dir}/c/${c.key}/" style="font-size:.8rem;color:var(--acc)">عرض الكل ←</a></h2><div class="cards">${l.slice(0, 6).map((it) => card(sec, it)).join("")}</div>` : ""; }).join("")
+  return catTiles(sec, items)
     + (other.length ? `<h2 class="sec-title">📝 مقالات أخرى</h2><div class="cards">${other.map((it) => card(sec, it)).join("")}</div>` : "");
 }
 function catPage(sec, c, items) {
@@ -937,7 +937,7 @@ function catPage(sec, c, items) {
 <p class="lead">${esc(c.desc)}</p>
 ${catTiles(sec, items, c.key)}
 ${list.length ? `<div class="cards">${list.map((it) => card(sec, it)).join("")}</div>` : `<p class="lead">المقالات في هذا القسم قيد الإعداد، وستُنشر قريباً.</p>`}`;
-  return layout({ title: `${c.ar} (${c.en}) — مقالات | ${BRAND}`, description: cut(`مقالات ${c.ar} على منصة ${BRAND}: ${c.desc}`, 155), canonical: SITE + url, schemas: [listSchema, bc.schema], body });
+  return layout({ title: `${c.seoT} | ${BRAND}`, description: cut(c.seoD, 158), canonical: SITE + url, schemas: [listSchema, bc.schema], body });
 }
 function card(sec, it, showType = false) {
   const img = it._thumb || it.imageUrl || it.coverUrl || it.image;

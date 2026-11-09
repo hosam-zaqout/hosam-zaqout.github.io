@@ -257,6 +257,17 @@ section{padding:88px 50px;position:relative;}
 
 .cats{background:var(--d2);border-top:1px solid var(--br);border-bottom:1px solid var(--br);padding:20px 50px;display:flex;gap:9px;overflow-x:auto;scrollbar-width:none;}
 .cats::-webkit-scrollbar{display:none;}
+.acats{display:grid;grid-template-columns:repeat(2,1fr);gap:22px 20px;margin-top:10px}
+@media(max-width:640px){.acats{grid-template-columns:1fr}}
+.acat{display:block;color:inherit;text-decoration:none}
+.acat .im{display:block;aspect-ratio:16/9;border-radius:22px;overflow:hidden;border:2px solid transparent;transition:.25s;background:var(--d2)}
+.acat .im img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s}
+.acat:hover .im{border-color:var(--p)}.acat:hover .im img{transform:scale(1.04)}
+.acat h3{margin:12px 0 2px;font-size:1.4rem;font-weight:800;direction:ltr;text-align:right}
+.acat p{margin:0;opacity:.8}
+.alatest{margin-top:22px;display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;font-size:.9rem}
+.alatest a{color:inherit;opacity:.85;text-decoration:underline;text-underline-offset:3px}
+.alatest a:hover{opacity:1;color:var(--p)}.alatest .all{font-weight:700;color:var(--p);opacity:1}
 .cat-btn{white-space:nowrap;padding:8px 18px;border-radius:8px;border:1px solid var(--b2);background:transparent;color:var(--mt);font-family:'Cairo',sans-serif;font-size:.84rem;font-weight:700;cursor:pointer;transition:all .25s;flex-shrink:0;}
 .cat-btn.active,.cat-btn:hover{background:var(--p);color:#0F172A;border-color:var(--p);}
 
@@ -1642,7 +1653,7 @@ async function loadCustomSections(){
         <div class="shdr reveal">
           <div><div class="stag" style="color:${s.color||'var(--p)'};border-color:${s.color||'var(--p)'}">${s.emoji||'•'} ${s.tagline||''}</div><div class="gline" style="background:linear-gradient(90deg,${s.color||'var(--p)'},transparent)"></div><h2 class="stitle">${s.name||''}</h2></div>
         </div>
-        <div class="cs-grid" data-more="/sections/${secSlug}/">${itemsHTML||'<div class="loading-ph">لا توجد عناصر بعد</div>'}</div>
+        ${isArt?artCatsHTML(secSlug,items):`<div class="cs-grid" data-more="/sections/${secSlug}/">${itemsHTML||'<div class="loading-ph">لا توجد عناصر بعد</div>'}</div>`}
       </section>`;
     }
     host.innerHTML=html;
@@ -1729,6 +1740,13 @@ function isFreeItem(d){return d.isFree===true||!(parseFloat(d.price)>0);}
 // صور WebP مضغوطة يولّدها سكربت البناء في /img/ — ولو مش موجودة بعد نرجع للأصلية
 // النسخة المضغوطة فقط إذا كانت لنفس الصورة الحالية (وإلا الصورة الأصلية مباشرة — حتى يظهر الغلاف الجديد فوراً)
 let _imgMan=null;try{fetch('/img/manifest.json',{cache:'no-cache'}).then(r=>r.ok?r.json():{}).then(j=>{_imgMan=j;}).catch(()=>{_imgMan={};});}catch(e){_imgMan={};}
+// أقسام المقالات الأربعة (نفس صفحة /sections/articles/)
+const ART_CATS3=[['solar','Solar Energy','تصميم الأنظمة والطاقة المتجددة.','الطاقة الشمسية'],['embedded','Embedded Systems','Arduino و ESP32 والإلكترونيات.','الأنظمة المدمجة'],['students','Engineering Students','نصائح الدراسة والمهارات والتخصصات.','طلاب الهندسة'],['automation','Industrial Automation','PLC والتحكم والمحركات الصناعية.','الأتمتة الصناعية']];
+function artCatsHTML(secSlug,items){
+  const tiles=ART_CATS3.map(([k,en,s,ar])=>`<a class="acat" href="/sections/${secSlug}/c/${k}/" aria-label="${ar}"><span class="im"><img src="/img/articles/cats/${k}.webp" alt="${ar} — ${en}" width="960" height="540" loading="lazy" decoding="async"></span><h3>${en}</h3><p>${s}</p></a>`).join('');
+  const latest=items.slice(0,6).map(i=>`<a href="/sections/${secSlug}/${itemSlug3(i)}/">${escAttr(i.title)}</a>`).join('');
+  return `<div class="acats">${tiles}</div>${latest?`<div class="alatest"><b>📝 أحدث المقالات:</b>${latest}<a class="all" href="/sections/${secSlug}/">كل المقالات ←</a></div>`:''}`;
+}
 function optImg(col,id,orig,small){if(!orig||!id)return orig||'';const m=_imgMan&&_imgMan[col+'/'+id];if(!m||m.src!==orig)return orig;return `/img/${col}/${id}${small?'-480':''}.webp?v=${m.hash}`;}
 function imgFb(el){const o=el.dataset.orig;if(o&&!el.dataset.fb){el.dataset.fb='1';el.src=o;}else{el.style.display='none';}}
 window.optImg=optImg;window.imgFb=imgFb;
