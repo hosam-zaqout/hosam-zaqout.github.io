@@ -705,7 +705,7 @@ function itemPage(sec, item, siblings, all) {
   const faqs = (Array.isArray(item.faqs) ? item.faqs : []).filter((f) => f && clean(f.q) && clean(f.a));
   const offer = {
     "@type": "Offer",
-    price: String(free ? 0 : price),
+    price: String(free ? 0 : liveOnly ? num(item.livePrice) : price),
     priceCurrency: CURRENCY,
     availability: "https://schema.org/InStock",
     url: canonical,
@@ -847,7 +847,7 @@ function itemPage(sec, item, siblings, all) {
     answer = `«${title}» دورة${item.level ? " بمستوى " + item.level : ""} باللغة العربية من منصة ${BRAND}${instr ? "، يقدّمها " + instr : ""}${item.duration ? "، مدتها " + item.duration : ""}${item.lessons ? " في " + item.lessons : ""}.`
       + (L.length ? ` ستتعلم فيها: ${L.slice(0, 4).join("، ")}.` : item.desc ? " " + firstSentence(item.desc) : "")
       + (audience.length ? ` الفئة المستهدفة: ${audience.slice(0, 2).join("، ")}.` : "")
-      + ` تُمنح شهادة معتمدة عند إتمامها، ${free ? "وهي مجانية" : "وسعرها " + price + "$"}.`;
+      + ` تُمنح شهادة معتمدة عند إتمامها، ${free ? "وهي مجانية" : liveOnly ? "وتُقدَّم مباشرةً (لايف) بسعر " + num(item.livePrice) + "$" : num(item.livePrice) > 0 ? "وسعر النسخة المسجّلة " + price + "$ والمباشرة (لايف) " + num(item.livePrice) + "$" : "وسعرها " + price + "$"}.`;
   } else {
     const kind = sec.col === "books" ? "كتاب" : sec.col === "projects" ? "مشروع" + (item.level ? " بمستوى " + item.level : "") + " جاهز" : sec.one;
     answer = `«${title}» ${kind} باللغة العربية من منصة ${BRAND}${item.author ? " من تأليف " + clean(item.author) : ""}${topicNames.length ? " في مجال " + topicNames.slice(0, 3).join(" و") : ""}.`
