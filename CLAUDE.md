@@ -30,6 +30,12 @@
 - **الحفظ والتصدير** (ضمن "الأدوات المتقدمة" نفسها): `assets/cad-pro.js` + `assets/cad-pro.css`، والصفحة تعرّف `window.CadProConfig` (kind، getData/setData، formats). الحفظ في `cad_saves/{uid}/items` (kind = schematic أو breadboard، data نص ≤ 900KB). التصدير: ملف، PNG، SVG (عبر `onsvgrendered` و`cad/sim/canvas2svg.js`)، ورابط مشاركة `/cad/?ctz=` (LZString). فتح ملف من الجهاز مجاني. قائمة "ملف" داخل المحاكي واختصارا Ctrl+S/P مخفيان لغير المشتركين (class `pro` على body الإطار).
 - **لوحة التجارب** `cad/breadboard/index.html`: لوحة SVG (30 عموداً، a–j، وخطّا تغذية علوي وسفلي موصولان بالبطارية). القطع تُحفظ في localStorage `bb-state`. المحاكاة: اتحاد الثقوب في شبكات (union-find)، ثم بناء XML لـ CircuitJS في إطار مخفي (نقاط الشبكات على قطع مكافئ حتى لا تتقاطع، والترانزستور في منطقة منفصلة بأسلاك: القاعدة عند x1، وفي NPN المجمّع فوق والباعث تحت بـ 16، وفي PNP العكس)، وعقدة مسمّاة `N<k>` لكل شبكة لقراءة الجهد. الزر والمفتاح يُمثَّلان بدمج الشبكتين عند الإغلاق، والمقاومة المتغيرة بمقاومتين.
 
+## محاكي ESP32 و Arduino `/cad/esp32/`
+- صفحة `cad/esp32/index.html` (غير معقّدة) تعرض Velxio (AGPL) من Cloud Run في إطار: خدمة `velxio` (us-central1، 4 CPU، 8Gi، no-cpu-throttling، min 0). المصدر المعدّل في `E:\3engs\velxio-src` فرع `3engs` (يجب نشره على github.com/hosam-zaqout/3engs-velxio — شرط AGPL). البناء والنشر: `powershell -ExecutionPolicy Bypass -File E:\3engs\velxio-src\deploy-3engs.ps1` في تبويب الطرفية (gcloud في `E:\3engs\gcsdk`).
+- الدخول إلزامي: الصفحة ترسل Firebase ID token عبر postMessage إلى `3engs-bridge.js`، والخادم (`backend/app/threeengs_gate.py`) يتحقق ويعدّ الترجمات في `sim_usage/{uid}`: 20 أسبوعياً، و200 لمشتركي الأدوات المتقدمة، والأدمن بلا عدّ.
+- **ذاكرة الترجمة**: الكود المطابق لكود تُرجم سابقاً يُخدم من الكاش مجاناً (لا يُعدّ، ويعمل حتى بعد نفاد الرصيد). الكاش في bucket `engs-website-sim-cache` (مركّب على `/mnt/cache`، صلاحية سنة).
+- 48 مثالاً جاهزاً (مصفوفة `EX`، رابط `?ex=<id>`). `?warm=1` للأدمن يترجم كل الأمثلة تلقائياً لملء الكاش.
+
 ## الدفع — بوابة Togo (https://api.togo.ps/docs)
 - المفتاح في Secret Manager: `TOGO_API_KEY` (لا يُكتب بالكود أبداً).
 - التدفق: `createPayment` (POST form) → يقرأ الأسعار من Firestore → receiver address (مخزّن بـ `users/{uid}.togoReceivers`) → `POST /api/v1/actions` (Create_Visa, type RFP, USD, prevent_sms_link) → redirect إلى `direct-pay?orderId=<hashed_id>`.
