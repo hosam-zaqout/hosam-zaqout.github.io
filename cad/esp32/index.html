@@ -95,6 +95,7 @@ footer a{color:var(--acc)}
 <div class="bar" id="bar" hidden>
   <span class="q" id="quota"></span>
   <button type="button" class="btn main" id="exBtn" data-t="exBtn"></button>
+  <button type="button" class="btn" id="netBtn"><span data-t="netBtn"></span> <span id="netDot"></span></button>
   <span id="exCur"></span>
   <span class="spacer" style="flex:1"></span>
   <a class="btn" id="upBtn" href="/?buy=products:tools-pro" data-t="upgrade" hidden></a>
@@ -113,6 +114,18 @@ footer a{color:var(--acc)}
   <div class="dh"><input id="exQ" type="search" autocomplete="off"><span class="chips" style="padding:0;border:0" id="boards"></span></div>
   <div class="chips" id="cats"></div>
   <div class="exl" id="exl"></div>
+</div></div>
+<div class="modal" id="netBox" hidden><div class="card" style="text-align:start;max-width:620px">
+  <h1 data-t="netT"></h1>
+  <p data-t="netIntro"></p>
+  <ol style="margin:4px 0 12px;padding-inline-start:22px;line-height:2;color:#c8d0e4">
+    <li><span data-t="netS1"></span> <a class="btn" id="netDl" href="/downloads/3eng-gateway.exe" download data-t="netDl"></a></li>
+    <li data-t="netS2"></li>
+    <li data-t="netS3"></li>
+  </ol>
+  <p id="netStatus" style="background:#0e1528;border:1px solid var(--line);border-radius:10px;padding:10px;margin:8px 0"></p>
+  <div style="text-align:center"><button type="button" class="btn main" id="netGo"></button> <button type="button" class="btn" id="netClose" data-t="close"></button></div>
+  <p style="font-size:.75rem;color:var(--mut);margin-top:10px" data-t="netCredit"></p>
 </div></div>
 <div class="modal" id="modal" hidden><div class="card"><h1 id="mT"></h1><p id="mP"></p><div id="mA"></div></div></div>
 <footer><span data-t="credit"></span> <a href="https://github.com/davidmonterocrespo24/velxio" target="_blank" rel="noopener">Velxio</a> — David Montero Crespo — <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener">AGPL-3.0</a> — <span data-t="mods"></span> <a href="https://github.com/hosam-zaqout/3engs-velxio" target="_blank" rel="noopener">3engs-velxio</a></footer>
@@ -141,6 +154,16 @@ const T = {
     credit: "محرك المحاكاة مفتوح المصدر:", mods: "وتعديلات المنصة:",
     exBtn: "📚 أمثلة جاهزة", exT: "📚 أمثلة جاهزة — اضغط أي مثال لفتحه ثم ▶️ للتشغيل", exQ: "ابحث عن مثال…", exNone: "لا توجد أمثلة مطابقة.", exNow: "المثال الحالي:",
     exGate: (n) => `بعد تسجيل الدخول تجد ${n} مثالاً جاهزاً تفتحه وتشغّله بضغطة واحدة.`,
+    netBtn: "🔌 شبكتي المحلية", netT: "🔌 اربط المحاكي بشبكة جهازك",
+    netIntro: "يتصل ESP32 داخل المحاكي بشبكتك الحقيقية عبر برنامج صغير على جهازك: يصل إلى الأجهزة والخدمات على شبكتك (مثل Node-RED أو وسيط MQTT محلي)، وتفتح صفحته من http://localhost:9080 أو من هاتفك المتصل بالشبكة نفسها.",
+    netS1: "نزّل برنامج 3ENG Gateway وشغّله (لويندوز):", netDl: "⬇️ تنزيل", netS2: "اترك نافذته مفتوحة، ثم اضغط «اتصال» أدناه واسمح للمتصفح بالوصول إلى الشبكة المحلية إن طلب ذلك.",
+    netS3: "شغّل المحاكاة (▶️). إن كانت تعمل من قبل فأوقفها ثم شغّلها من جديد.",
+    netConnect: "اتصال", netDisconnect: "قطع الاتصال",
+    netIdle: "غير متصل.", netTrying: "جارٍ الاتصال بالبرنامج على جهازك…",
+    netNoGw: "لم يُعثر على 3ENG Gateway على جهازك. تأكد أنه يعمل ثم أعد المحاولة.",
+    netWaitBoard: "✅ متصل بالبرنامج. شغّل المحاكاة الآن (أو أعد تشغيلها).",
+    netBoard: "✅ اللوحة متصلة بشبكتك. صفحة اللوحة: http://localhost:9080 — ومن هاتفك: http://<عنوان جهازك>:9080",
+    netLost: "انقطع الاتصال.", netCredit: "يعتمد 3ENG Gateway على Wokwi IoT Gateway (رخصة MIT، © Uri Shaked).",
     all: "الكل", lvl: ["مبتدئ", "متوسط", "متقدم"],
     cats: { basics: "💡 أساسيات", sensors: "🌡️ حساسات", displays: "🖥️ شاشات", motors: "⚙️ محركات", iot: "🌐 اتصال وإنترنت الأشياء", projects: "🏆 مشاريع" }
   },
@@ -161,6 +184,16 @@ const T = {
     credit: "Open-source simulation engine:", mods: "3ENG.s changes:",
     exBtn: "📚 Examples", exT: "📚 Ready examples — click one to open it, then ▶️ to run", exQ: "Search examples…", exNone: "No matching examples.", exNow: "Current example:",
     exGate: (n) => `After signing in you get ${n} ready examples that open and run in one click.`,
+    netBtn: "🔌 My local network", netT: "🔌 Connect the simulator to your network",
+    netIntro: "The simulated ESP32 joins your real network through a small program on your computer: it can reach devices and services on your network (Node-RED, a local MQTT broker…), and its web page opens at http://localhost:9080 or from your phone on the same network.",
+    netS1: "Download and run 3ENG Gateway (Windows):", netDl: "⬇️ Download", netS2: "Keep its window open, press “Connect” below and allow local network access if the browser asks.",
+    netS3: "Run the simulation (▶️). If it was already running, stop it and run it again.",
+    netConnect: "Connect", netDisconnect: "Disconnect",
+    netIdle: "Not connected.", netTrying: "Connecting to the program on your computer…",
+    netNoGw: "3ENG Gateway was not found on this computer. Make sure it is running and try again.",
+    netWaitBoard: "✅ Connected to the program. Run the simulation now (or restart it).",
+    netBoard: "✅ The board is on your network. Board page: http://localhost:9080 — from your phone: http://<your computer's IP>:9080",
+    netLost: "Disconnected.", netCredit: "3ENG Gateway is based on the Wokwi IoT Gateway (MIT License, © Uri Shaked).",
     all: "All", lvl: ["Beginner", "Intermediate", "Advanced"],
     cats: { basics: "💡 Basics", sensors: "🌡️ Sensors", displays: "🖥️ Displays", motors: "⚙️ Motors", iot: "🌐 Communication & IoT", projects: "🏆 Projects" }
   }
@@ -230,7 +263,7 @@ let curEx = (() => { const q = new URLSearchParams(location.search).get("ex"); r
 let exCat = "all", exBoard = "all";
 let lang = (() => { const q = new URLSearchParams(location.search).get("lang"); if (q === "ar" || q === "en") return q; try { return localStorage.getItem("cad-lang") || "ar"; } catch (e) { return "ar"; } })();
 const $ = (id) => document.getElementById(id);
-let user = null, pro = false, quota = null, frame = null;
+let user = null, pro = false, quota = null, frame = null, simSid = null;
 
 function simUrl() { return `${SIM}/${lang === "ar" ? "ar/" : ""}${curEx ? "example/" + curEx : "editor"}`; }
 const exName = (e) => (lang === "ar" ? e[4] : e[5]);
@@ -269,7 +302,7 @@ function apply() {
   document.querySelectorAll(".lang button").forEach((b) => b.classList.toggle("on", b.dataset.lang === lang));
   $("feat").innerHTML = t.feat.map((f) => `<li>${f}</li>`).join("");
   $("tabBtn").href = simUrl();
-  renderGate(); renderQuota(); renderEx();
+  renderGate(); renderQuota(); renderEx(); netRender();
 }
 function renderGate() {
   const t = T[lang];
@@ -304,7 +337,7 @@ async function sendToken(force) {
 window.addEventListener("message", (ev) => {
   if (ev.origin !== SIM || !ev.data || typeof ev.data !== "object") return;
   const d = ev.data, t = T[lang];
-  if (d.type === "3engs:ready") { sendToken(false); if (warm.on) warm.ready(); }
+  if (d.type === "3engs:ready") { if (d.sid) simSid = d.sid; sendToken(false); if (warm.on) warm.ready(); }
   else if (d.type === "3engs:compiled") { if (warm.on) warm.done(d); }
   else if (d.type === "3engs:quota" && d.quota) { quota = d.quota; pro = !!d.quota.pro; renderQuota(); }
   else if (d.type === "3engs:gate" && d.info) {
@@ -343,6 +376,54 @@ const warm = { on: false, i: -1, log: [], timer: null, waiting: false,
     this.next();
   }
 };
+
+// ── 3ENG Gateway: local network bridge ─────────────────────────────────────
+// The page relays raw network frames between the simulator server
+// (wss://…/api/3engs/localnet/<tab session>) and 3ENG Gateway on this computer
+// (ws://127.0.0.1:9011). The board must be (re)started after connecting.
+const net = { gw: null, srv: null, state: "idle", board: false };
+function netRender() {
+  const t = T[lang];
+  const st = { idle: t.netIdle, trying: t.netTrying, nogw: t.netNoGw, wait: t.netWaitBoard, board: t.netBoard, lost: t.netLost }[net.state] || "";
+  $("netStatus").textContent = st;
+  const on = net.state === "wait" || net.state === "board" || net.state === "trying";
+  $("netGo").textContent = on ? t.netDisconnect : t.netConnect;
+  $("netDot").textContent = net.state === "board" ? "🟢" : net.state === "wait" ? "🟡" : "";
+}
+function netStop(state) {
+  try { net.gw && net.gw.close(); } catch (e) {}
+  try { net.srv && net.srv.close(); } catch (e) {}
+  net.gw = net.srv = null; net.state = state || "idle"; netRender();
+}
+async function netStart() {
+  if (!user || !simSid) return;
+  net.state = "trying"; netRender();
+  const gw = new WebSocket("ws://127.0.0.1:9011");
+  gw.binaryType = "arraybuffer";
+  net.gw = gw;
+  const opened = await new Promise((res) => { gw.onopen = () => res(true); gw.onerror = () => res(false); setTimeout(() => res(false), 6000); });
+  if (!opened || net.gw !== gw) { if (net.gw === gw) netStop("nogw"); return; }
+  const token = await user.getIdToken(false);
+  const srv = new WebSocket(SIM.replace(/^http/, "ws") + "/api/3engs/localnet/" + encodeURIComponent(simSid) + "?t=" + encodeURIComponent(token));
+  srv.binaryType = "arraybuffer";
+  net.srv = srv;
+  gw.onmessage = (ev) => { if (typeof ev.data !== "string" && srv.readyState === 1) srv.send(ev.data); };
+  srv.onmessage = (ev) => {
+    if (typeof ev.data === "string") {
+      try { const m = JSON.parse(ev.data);
+        if (m.type === "ready") { net.state = "wait"; netRender(); }
+        else if (m.type === "board") { net.state = m.state === "connected" ? "board" : "wait"; netRender(); }
+      } catch (e) {}
+      return;
+    }
+    if (gw.readyState === 1) gw.send(ev.data);
+  };
+  const lost = () => { if (net.gw === gw) netStop("lost"); };
+  gw.onclose = lost; srv.onclose = lost; srv.onerror = lost;
+}
+$("netBtn").onclick = () => { $("netBox").hidden = false; netRender(); };
+$("netClose").onclick = () => { $("netBox").hidden = true; };
+$("netGo").onclick = () => { (net.state === "idle" || net.state === "nogw" || net.state === "lost") ? netStart() : netStop("idle"); };
 
 function start() {
   if (frame) return;
