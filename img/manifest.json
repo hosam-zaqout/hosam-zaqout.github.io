@@ -478,5 +478,13 @@
   "h": 675,
   "fromKB": 108,
   "toKB": 64
+ },
+ "courses/i8YavCPuS83TaULsHvdO": {
+  "hash": "b8aa9ac1ef31",
+  "src": "https://firebasestorage.googleapis.com/v0/b/engs-website.firebasestorage.app/o/courses%2F1794753359139_Kids__Electronics_Workshop_Poster.webp?alt=media&token=48b461fa-7f36-430a-b4c3-4215523327b2",
+  "w": 1200,
+  "h": 675,
+  "fromKB": 153,
+  "toKB": 89
  }
 }

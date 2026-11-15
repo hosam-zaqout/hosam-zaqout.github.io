@@ -41,6 +41,12 @@
     <image:image><image:loc>https://www.3engs.com/img/courses/ZxzNfCmOOXnEQUOWJDaI.webp?v=287bf155ca96</image:loc><image:title>انترنت الاشياء والانظمة المدمجة (iot)</image:title></image:image>
   </url>
   <url>
+    <loc>https://www.3engs.com/courses/kids-robo-2026/</loc>
+    <lastmod>2026-11-15</lastmod>
+    <priority>0.8</priority>
+    <image:image><image:loc>https://www.3engs.com/img/courses/i8YavCPuS83TaULsHvdO.webp?v=b8aa9ac1ef31</image:loc><image:title>دورة فردية للاطفال</image:title></image:image>
+  </url>
+  <url>
     <loc>https://www.3engs.com/projects/</loc>
     <priority>0.9</priority>
   </url>
