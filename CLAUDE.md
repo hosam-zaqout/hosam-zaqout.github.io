@@ -34,7 +34,11 @@
 - صفحة `cad/esp32/index.html` (غير معقّدة) تعرض Velxio (AGPL) من Cloud Run في إطار: خدمة `velxio` (us-central1، 4 CPU، 8Gi، no-cpu-throttling، min 0). المصدر المعدّل في `E:\3engs\velxio-src` فرع `3engs` (يجب نشره على github.com/hosam-zaqout/3engs-velxio — شرط AGPL). البناء والنشر: `powershell -ExecutionPolicy Bypass -File E:\3engs\velxio-src\deploy-3engs.ps1` في تبويب الطرفية (gcloud في `E:\3engs\gcsdk`).
 - الدخول إلزامي: الصفحة ترسل Firebase ID token عبر postMessage إلى `3engs-bridge.js`، والخادم (`backend/app/threeengs_gate.py`) يتحقق ويعدّ الترجمات في `sim_usage/{uid}`: 20 أسبوعياً، و200 لمشتركي الأدوات المتقدمة، والأدمن بلا عدّ.
 - **ذاكرة الترجمة**: الكود المطابق لكود تُرجم سابقاً يُخدم من الكاش مجاناً (لا يُعدّ، ويعمل حتى بعد نفاد الرصيد). الكاش في bucket `engs-website-sim-cache` (مركّب على `/mnt/cache`، صلاحية سنة).
-- 48 مثالاً جاهزاً (مصفوفة `EX`، رابط `?ex=<id>`). `?warm=1` للأدمن يترجم كل الأمثلة تلقائياً لملء الكاش.
+- 52 مثالاً جاهزاً (مصفوفة `EX`، رابط `?ex=<id>`)، منها أمثلة خادم ويب عربية (`3engs-web-led|dht22|servo`، `3engs-softap`) في `frontend/src/data/examples-3engs.ts`. `?warm=1` للأدمن يترجم كل الأمثلة تلقائياً لملء الكاش.
+- صفحة اللوحة عبر بوابة المحاكي السحابية (أيقونة الواي فاي ← IP 192.168.4.15). softAP لا يعمل في المحاكي (قيد المحرك).
+- **🔌 شبكتي المحلية (مجانية)**: برنامج `3ENG Gateway` (نسخة من wokwi/wokwigw، MIT، المصدر في `E:\3engs\3eng-gateway`، يُبنى بـ Cloud Build إلى `gs://engs-website_cloudbuild/3eng-gateway/`) يُنزَّل من `/downloads/3eng-gateway.exe`. الصفحة تنقل إطارات الشبكة بين `ws://127.0.0.1:9011` و `wss://…/api/3engs/localnet/<tab session>?t=<token>` (`backend/app/threeengs_localnet.py`، مع تصحيح عناوين MAC). صفحة اللوحة على `http://localhost:9080` أو `http://<IP الجهاز>:9080` من الهاتف. يجب الاتصال قبل تشغيل المحاكاة. مُختبر فعلياً على جهاز حسام والهاتف.
+- البناء: `build-test-3engs.ps1` (نسخة `velxio-test` الخاصة، `-Fast` للتعديلات الخلفية فقط) ثم للإنتاج `gcloud run services update velxio --image …:<build id>`. الصورة الأساسية منسوخة إلى `sim/velxio-base:master` (`cloudbuild.mirror.yaml`). نفق الاختبار: `node tools-3engs/test-proxy.mjs` → localhost:8090.
+- القادم: Hotspot ويندوز باسم وكلمة مرور `WiFi.softAP` من الكود.
 
 ## الدفع — بوابة Togo (https://api.togo.ps/docs)
 - المفتاح في Secret Manager: `TOGO_API_KEY` (لا يُكتب بالكود أبداً).
