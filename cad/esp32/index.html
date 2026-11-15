@@ -60,6 +60,24 @@ header{display:flex;align-items:center;gap:14px;padding:0 16px;height:58px;borde
 .card .btn{margin:4px}
 .modal{position:fixed;inset:0;background:#000a;display:flex;align-items:center;justify-content:center;padding:16px;z-index:9}
 .modal[hidden]{display:none}
+.drawer{position:fixed;inset:0;background:#000a;z-index:8;display:flex;justify-content:flex-start}
+.drawer .pane{background:var(--card);border-inline-end:1px solid var(--line);width:min(560px,100%);height:100%;display:flex;flex-direction:column}
+.dh{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.dh h2{font-size:1.05rem;flex:1}
+.dh input{flex:1;min-width:0;background:#0e1528;border:1px solid var(--line);border-radius:10px;color:var(--txt);padding:7px 10px;font:inherit;font-size:.86rem}
+.chips{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--line)}
+.chip{background:#0e1528;border:1px solid var(--line);color:var(--mut);border-radius:999px;padding:3px 11px;font-size:.8rem;font-weight:700}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#1a1200}
+.exl{overflow:auto;padding:10px 14px 20px;display:grid;gap:8px}
+.ex{display:block;width:100%;text-align:start;background:#0e1528;border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:var(--txt)}
+.ex:hover{border-color:var(--acc)}
+.ex.cur{border-color:var(--ok)}
+.ex b{display:block;font-size:.92rem}
+.ex p{color:var(--mut);font-size:.8rem;line-height:1.7;margin-top:2px}
+.tags{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap}
+.tag{font-size:.7rem;border-radius:6px;padding:1px 7px;background:#1c2542;color:#c8d0e4;direction:ltr}
+.tag.esp{background:#123a2e;color:#6ee7b7}.tag.uno{background:#13304a;color:#7dd3fc}
+.exn{color:var(--mut);font-size:.82rem;text-align:center;padding:20px}
 footer{font-size:.72rem;color:var(--mut);padding:6px 14px;border-top:1px solid var(--line);text-align:center;flex-shrink:0}
 footer a{color:var(--acc)}
 @media(max-width:860px){.top-links,.brand small{display:none}header{padding:0 10px;gap:8px}.parts a{padding:6px 9px;font-size:.78rem}}
@@ -76,6 +94,8 @@ footer a{color:var(--acc)}
 </header>
 <div class="bar" id="bar" hidden>
   <span class="q" id="quota"></span>
+  <button type="button" class="btn main" id="exBtn" data-t="exBtn"></button>
+  <span id="exCur"></span>
   <span class="spacer" style="flex:1"></span>
   <a class="btn" id="upBtn" href="/?buy=products:tools-pro" data-t="upgrade" hidden></a>
   <a class="btn main" id="tabBtn" target="_blank" rel="noopener" data-t="full"></a>
@@ -88,6 +108,12 @@ footer a{color:var(--acc)}
     <div id="gateAct"><p>⏳</p></div>
   </div></div>
 </section>
+<div class="drawer" id="drawer" hidden><div class="pane">
+  <div class="dh"><h2 data-t="exT"></h2><button type="button" class="btn" id="exClose">✕</button></div>
+  <div class="dh"><input id="exQ" type="search" autocomplete="off"><span class="chips" style="padding:0;border:0" id="boards"></span></div>
+  <div class="chips" id="cats"></div>
+  <div class="exl" id="exl"></div>
+</div></div>
 <div class="modal" id="modal" hidden><div class="card"><h1 id="mT"></h1><p id="mP"></p><div id="mA"></div></div></div>
 <footer><span data-t="credit"></span> <a href="https://github.com/davidmonterocrespo24/velxio" target="_blank" rel="noopener">Velxio</a> — David Montero Crespo — <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener">AGPL-3.0</a> — <span data-t="mods"></span> <a href="https://github.com/hosam-zaqout/3engs-velxio" target="_blank" rel="noopener">3engs-velxio</a></footer>
 
@@ -112,7 +138,11 @@ const T = {
     quotaT: "انتهى رصيدك الأسبوعي", quotaP: (l) => `استخدمت ${l} ترجمة هذا الأسبوع. يتجدّد الرصيد يوم الاثنين، أو اشترك في «الأدوات المتقدمة» لتحصل على حد أعلى مع حفظ المشاريع.`,
     buy: "اشترك الآن", close: "إغلاق",
     expT: "انتهت الجلسة", expP: "أعد تحميل الصفحة لتجديد تسجيل الدخول.", reload: "إعادة التحميل",
-    credit: "محرك المحاكاة مفتوح المصدر:", mods: "وتعديلات المنصة:"
+    credit: "محرك المحاكاة مفتوح المصدر:", mods: "وتعديلات المنصة:",
+    exBtn: "📚 أمثلة جاهزة", exT: "📚 أمثلة جاهزة — اضغط أي مثال لفتحه ثم ▶️ للتشغيل", exQ: "ابحث عن مثال…", exNone: "لا توجد أمثلة مطابقة.", exNow: "المثال الحالي:",
+    exGate: (n) => `بعد تسجيل الدخول تجد ${n} مثالاً جاهزاً تفتحه وتشغّله بضغطة واحدة.`,
+    all: "الكل", lvl: ["مبتدئ", "متوسط", "متقدم"],
+    cats: { basics: "💡 أساسيات", sensors: "🌡️ حساسات", displays: "🖥️ شاشات", motors: "⚙️ محركات", iot: "🌐 اتصال وإنترنت الأشياء", projects: "🏆 مشاريع" }
   },
   en: {
     doc: "Online ESP32 & Arduino Simulator — 3ENG CAD | 3ENG.s",
@@ -128,15 +158,105 @@ const T = {
     quotaT: "Weekly limit reached", quotaP: (l) => `You used ${l} compiles this week. The quota resets on Monday, or join Advanced Tools for a higher limit plus saved projects.`,
     buy: "Join now", close: "Close",
     expT: "Session expired", expP: "Reload the page to sign in again.", reload: "Reload",
-    credit: "Open-source simulation engine:", mods: "3ENG.s changes:"
+    credit: "Open-source simulation engine:", mods: "3ENG.s changes:",
+    exBtn: "📚 Examples", exT: "📚 Ready examples — click one to open it, then ▶️ to run", exQ: "Search examples…", exNone: "No matching examples.", exNow: "Current example:",
+    exGate: (n) => `After signing in you get ${n} ready examples that open and run in one click.`,
+    all: "All", lvl: ["Beginner", "Intermediate", "Advanced"],
+    cats: { basics: "💡 Basics", sensors: "🌡️ Sensors", displays: "🖥️ Displays", motors: "⚙️ Motors", iot: "🌐 Communication & IoT", projects: "🏆 Projects" }
   }
 };
 const FREE = 20;
+// الأمثلة الجاهزة (المعرّفات من مكتبة أمثلة Velxio): [id, board, cat, level, ar, en, وصف عربي, English]
+const EX = [
+  ["esp32-blink-led","esp32","basics",1,"وميض LED على ESP32","ESP32 Blink LED","أول تجربة: تشغيل LED وإطفاؤه كل نصف ثانية.","The first experiment: toggle an LED every half second."],
+  ["blink-led","uno","basics",1,"وميض LED على Arduino","Arduino Blink LED","تشغيل LED وإطفاؤه بفاصل زمني ثابت.","Turn an LED on and off at a fixed interval."],
+  ["traffic-light","uno","basics",1,"إشارة مرور","Traffic Light","ثلاثة LED تعمل بالتتابع كإشارة مرور.","Three LEDs sequenced like a traffic light."],
+  ["button-led","uno","basics",1,"التحكم بـ LED عبر زر","Button + LED","قراءة زر ضاغط وتشغيل LED عند الضغط.","Read a push button and light an LED while it is pressed."],
+  ["fade-led","uno","basics",1,"تدرّج إضاءة LED بإشارة PWM","Fade LED (PWM)","رفع شدة الإضاءة وخفضها تدريجياً.","Fade an LED in and out with PWM."],
+  ["rgb-led","uno","basics",2,"ألوان LED ثلاثي الألوان","RGB LED Colors","مزج الأحمر والأخضر والأزرق لإنتاج ألوان مختلفة.","Mix red, green and blue into different colours."],
+  ["esp32-neopixel-colours","esp32","basics",1,"شريط NeoPixel على ESP32","ESP32 NeoPixel colours","التحكم بألوان LED قابلة للعنونة (WS2812).","Drive addressable WS2812 LEDs."],
+  ["esp32-pwm-led-rgb","esp32","basics",2,"إشارة PWM بوحدة LEDC في ESP32","ESP32 LEDC PWM RGB","توليد PWM بوحدة LEDC للتحكم بـ LED ثلاثي الألوان.","Use the LEDC peripheral to drive an RGB LED."],
+  ["uno-7segment","uno","basics",1,"عدّاد بشاشة القطع السبع","7-Segment Counter (Uno)","العدّ من 0 إلى 9 على شاشة 7-Segment.","Count 0–9 on a seven-segment display."],
+  ["esp32-7segment","esp32","basics",1,"عدّاد القطع السبع على ESP32","7-Segment Counter (ESP32)","العدّاد نفسه على لوحة ESP32.","The same counter on an ESP32."],
+  ["ky-040-rotary-encoder","uno","basics",1,"المشفّر الدوّار KY-040","KY-040 Rotary Encoder","قراءة اتجاه الدوران والضغط من المشفّر الدوّار.","Read rotation direction and the push switch."],
+  ["esp32-idf-blink","esp32","basics",2,"وميض LED بإطار ESP-IDF","ESP32 Pure ESP-IDF Blink","المثال نفسه بإطار ESP-IDF الرسمي بدلاً من Arduino (الترجمة الأولى أبطأ).","Blink with the official ESP-IDF framework instead of Arduino (the first build is slower)."],
+
+  ["uno-potentiometer","uno","sensors",1,"قراءة مقاومة متغيرة (ADC)","Potentiometer → Serial","قراءة الجهد التماثلي وعرضه في شاشة المنفذ التسلسلي.","Read an analog voltage and print it to the Serial Monitor."],
+  ["uno-dht22","uno","sensors",1,"حساس الحرارة والرطوبة DHT22","DHT22 Temperature & Humidity (Uno)","قراءة درجة الحرارة والرطوبة وعرضهما.","Read temperature and humidity."],
+  ["esp32-dht22","esp32","sensors",1,"حساس DHT22 على ESP32","ESP32 DHT22","قراءة الحرارة والرطوبة على لوحة ESP32.","Temperature and humidity on an ESP32."],
+  ["uno-hcsr04","uno","sensors",1,"قياس المسافة بالموجات فوق الصوتية","HC-SR04 Ultrasonic (Uno)","قياس المسافة بالسنتيمتر بالحساس HC-SR04.","Measure distance in centimetres with an HC-SR04."],
+  ["esp32-hcsr04","esp32","sensors",1,"حساس المسافة HC-SR04 على ESP32","ESP32 HC-SR04","قياس المسافة على لوحة ESP32.","Distance measurement on an ESP32."],
+  ["uno-pir","uno","sensors",1,"كاشف الحركة PIR","PIR Motion Detector (Uno)","اكتشاف الحركة وتشغيل تنبيه.","Detect motion and raise an alert."],
+  ["esp32-pir","esp32","sensors",1,"كاشف الحركة PIR على ESP32","ESP32 PIR Motion","اكتشاف الحركة على لوحة ESP32.","Motion detection on an ESP32."],
+  ["uno-photoresistor","uno","sensors",1,"حساس الضوء (LDR)","Photoresistor Light Sensor","قياس شدة الإضاءة بمقاومة ضوئية.","Measure light level with an LDR."],
+  ["uno-ntc","uno","sensors",2,"قياس الحرارة بمقاومة NTC","NTC Thermistor Temperature","حساب درجة الحرارة من قيمة المقاومة الحرارية.","Compute temperature from a thermistor."],
+  ["esp32-mpu6050","esp32","sensors",2,"حساس التسارع والدوران MPU-6050","ESP32 MPU-6050","قراءة التسارع والدوران عبر ناقل I2C.","Read acceleration and rotation over I2C."],
+  ["esp32-bmp280","esp32","sensors",2,"محطة طقس بالحساس BMP280","ESP32 BMP280 Weather Station","قياس الضغط الجوي ودرجة الحرارة.","Measure pressure and temperature."],
+  ["esp32-joystick","esp32","sensors",1,"عصا التحكم (Joystick)","ESP32 Analog Joystick","قراءة محوري عصا التحكم والزر.","Read both joystick axes and the button."],
+  ["esp32-dual-adc","esp32","sensors",1,"قراءة قناتي ADC على ESP32","ESP32 Dual ADC Reader","قراءة جهدين تماثليين في الوقت نفسه.","Read two analog inputs at once."],
+
+  ["lcd-hello","uno","displays",2,"شاشة LCD مقاس 20×4","LCD 20x4 Display","كتابة نص على شاشة LCD بمكتبة LiquidCrystal.","Write text on an LCD with LiquidCrystal."],
+  ["esp32-oled","esp32","displays",2,"شاشة OLED على ESP32","ESP32 SSD1306 OLED","رسم نصوص وأشكال على شاشة OLED عبر I2C.","Draw text and shapes on an OLED over I2C."],
+  ["uno-oled-4pin-i2c","uno","displays",2,"شاشة OLED على Arduino","Arduino Uno SSD1306 OLED","توصيل شاشة OLED رباعية الأطراف واستخدامها.","Wire up and use a 4-pin OLED."],
+  ["tft-display","uno","displays",2,"شاشة TFT ملوّنة ILI9341","TFT ILI9341 Display","ألوان ونصوص وكرة متحركة على شاشة TFT.","Colours, text and a bouncing ball on a TFT."],
+
+  ["uno-servo","uno","motors",1,"محرك سيرفو","Servo Motor Sweep","تحريك محرك السيرفو ذهاباً وإياباً.","Sweep a servo back and forth."],
+  ["esp32-servo","esp32","motors",1,"التحكم بالسيرفو بمقاومة متغيرة","ESP32 Servo + Potentiometer","ضبط زاوية السيرفو بتدوير المقاومة المتغيرة.","Set the servo angle with a potentiometer."],
+  ["uno-stepper-a4988","uno","motors",2,"محرك خطوي مع المشغّل A4988","Stepper + A4988 (Uno)","تشغيل محرك خطوي بالمشغّل A4988.","Drive a stepper motor with an A4988."],
+  ["esp32-stepper-a4988","esp32","motors",2,"محرك خطوي على ESP32","ESP32 Stepper + A4988","المحرك الخطوي نفسه على لوحة ESP32.","The same stepper on an ESP32."],
+  ["l293d-motor-control","uno","motors",2,"محرك DC مع الشريحة L293D","DC Motor Control (L293D)","تغيير اتجاه دوران محرك DC.","Change a DC motor's direction."],
+
+  ["serial-hello","uno","iot",1,"مرحباً بالمنفذ التسلسلي","Serial Hello World","إرسال نص إلى شاشة المنفذ التسلسلي.","Print text to the Serial Monitor."],
+  ["esp32-serial-echo","esp32","iot",1,"صدى المنفذ التسلسلي","ESP32 Serial Echo","ما تكتبه في المنفذ التسلسلي يُعاد إليك.","Whatever you type is echoed back."],
+  ["esp32-wifi-scan","esp32","iot",1,"البحث عن شبكات Wi-Fi","ESP32 WiFi Scan","عرض شبكات Wi-Fi المتاحة.","List available Wi-Fi networks."],
+  ["esp32-wifi-connect","esp32","iot",1,"الاتصال بشبكة Wi-Fi","ESP32 WiFi Connect","الاتصال بالشبكة وعرض عنوان IP.","Connect and print the IP address."],
+  ["esp32-wifi-mqtt","esp32","iot",2,"الاتصال عبر Wi-Fi و MQTT","ESP32 WiFi + MQTT","نشر الرسائل والاشتراك بها عبر وسيط MQTT عام (broker.hivemq.com) والتحكم بـ LED.","Publish and subscribe through a public MQTT broker (broker.hivemq.com) and toggle an LED."],
+  ["esp32-http-server","esp32","iot",2,"خادم ويب على ESP32","ESP32 HTTP Server","تشغيل صفحة ويب على اللوحة وفتحها من المتصفح.","Serve a web page from the board."],
+  ["esp32-ble-advertise","esp32","iot",2,"بث Bluetooth منخفض الطاقة (BLE)","ESP32 BLE Advertise","بث إعلان BLE من اللوحة.","Broadcast a BLE advertisement."],
+  ["ir-remote-esp32","esp32","iot",2,"جهاز تحكم بالأشعة تحت الحمراء","IR Remote (ESP32)","استقبال أوامر جهاز التحكم عن بُعد.","Receive infrared remote codes."],
+  ["i2c-scanner","uno","iot",2,"ماسح ناقل I2C","I2C Scanner","البحث عن عناوين الأجهزة الموصولة بناقل I2C.","Find devices on the I2C bus."],
+  ["microsd-card-esp32","esp32","iot",2,"بطاقة الذاكرة microSD","microSD Card (ESP32)","كتابة ملف على بطاقة الذاكرة وقراءته.","Write and read a file on an SD card."],
+
+  ["esp32-ntc-fan-control","esp32","projects",2,"مروحة تعمل حسب درجة الحرارة","ESP32 Thermometer and Fan","قياس الحرارة بمقاومة NTC وتشغيل مروحة عبر ترانزستور MOSFET.","Measure temperature with an NTC and drive a fan through a MOSFET."],
+  ["simon-says","uno","projects",3,"لعبة سايمون للذاكرة","Simon Says Game","لعبة ذاكرة بالأزرار و LED.","A memory game with buttons and LEDs."],
+  ["robot-desktop-eyes","esp32","projects",3,"روبوت مكتبي بعيون متحركة","Desktop Robot — Animated Eyes","مشروع متكامل بشاشة وحساس ومحرك سيرفو.","A full project with a display, a sensor and a servo."],
+  ["esp32-doom","esp32","projects",3,"لعبة Doom على ESP32","ESP32 Doom (ILI9341)","لعبة كاملة على شاشة TFT — مثال متقدم وثقيل.","A full game on a TFT — a heavy, advanced example."]
+];
+let curEx = (() => { const q = new URLSearchParams(location.search).get("ex"); return EX.some((e) => e[0] === q) ? q : null; })();
+let exCat = "all", exBoard = "all";
 let lang = (() => { const q = new URLSearchParams(location.search).get("lang"); if (q === "ar" || q === "en") return q; try { return localStorage.getItem("cad-lang") || "ar"; } catch (e) { return "ar"; } })();
 const $ = (id) => document.getElementById(id);
 let user = null, pro = false, quota = null, frame = null;
 
-function simUrl() { return `${SIM}/${lang === "ar" ? "ar/" : ""}editor`; }
+function simUrl() { return `${SIM}/${lang === "ar" ? "ar/" : ""}${curEx ? "example/" + curEx : "editor"}`; }
+const exName = (e) => (lang === "ar" ? e[4] : e[5]);
+function renderEx() {
+  const t = T[lang];
+  $("exQ").placeholder = t.exQ;
+  $("boards").innerHTML = [["all", t.all], ["esp32", "ESP32"], ["uno", "Arduino"]].map(([k, v]) => `<button type="button" class="chip${exBoard === k ? " on" : ""}" data-b="${k}">${v}</button>`).join("");
+  $("cats").innerHTML = [["all", t.all], ...Object.entries(t.cats)].map(([k, v]) => `<button type="button" class="chip${exCat === k ? " on" : ""}" data-c="${k}">${v}</button>`).join("");
+  const q = $("exQ").value.trim().toLowerCase();
+  const list = EX.filter((e) => (exCat === "all" || e[2] === exCat) && (exBoard === "all" || e[1] === exBoard) && (!q || e.slice(4).join(" ").toLowerCase().includes(q)));
+  $("exl").innerHTML = list.length ? list.map((e) => `<button type="button" class="ex${e[0] === curEx ? " cur" : ""}" data-ex="${e[0]}"><b>${exName(e)}</b><p>${lang === "ar" ? e[6] : e[7]}</p><span class="tags"><span class="tag ${e[1] === "uno" ? "uno" : "esp"}">${e[1] === "uno" ? "Arduino Uno" : "ESP32"}</span><span class="tag">${t.cats[e[2]]}</span><span class="tag">${t.lvl[e[3] - 1]}</span></span></button>`).join("") : `<p class="exn">${t.exNone}</p>`;
+  const c = EX.find((e) => e[0] === curEx);
+  $("exCur").innerHTML = c ? `${t.exNow} <b style="color:var(--txt)">${exName(c)}</b>` : "";
+}
+function openEx(id) {
+  curEx = id; $("drawer").hidden = true;
+  const u = new URL(location.href); u.searchParams.set("ex", id); history.replaceState(null, "", u);
+  if (frame) frame.src = simUrl();
+  $("tabBtn").href = simUrl(); renderEx();
+}
+$("exBtn").onclick = () => { $("drawer").hidden = false; renderEx(); $("exQ").focus(); };
+$("exClose").onclick = () => { $("drawer").hidden = true; };
+$("drawer").addEventListener("click", (e) => {
+  if (e.target.id === "drawer") { $("drawer").hidden = true; return; }
+  const b = e.target.closest("[data-b],[data-c],[data-ex]"); if (!b) return;
+  if (b.dataset.ex) openEx(b.dataset.ex);
+  else { if (b.dataset.b) exBoard = b.dataset.b; if (b.dataset.c) exCat = b.dataset.c; renderEx(); }
+});
+$("exQ").addEventListener("input", renderEx);
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("drawer").hidden = true; });
 function apply() {
   const t = T[lang];
   document.documentElement.lang = lang; document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
@@ -145,14 +265,14 @@ function apply() {
   document.querySelectorAll(".lang button").forEach((b) => b.classList.toggle("on", b.dataset.lang === lang));
   $("feat").innerHTML = t.feat.map((f) => `<li>${f}</li>`).join("");
   $("tabBtn").href = simUrl();
-  renderGate(); renderQuota();
+  renderGate(); renderQuota(); renderEx();
 }
 function renderGate() {
   const t = T[lang];
   if (user === null) { $("gateAct").innerHTML = "<p>⏳</p>"; return; }
   if (!user) {
     const back = encodeURIComponent(location.pathname + location.search);
-    $("gateAct").innerHTML = `<p>${t.loginNote}</p><p style="font-size:.85rem">${t.free(FREE)}</p><a class="btn main" href="/auth.html?redirect=${back}">🔐 ${t.login}</a>`;
+    $("gateAct").innerHTML = `<p>${t.loginNote}</p><p style="font-size:.85rem">${t.free(FREE)}</p><a class="btn main" href="/auth.html?redirect=${back}">🔐 ${t.login}</a><p style="font-size:.85rem;margin-top:12px">📚 ${t.exGate(EX.length)}</p>`;
   }
 }
 function renderQuota() {
