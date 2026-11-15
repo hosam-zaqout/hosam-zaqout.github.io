@@ -300,7 +300,8 @@ async function sendToken(force) {
 window.addEventListener("message", (ev) => {
   if (ev.origin !== SIM || !ev.data || typeof ev.data !== "object") return;
   const d = ev.data, t = T[lang];
-  if (d.type === "3engs:ready") sendToken(false);
+  if (d.type === "3engs:ready") { sendToken(false); if (warm.on) warm.ready(); }
+  else if (d.type === "3engs:compiled") { if (warm.on) warm.done(d); }
   else if (d.type === "3engs:quota" && d.quota) { quota = d.quota; pro = !!d.quota.pro; renderQuota(); }
   else if (d.type === "3engs:gate" && d.info) {
     if (d.info.code === "quota") { quota = { used: d.info.used, limit: d.info.limit, pro: d.info.pro }; renderQuota();
@@ -308,6 +309,36 @@ window.addEventListener("message", (ev) => {
     else if (d.info.code === "login") { sendToken(true); }
   }
 });
+
+const ADMINS = ["hosam2564491@gmail.com", "info@3engs.com"];
+const warm = { on: false, i: -1, log: [], timer: null, waiting: false,
+  begin() {
+    this.on = true; this.i = -1;
+    const box = document.createElement("div");
+    box.id = "warmBox";
+    box.style.cssText = "position:fixed;bottom:40px;inset-inline-start:12px;z-index:9;background:var(--card);border:1px solid var(--acc);border-radius:12px;padding:10px 12px;font-size:.8rem;max-width:360px;max-height:50vh;overflow:auto;direction:ltr;text-align:left";
+    document.body.appendChild(box);
+    this.next();
+  },
+  show() {
+    const ok = this.log.filter((l) => l[1] === "ok").length;
+    $("warmBox").innerHTML = `<b>Warm-up ${Math.min(this.i + 1, EX.length)}/${EX.length} — ok ${ok}</b><br>` + this.log.map((l) => `${l[1] === "ok" ? "✅" : "❌"} ${l[0]} <small>${l[2]}s</small>`).reverse().join("<br>");
+  },
+  next() {
+    clearTimeout(this.timer);
+    this.i++;
+    if (this.i >= EX.length) { this.on = false; this.show(); $("warmBox").insertAdjacentHTML("afterbegin", "<b>✔ DONE</b><br>"); return; }
+    this.t0 = Date.now(); this.waiting = true;
+    curEx = EX[this.i][0]; frame.src = simUrl(); renderEx(); this.show();
+    this.timer = setTimeout(() => this.done({ state: "timeout" }), 15 * 60 * 1000);
+  },
+  ready() { if (!this.waiting) return; this.waiting = false; setTimeout(() => frame.contentWindow.postMessage({ type: "3engs:compile" }, SIM), 4000); },
+  done(d) {
+    if (this.i < 0 || this.i >= EX.length || this.log.length > this.i) return;
+    this.log.push([EX[this.i][0], d.state === "done" && d.success !== false ? "ok" : "fail", Math.round((Date.now() - this.t0) / 1000)]);
+    this.next();
+  }
+};
 
 function start() {
   if (frame) return;
@@ -329,6 +360,7 @@ A.onAuthStateChanged(auth, async (u) => {
   if (u) {
     try { const e = await F.getDoc(F.doc(db, "entitlements", u.uid)); pro = e.exists() && e.data().toolsPro === true; } catch (e) {}
     start();
+    if (new URLSearchParams(location.search).get("warm") === "1" && u.emailVerified && ADMINS.includes((u.email || "").toLowerCase())) warm.begin();
   }
   renderGate(); renderQuota();
 });
