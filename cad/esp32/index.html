@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>محاكي ESP32 و Arduino أونلاين بالعربية — 3ENG CAD | 3ENG.s</title>
+<meta name="description" content="محاكي ESP32 و Arduino يعمل في المتصفح بالعربية والإنجليزية: اكتب الكود وشغّله على لوحة افتراضية مع الحساسات والشاشات و Wi-Fi و MQTT دون أي قطعة حقيقية.">
+<link rel="canonical" href="https://www.3engs.com/cad/esp32/">
+<link rel="icon" href="/logo.jpg">
+<meta name="theme-color" content="#F59E0B">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="3ENG.s">
+<meta property="og:url" content="https://www.3engs.com/cad/esp32/">
+<meta property="og:title" content="محاكي ESP32 و Arduino أونلاين — 3ENG CAD">
+<meta property="og:description" content="شغّل كود ESP32 و Arduino على لوحة افتراضية في المتصفح، مع Wi-Fi و MQTT والحساسات.">
+<meta property="og:image" content="https://www.3engs.com/og-image.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"3ENG CAD — ESP32 Simulator","alternateName":"محاكي ESP32 و Arduino","url":"https://www.3engs.com/cad/esp32/","applicationCategory":"EducationalApplication","operatingSystem":"Web browser","inLanguage":["ar","en"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"publisher":{"@type":"Organization","name":"3ENG.s","url":"https://www.3engs.com/"}}</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GZJCYL5YM8"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-GZJCYL5YM8');</script>
+<style>
+:root{--bg:#0b1020;--card:#131a2e;--line:#232c47;--txt:#e9edf7;--mut:#98a2bf;--acc:#F59E0B;--acc2:#fbbf24;--ok:#34d399;--er:#f87171}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{font-family:Cairo,system-ui,Tahoma,sans-serif;background:var(--bg);color:var(--txt);display:flex;flex-direction:column}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer}
+header{display:flex;align-items:center;gap:14px;padding:0 16px;height:58px;border-bottom:1px solid var(--line);background:#0b1020f2;flex-shrink:0}
+.brand{display:flex;align-items:center;gap:10px}
+.brand img{width:34px;height:34px;border-radius:9px}
+.brand b{font-size:1.15rem;font-weight:800;letter-spacing:.5px}
+.brand b span{color:var(--acc)}
+.brand small{display:block;font-size:.72rem;color:var(--mut);margin-top:-3px}
+.spacer{flex:1}
+.parts{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.parts a{padding:6px 14px;font-size:.86rem;font-weight:700;color:var(--mut)}
+.parts a.on{background:var(--acc);color:#1a1200}
+.parts a:not(.on):hover{color:var(--acc2)}
+.top-links{display:flex;gap:16px;font-size:.88rem;color:var(--mut)}
+.top-links a:hover{color:var(--acc)}
+.lang{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.lang button{background:none;border:0;color:var(--mut);padding:5px 12px;font-size:.85rem;font-weight:700}
+.lang button.on{background:var(--acc);color:#1a1200}
+.bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 16px;border-bottom:1px solid var(--line);font-size:.85rem;color:var(--mut)}
+.bar .q b{color:var(--txt)}
+.bar .q.low b{color:var(--er)}
+.btn{background:#1c2542;border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:6px 12px;font-size:.84rem;font-weight:700;display:inline-block}
+.btn:hover{border-color:var(--acc);color:var(--acc2)}
+.btn.main{background:var(--acc);color:#1a1200;border-color:var(--acc)}
+.stage{flex:1;position:relative;min-height:0}
+.stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff}
+.gate{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:26px;max-width:560px;width:100%;text-align:center}
+.card h1{font-size:1.4rem;margin-bottom:10px}
+.card p{color:#c8d0e4;line-height:1.9;margin-bottom:10px}
+.card ul{text-align:start;margin:6px 0 16px;padding-inline-start:20px;color:#c8d0e4;line-height:1.9}
+.card .btn{margin:4px}
+.modal{position:fixed;inset:0;background:#000a;display:flex;align-items:center;justify-content:center;padding:16px;z-index:9}
+.modal[hidden]{display:none}
+footer{font-size:.72rem;color:var(--mut);padding:6px 14px;border-top:1px solid var(--line);text-align:center;flex-shrink:0}
+footer a{color:var(--acc)}
+@media(max-width:860px){.top-links,.brand small{display:none}header{padding:0 10px;gap:8px}.parts a{padding:6px 9px;font-size:.78rem}}
+</style>
+<script src="/assets/visit.js" defer></script>
+</head>
+<body>
+<header>
+  <a class="brand" href="/cad/"><img src="/logo.jpg" alt="3ENG.s" width="34" height="34"><div><b>3ENG <span>CAD</span></b><small data-t="tagline"></small></div></a>
+  <nav class="parts" aria-label="3ENG CAD"><a href="/cad/" data-t="elec"></a><a href="/cad/esp32/" class="on" data-t="esp"></a></nav>
+  <div class="spacer"></div>
+  <nav class="top-links"><a href="/" data-t="home"></a><a href="/courses/" data-t="courses"></a></nav>
+  <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="ar">عربي</button><button type="button" data-lang="en">English</button></div>
+</header>
+<div class="bar" id="bar" hidden>
+  <span class="q" id="quota"></span>
+  <span class="spacer" style="flex:1"></span>
+  <a class="btn" id="upBtn" href="/?buy=products:tools-pro" data-t="upgrade" hidden></a>
+  <a class="btn main" id="tabBtn" target="_blank" rel="noopener" data-t="full"></a>
+</div>
+<section class="stage" id="stage">
+  <div class="gate" id="gate"><div class="card">
+    <h1 data-t="h1"></h1>
+    <p data-t="intro"></p>
+    <ul id="feat"></ul>
+    <div id="gateAct"><p>⏳</p></div>
+  </div></div>
+</section>
+<div class="modal" id="modal" hidden><div class="card"><h1 id="mT"></h1><p id="mP"></p><div id="mA"></div></div></div>
+<footer><span data-t="credit"></span> <a href="https://github.com/davidmonterocrespo24/velxio" target="_blank" rel="noopener">Velxio</a> — David Montero Crespo — <a href="https://www.gnu.org/licenses/agpl-3.0.html" target="_blank" rel="noopener">AGPL-3.0</a> — <span data-t="mods"></span> <a href="https://github.com/hosam-zaqout/3engs-velxio" target="_blank" rel="noopener">3engs-velxio</a></footer>
+
+<script type="module">
+// عنوان المحاكي (خدمة Cloud Run)
+const SIM = "https://velxio-1028163586505.us-central1.run.app";
+const FB = "https://www.gstatic.com/firebasejs/10.12.0/";
+const CFG = { apiKey: "AIzaSyALJiF8l_wnk_6FU6etQpz44Z43lSORXQk", authDomain: "engs-website.firebaseapp.com", projectId: "engs-website", storageBucket: "engs-website.firebasestorage.app", messagingSenderId: "1028163586505", appId: "1:1028163586505:web:c09de00bb30a3369ca4018" };
+
+const T = {
+  ar: {
+    doc: "محاكي ESP32 و Arduino أونلاين بالعربية — 3ENG CAD | 3ENG.s",
+    tagline: "محاكي ESP32 و Arduino", elec: "⚡ الإلكترونيات", esp: "📡 ESP32 و Arduino", home: "الرئيسية", courses: "الدورات",
+    h1: "📡 محاكي ESP32 و Arduino",
+    intro: "اكتب الكود وشغّله على لوحة افتراضية في المتصفح، دون أي قطعة حقيقية.",
+    feat: ["لوحات ESP32 و ESP32-S3 و ESP32-C3 و Arduino Uno و Raspberry Pi Pico", "حساسات وشاشات OLED و LCD ومحركات و LED وأزرار", "اتصال Wi-Fi حقيقي بالإنترنت لتجارب MQTT و HTTP", "شاشة المنفذ التسلسلي (Serial Monitor) والمكتبات الشائعة"],
+    login: "سجّل الدخول للبدء", loginNote: "المحاكي يتطلب حساباً مجانياً في 3ENG.s.",
+    free: (l) => `الخطة المجانية: ${l} ترجمة أسبوعياً. المشتركون في «الأدوات المتقدمة» يحصلون على حد أعلى.`,
+    used: (u, l) => `الترجمات هذا الأسبوع: <b>${u}</b> من <b>${l}</b>`,
+    weekly: (l) => `الحد الأسبوعي: <b>${l}</b> ترجمة`,
+    upgrade: "⭐ الأدوات المتقدمة", full: "↗ نافذة مستقلة",
+    quotaT: "انتهى رصيدك الأسبوعي", quotaP: (l) => `استخدمت ${l} ترجمة هذا الأسبوع. يتجدّد الرصيد يوم الاثنين، أو اشترك في «الأدوات المتقدمة» لتحصل على حد أعلى مع حفظ المشاريع.`,
+    buy: "اشترك الآن", close: "إغلاق",
+    expT: "انتهت الجلسة", expP: "أعد تحميل الصفحة لتجديد تسجيل الدخول.", reload: "إعادة التحميل",
+    credit: "محرك المحاكاة مفتوح المصدر:", mods: "وتعديلات المنصة:"
+  },
+  en: {
+    doc: "Online ESP32 & Arduino Simulator — 3ENG CAD | 3ENG.s",
+    tagline: "ESP32 & Arduino simulator", elec: "⚡ Electronics", esp: "📡 ESP32 & Arduino", home: "Home", courses: "Courses",
+    h1: "📡 ESP32 & Arduino Simulator",
+    intro: "Write code and run it on a virtual board in your browser — no hardware needed.",
+    feat: ["ESP32, ESP32-S3, ESP32-C3, Arduino Uno and Raspberry Pi Pico boards", "Sensors, OLED and LCD displays, motors, LEDs and buttons", "Real Wi-Fi internet access for MQTT and HTTP experiments", "Serial Monitor and popular libraries"],
+    login: "Sign in to start", loginNote: "The simulator needs a free 3ENG.s account.",
+    free: (l) => `Free plan: ${l} compiles per week. Advanced Tools members get a higher limit.`,
+    used: (u, l) => `Compiles this week: <b>${u}</b> of <b>${l}</b>`,
+    weekly: (l) => `Weekly limit: <b>${l}</b> compiles`,
+    upgrade: "⭐ Advanced Tools", full: "↗ Open in new tab",
+    quotaT: "Weekly limit reached", quotaP: (l) => `You used ${l} compiles this week. The quota resets on Monday, or join Advanced Tools for a higher limit plus saved projects.`,
+    buy: "Join now", close: "Close",
+    expT: "Session expired", expP: "Reload the page to sign in again.", reload: "Reload",
+    credit: "Open-source simulation engine:", mods: "3ENG.s changes:"
+  }
+};
+const FREE = 20;
+let lang = (() => { const q = new URLSearchParams(location.search).get("lang"); if (q === "ar" || q === "en") return q; try { return localStorage.getItem("cad-lang") || "ar"; } catch (e) { return "ar"; } })();
+const $ = (id) => document.getElementById(id);
+let user = null, pro = false, quota = null, frame = null;
+
+function simUrl() { return `${SIM}/${lang === "ar" ? "ar/" : ""}editor`; }
+function apply() {
+  const t = T[lang];
+  document.documentElement.lang = lang; document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+  document.title = t.doc;
+  document.querySelectorAll("[data-t]").forEach((el) => { const v = t[el.dataset.t]; if (typeof v === "string") el.textContent = v; });
+  document.querySelectorAll(".lang button").forEach((b) => b.classList.toggle("on", b.dataset.lang === lang));
+  $("feat").innerHTML = t.feat.map((f) => `<li>${f}</li>`).join("");
+  $("tabBtn").href = simUrl();
+  renderGate(); renderQuota();
+}
+function renderGate() {
+  const t = T[lang];
+  if (user === null) { $("gateAct").innerHTML = "<p>⏳</p>"; return; }
+  if (!user) {
+    const back = encodeURIComponent(location.pathname + location.search);
+    $("gateAct").innerHTML = `<p>${t.loginNote}</p><p style="font-size:.85rem">${t.free(FREE)}</p><a class="btn main" href="/auth.html?redirect=${back}">🔐 ${t.login}</a>`;
+  }
+}
+function renderQuota() {
+  const t = T[lang];
+  if (!user) return;
+  $("bar").hidden = false;
+  $("upBtn").hidden = pro;
+  const el = $("quota");
+  if (quota) { el.innerHTML = t.used(quota.used, quota.limit); el.classList.toggle("low", quota.limit - quota.used <= 3); }
+  else el.innerHTML = pro ? "⭐ " + t.upgrade : t.weekly(FREE);
+}
+function modal(title, text, actions) { $("mT").textContent = title; $("mP").textContent = text; $("mA").innerHTML = actions; $("modal").hidden = false; }
+$("modal").addEventListener("click", (e) => { if (e.target.id === "modal" || e.target.dataset.close != null) $("modal").hidden = true; if (e.target.dataset.reload != null) location.reload(); });
+
+document.querySelectorAll(".lang button").forEach((b) => b.onclick = () => {
+  if (b.dataset.lang === lang) return;
+  lang = b.dataset.lang; try { localStorage.setItem("cad-lang", lang); } catch (e) {}
+  apply(); if (frame) frame.src = simUrl();
+});
+
+async function sendToken(force) {
+  if (!user || !frame) return;
+  try { const token = await user.getIdToken(!!force); frame.contentWindow.postMessage({ type: "3engs:token", token }, SIM); } catch (e) { console.warn(e); }
+}
+window.addEventListener("message", (ev) => {
+  if (ev.origin !== SIM || !ev.data || typeof ev.data !== "object") return;
+  const d = ev.data, t = T[lang];
+  if (d.type === "3engs:ready") sendToken(false);
+  else if (d.type === "3engs:quota" && d.quota) { quota = d.quota; pro = !!d.quota.pro; renderQuota(); }
+  else if (d.type === "3engs:gate" && d.info) {
+    if (d.info.code === "quota") { quota = { used: d.info.used, limit: d.info.limit, pro: d.info.pro }; renderQuota();
+      modal(t.quotaT, t.quotaP(d.info.limit), (d.info.pro ? "" : `<a class="btn main" href="/?buy=products:tools-pro">${t.buy}</a>`) + `<button type="button" class="btn" data-close>${t.close}</button>`); }
+    else if (d.info.code === "login") { sendToken(true); }
+  }
+});
+
+function start() {
+  if (frame) return;
+  $("gate").remove();
+  frame = document.createElement("iframe");
+  frame.title = "3ENG CAD — ESP32";
+  frame.allow = "fullscreen; clipboard-write; serial; usb";
+  frame.src = simUrl();
+  $("stage").appendChild(frame);
+  setInterval(() => sendToken(true), 45 * 60 * 1000); // تجديد الرمز قبل انتهائه (ساعة)
+}
+
+apply();
+const [{ initializeApp }, A, F] = await Promise.all([import(FB + "firebase-app.js"), import(FB + "firebase-auth.js"), import(FB + "firebase-firestore.js")]);
+const app = initializeApp(CFG);
+const auth = A.getAuth(app), db = F.getFirestore(app);
+A.onAuthStateChanged(auth, async (u) => {
+  user = u || false;
+  if (u) {
+    try { const e = await F.getDoc(F.doc(db, "entitlements", u.uid)); pro = e.exists() && e.data().toolsPro === true; } catch (e) {}
+    start();
+  }
+  renderGate(); renderQuota();
+});
+</script>
+</body>
+</html>
