@@ -124,6 +124,7 @@ footer a{color:var(--acc)}
     <li data-t="netS3"></li>
   </ol>
   <p id="netStatus" style="background:#0e1528;border:1px solid var(--line);border-radius:10px;padding:10px;margin:8px 0"></p>
+  <p id="hsStatus" hidden style="background:#132a1f;border:1px solid #1f5f43;border-radius:10px;padding:10px;margin:8px 0"></p>
   <div style="text-align:center"><button type="button" class="btn main" id="netGo"></button> <button type="button" class="btn" id="netClose" data-t="close"></button></div>
   <p style="font-size:.75rem;color:var(--mut);margin-top:10px" data-t="netCredit"></p>
 </div></div>
@@ -163,7 +164,12 @@ const T = {
     netNoGw: "لم يُعثر على 3ENG Gateway على جهازك. تأكد أنه يعمل ثم أعد المحاولة.",
     netWaitBoard: "✅ متصل بالبرنامج. شغّل المحاكاة الآن (أو أعد تشغيلها).",
     netBoard: "✅ اللوحة متصلة بشبكتك. صفحة اللوحة: http://localhost:9080 — ومن هاتفك: http://<عنوان جهازك>:9080",
-    netLost: "انقطع الاتصال.", netCredit: "يعتمد 3ENG Gateway على Wokwi IoT Gateway (رخصة MIT، © Uri Shaked).",
+    netLost: "انقطع الاتصال.",
+    hsOn: (n) => `📶 شغّل البرنامج على جهازك شبكة Wi-Fi باسم «${n}» وبكلمة المرور المكتوبة في الكود. اتصل بها من هاتفك، ثم افتح http://192.168.137.1:9080`,
+    hsTrying: (n) => `📶 الكود يُنشئ نقطة وصول باسم «${n}»؛ جارٍ تشغيل شبكة بالاسم نفسه على جهازك…`,
+    hsErr: { BAD_PASSWORD: "لم تُشغَّل نقطة الاتصال: كلمة المرور في الكود يجب أن تتكون من 8 أحرف على الأقل.", BAD_SSID: "لم تُشغَّل نقطة الاتصال: اسم الشبكة في الكود غير صالح.", NO_INTERNET: "لم تُشغَّل نقطة الاتصال: يتطلب ويندوز أن يكون الجهاز متصلاً بالإنترنت لتشغيلها.", HOTSPOT_WINDOWS_ONLY: "ميزة نقطة الاتصال متاحة على ويندوز فقط حالياً." },
+    hsFail: (e) => `لم تُشغَّل نقطة الاتصال: ${e}`,
+    netCredit: "يعتمد 3ENG Gateway على Wokwi IoT Gateway (رخصة MIT، © Uri Shaked).",
     all: "الكل", lvl: ["مبتدئ", "متوسط", "متقدم"],
     cats: { basics: "💡 أساسيات", sensors: "🌡️ حساسات", displays: "🖥️ شاشات", motors: "⚙️ محركات", iot: "🌐 اتصال وإنترنت الأشياء", projects: "🏆 مشاريع" }
   },
@@ -193,7 +199,12 @@ const T = {
     netNoGw: "3ENG Gateway was not found on this computer. Make sure it is running and try again.",
     netWaitBoard: "✅ Connected to the program. Run the simulation now (or restart it).",
     netBoard: "✅ The board is on your network. Board page: http://localhost:9080 — from your phone: http://<your computer's IP>:9080",
-    netLost: "Disconnected.", netCredit: "3ENG Gateway is based on the Wokwi IoT Gateway (MIT License, © Uri Shaked).",
+    netLost: "Disconnected.",
+    hsOn: (n) => `📶 The program started a Wi-Fi network named “${n}” on your computer, with the password from the code. Join it from your phone, then open http://192.168.137.1:9080`,
+    hsTrying: (n) => `📶 The code creates an access point named “${n}”; starting a network with the same name on your computer…`,
+    hsErr: { BAD_PASSWORD: "Hotspot not started: the password in the code must have at least 8 characters.", BAD_SSID: "Hotspot not started: the network name in the code is not valid.", NO_INTERNET: "Hotspot not started: Windows needs an internet connection to run a hotspot.", HOTSPOT_WINDOWS_ONLY: "The hotspot feature is Windows-only for now." },
+    hsFail: (e) => `Hotspot not started: ${e}`,
+    netCredit: "3ENG Gateway is based on the Wokwi IoT Gateway (MIT License, © Uri Shaked).",
     all: "All", lvl: ["Beginner", "Intermediate", "Advanced"],
     cats: { basics: "💡 Basics", sensors: "🌡️ Sensors", displays: "🖥️ Displays", motors: "⚙️ Motors", iot: "🌐 Communication & IoT", projects: "🏆 Projects" }
   }
@@ -302,7 +313,7 @@ function apply() {
   document.querySelectorAll(".lang button").forEach((b) => b.classList.toggle("on", b.dataset.lang === lang));
   $("feat").innerHTML = t.feat.map((f) => `<li>${f}</li>`).join("");
   $("tabBtn").href = simUrl();
-  renderGate(); renderQuota(); renderEx(); netRender();
+  renderGate(); renderQuota(); renderEx(); netRender(); hsRender();
 }
 function renderGate() {
   const t = T[lang];
@@ -381,7 +392,13 @@ const warm = { on: false, i: -1, log: [], timer: null, waiting: false,
 // The page relays raw network frames between the simulator server
 // (wss://…/api/3engs/localnet/<tab session>) and 3ENG Gateway on this computer
 // (ws://127.0.0.1:9011). The board must be (re)started after connecting.
-const net = { gw: null, srv: null, state: "idle", board: false };
+const net = { gw: null, srv: null, state: "idle", board: false, hs: null };
+function hsRender() {
+  const t = T[lang], el = $("hsStatus"), h = net.hs;
+  el.hidden = !h;
+  if (!h) return;
+  el.textContent = h.state === "on" ? t.hsOn(h.ssid) : h.state === "trying" ? t.hsTrying(h.ssid) : (t.hsErr[h.error] || t.hsFail(h.error));
+}
 function netRender() {
   const t = T[lang];
   const st = { idle: t.netIdle, trying: t.netTrying, nogw: t.netNoGw, wait: t.netWaitBoard, board: t.netBoard, lost: t.netLost }[net.state] || "";
@@ -393,7 +410,7 @@ function netRender() {
 function netStop(state) {
   try { net.gw && net.gw.close(); } catch (e) {}
   try { net.srv && net.srv.close(); } catch (e) {}
-  net.gw = net.srv = null; net.state = state || "idle"; netRender();
+  net.gw = net.srv = null; net.state = state || "idle"; net.hs = null; netRender(); hsRender();
 }
 async function netStart() {
   if (!user || !simSid) return;
@@ -407,12 +424,24 @@ async function netStart() {
   const srv = new WebSocket(SIM.replace(/^http/, "ws") + "/api/3engs/localnet/" + encodeURIComponent(simSid) + "?t=" + encodeURIComponent(token));
   srv.binaryType = "arraybuffer";
   net.srv = srv;
-  gw.onmessage = (ev) => { if (typeof ev.data !== "string" && srv.readyState === 1) srv.send(ev.data); };
+  gw.onmessage = (ev) => {
+    if (typeof ev.data === "string") {   // 3ENG Gateway control replies
+      try { const m = JSON.parse(ev.data);
+        if (m.type === "3eng-hotspot") { net.hs = { ssid: m.ssid, state: m.ok ? "on" : "err", error: m.error || "" }; hsRender(); $("netBox").hidden = false; }
+      } catch (e) {}
+      return;
+    }
+    if (srv.readyState === 1) srv.send(ev.data);
+  };
   srv.onmessage = (ev) => {
     if (typeof ev.data === "string") {
       try { const m = JSON.parse(ev.data);
         if (m.type === "ready") { net.state = "wait"; netRender(); }
         else if (m.type === "board") { net.state = m.state === "connected" ? "board" : "wait"; netRender(); }
+        else if (m.type === "softap" && gw.readyState === 1) {   // the sketch called WiFi.softAP()
+          net.hs = { ssid: m.ssid, state: "trying" }; hsRender(); $("netBox").hidden = false;
+          gw.send(JSON.stringify({ type: "3eng-hotspot", ssid: m.ssid, password: m.password }));
+        }
       } catch (e) {}
       return;
     }
