@@ -175,7 +175,17 @@ function pick(o, keys) {
   }
   return undefined;
 }
-const clip = (o) => JSON.stringify(o).slice(0, 1500);
+const clip = (o) => JSON.stringify(redactLinks(o)).slice(0, 1500);
+// روابط الدفع خاصة (توثيق Togo): ما بنخزّنها ولا بنكتبها باللوج
+function redactLinks(o, depth = 0) {
+  if (!o || typeof o !== "object" || depth > 5) return o;
+  if (Array.isArray(o)) return o.map((x) => redactLinks(x, depth + 1));
+  const out = {};
+  for (const [k, v] of Object.entries(o)) {
+    out[k] = /(link|url)$/i.test(k) && typeof v === "string" && /^https?:/i.test(v) ? "[link]" : redactLinks(v, depth + 1);
+  }
+  return out;
+}
 
 // حالة الدفع من رد Togo: paid | failed | pending
 // نعتبره مدفوعاً فقط بإشارة صريحة — أي شي غامض يضل pending
@@ -399,7 +409,7 @@ exports.createPayment = onRequest(
     // 🔔 تنبيه للأدمن (ما بيأخّر الزبون أكثر من 4 ثواني)
     await Promise.race([notifyAttempt({ ...attempt, createdAt: new Date() }), new Promise((r) => setTimeout(r, 4000))]).catch(() => {});
 
-    let togoOrderId, hashedId, created;
+    let togoOrderId, hashedId, created, checkoutUrl;
     try {
       const receiverId = await togoReceiver(user, mobile, customerName, city, String(q.country || "").substring(0, 2));
       created = await togo("POST", "/actions", {
@@ -420,13 +430,28 @@ exports.createPayment = onRequest(
       togoOrderId = pick(d, ["id", "_id", "order_id", "order.id", "orderId"]) ||
         (String(created.message || "").match(/order\s+([A-Za-z0-9_-]+)/i) || [])[1];
       hashedId = pick(d, ["hashed_id", "hashedId", "hash_id", "order.hashed_id", "hash"]);
+      // توثيق Togo الجديد: نستخدم checkout_url كما هو، وما نبني رابط الدفع بإيدنا
+      checkoutUrl = pick(d, ["checkout_url", "checkoutUrl", "order.checkout_url"]);
+      if (!checkoutUrl && togoOrderId) {
+        try {
+          const pl = await togo("POST", "/payment-links", { orderId: String(togoOrderId), locale: "ar" });
+          checkoutUrl = pl.checkout_url || pick(pl, ["data.checkout_url"]);
+        } catch (e2) {
+          logger.warn("Togo payment-links failed", { invoiceId, msg: e2.message, body: e2.body && clip(e2.body) });
+        }
+      }
     } catch (e) {
       logger.error("Togo create failed", { invoiceId, msg: e.message, body: e.body && clip(e.body) });
       await orderRef.update({ status: "gateway_error", note: ("بوابة الدفع: " + (e.message || "")).substring(0, 300) }).catch(() => {});
       errorPage(res, 502, "تعذر الاتصال ببوابة الدفع حالياً. حاول بعد قليل أو تواصل معنا عبر واتساب مع رقم الطلب: " + invoiceId);
       return;
     }
-    if (!hashedId || !togoOrderId) {
+    // الطريقة القديمة (رابط مبني) احتياط فقط لو Togo ما رجّع checkout_url
+    if (!checkoutUrl && hashedId) {
+      checkoutUrl = `https://api.togo.ps/api/v1/direct-pay?orderId=${encodeURIComponent(hashedId)}&receiverEmail=${encodeURIComponent(email)}`;
+      logger.warn("Togo: no checkout_url, using legacy direct-pay link", { invoiceId });
+    }
+    if (!checkoutUrl || !togoOrderId) {
       logger.error("Togo create: missing ids", { invoiceId, body: clip(created) });
       await orderRef.update({ status: "gateway_error", note: "بوابة الدفع: رد بدون رقم طلب", togoCreate: clip(created) }).catch(() => {});
       errorPage(res, 502, "تعذر تجهيز صفحة الدفع. تواصل معنا عبر واتساب مع رقم الطلب: " + invoiceId);
@@ -437,13 +462,12 @@ exports.createPayment = onRequest(
     await orderRef.update({
       status:        "pending",
       togoOrderId:   String(togoOrderId),
-      togoHashedId:  String(hashedId),
+      ...(hashedId ? { togoHashedId: String(hashedId) } : {}),
       togoCreate:    clip(created.data || created),
     });
 
     logger.info("Order created (Togo)", { invoiceId, total, togoOrderId });
-    const payUrl = `https://api.togo.ps/api/v1/direct-pay?orderId=${encodeURIComponent(hashedId)}&receiverEmail=${encodeURIComponent(email)}`;
-    res.redirect(302, payUrl);
+    res.redirect(302, checkoutUrl);
   }
 );
 
@@ -493,6 +517,84 @@ exports.syncTogoPayments = onSchedule(
       checked++;
     }
     logger.info("Togo sweep", { pending: snap.size, checked });
+  }
+);
+
+// ─────────────────────────────────────────────
+// togoWebhook — إشعار الدفع الموقّع من Togo (HMAC-SHA256)
+// السر في Secret Manager (منفصل عن مفتاح الـ API):
+//   firebase functions:secrets:set TOGO_WEBHOOK_SECRET --project engs-website
+// الرابط اللي بنعطيه لـ Togo: https://us-central1-engs-website.cloudfunctions.net/togoWebhook
+// ─────────────────────────────────────────────
+// يتفعّل بعد حفظ السر: أضف السطر TOGO_WEBHOOK_ENABLED=1 إلى functions/.env ثم انشر togoWebhook
+const TOGO_WEBHOOK_ON = process.env.TOGO_WEBHOOK_ENABLED === "1";
+const TOGO_WEBHOOK_SECRET = TOGO_WEBHOOK_ON ? defineSecret("TOGO_WEBHOOK_SECRET") : null;
+
+function verifyTogoSignature(req, secret) {
+  const ts = req.headers["x-togo-webhook-timestamp"];
+  const sig = req.headers["x-togo-webhook-signature"];
+  // الهيدر لازم يكون موجود ومرة وحدة
+  if (typeof ts !== "string" || typeof sig !== "string" || ts.includes(",") || sig.includes(",")) return "headers";
+  if (!/^\d{1,12}$/.test(ts) || Math.abs(Date.now() / 1000 - Number(ts)) > 300) return "timestamp";
+  const m = /^v1=([a-f0-9]{64})$/.exec(sig);
+  if (!m || !Buffer.isBuffer(req.rawBody)) return "format";
+  const expected = crypto.createHmac("sha256", secret).update(`${ts}.`, "utf8").update(req.rawBody).digest();
+  const given = Buffer.from(m[1], "hex");
+  if (given.length !== expected.length || !crypto.timingSafeEqual(expected, given)) return "signature";
+  return null;
+}
+
+if (TOGO_WEBHOOK_ON) exports.togoWebhook = onRequest(
+  { secrets: [TOGO_API_KEY, TOGO_WEBHOOK_SECRET], region: "us-central1", timeoutSeconds: 30 },
+  async (req, res) => {
+    if (req.method !== "POST") { res.status(405).send(""); return; }
+    const bad = verifyTogoSignature(req, TOGO_WEBHOOK_SECRET.value());
+    if (bad) { logger.warn("Togo webhook rejected", { reason: bad }); res.status(401).send(""); return; }
+
+    let body;
+    try { body = JSON.parse(req.rawBody.toString("utf8")); } catch (e) { res.status(400).send(""); return; }
+    const eventId = String(body.event_id || "");
+    const togoOrderId = String(body.order_id ?? "");
+    const result = body.payment_status;
+    if (!/^evt_[a-f0-9]{64}$/.test(eventId) || !togoOrderId || !["success", "failure"].includes(result)) {
+      logger.warn("Togo webhook: bad fields", { eventId: eventId.slice(0, 20), result });
+      res.status(400).send(""); return;
+    }
+
+    const evRef = db.collection("togo_webhook_events").doc(eventId);
+    if ((await evRef.get()).exists) { res.status(200).send(""); return; }   // سبق ومعالج
+
+    const snap = await db.collection("orders").where("togoOrderId", "==", togoOrderId).limit(1).get();
+    if (snap.empty) {
+      await evRef.set({ togoOrderId, result, matched: false, at: FieldValue.serverTimestamp() });
+      logger.warn("Togo webhook: order not found", { togoOrderId });
+      res.status(200).send(""); return;
+    }
+    const orderRef = snap.docs[0].ref;
+    let order = snap.docs[0].data();
+
+    // أول إشي نسأل Togo نفسه (بيأكد المبلغ ويخزّن الحالة الحقيقية)
+    order = await syncTogoOrder(orderRef, order);
+    let applied = "none";
+    await db.runTransaction(async (tx) => {
+      if ((await tx.get(evRef)).exists) return;               // وصل نفس الإشعار مرتين بنفس اللحظة
+      const cur = (await tx.get(orderRef)).data() || {};
+      const upd = { togoWebhookAt: FieldValue.serverTimestamp(), togoWebhookResult: result };
+      if (result === "success" && ["pending", "failed", "gateway_error"].includes(cur.status)) {
+        const payCfg = await getPaymentConfig();
+        upd.status = payCfg.manualApproval ? "awaiting_approval" : "paid";
+        upd.verification = "togo_webhook";
+        if (upd.status === "paid") upd.paidAt = FieldValue.serverTimestamp();
+        applied = upd.status;
+      } else if (result === "failure" && cur.status === "pending") {
+        upd.status = "failed";
+        applied = "failed";
+      }
+      tx.update(orderRef, upd);
+      tx.set(evRef, { togoOrderId, result, orderId: orderRef.id, applied, at: FieldValue.serverTimestamp() });
+    });
+    logger.info("Togo webhook", { invoiceId: order.invoiceId, result, applied, status: order.status });
+    res.status(200).send("");
   }
 );
 
