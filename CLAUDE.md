@@ -44,7 +44,7 @@
 - المفتاح في Secret Manager: `TOGO_API_KEY` (لا يُكتب بالكود أبداً).
 - التدفق: `createPayment` (POST form) → يقرأ الأسعار من Firestore → receiver address (مخزّن بـ `users/{uid}.togoReceivers`) → `POST /api/v1/actions` (Create_Visa, type RFP, USD, prevent_sms_link) → redirect إلى **`checkout_url` من رد Togo كما هو** (تحديث توثيق Togo 2026-11: الروابط المبنية يدوياً `direct-pay?orderId=` صارت ترجع 401 "Invalid or expired payment link"). إن غاب: `POST /api/v1/payment-links {orderId, locale:"ar"}`. الرابط والطلب ينتهيان بعد 60 دقيقة. روابط الدفع خاصة: `clip()` يخفيها (`redactLinks`) من Firestore واللوج.
 - **Webhook موقّع (جاهز، غير مفعّل)**: `togoWebhook` يتحقق من HMAC-SHA256 (`X-Togo-Webhook-Timestamp/Signature`، نافذة 300 ثانية، `event_id` مرة واحدة في `togo_webhook_events`) ثم يسأل Togo ويحدّث الطلب. التفعيل: حسام يطلب من Togo ضبط الرابط `https://us-central1-engs-website.cloudfunctions.net/togoWebhook` ويأخذ Signing Secret → `firebase functions:secrets:set TOGO_WEBHOOK_SECRET` → إضافة `TOGO_WEBHOOK_ENABLED=1` إلى `functions/.env` → `firebase.cmd deploy --only functions:togoWebhook`. (على هذا الجهاز استخدم `firebase.cmd` لأن سياسة PowerShell تمنع firebase.ps1.)
-- التأكيد **من سيرفر Togo فقط** (`GET /orders?id=` → `data.items[]`، الحالة `status`: `TO_PAY` / `CANCELLED` / غالباً `PAID`) عبر `syncTogoOrder`؛ `verifyPayment` + `syncTogoPayments` (كل 30 دقيقة) + زر "🔄 تحقق" للأدمن. **قيمة status بعد الدفع الناجح لم تُرَ بعد** — أول دفعة حقيقية تؤكدها (راجع `togoLastStatus` بالطلب).
+- التأكيد **من سيرفر Togo فقط** (`GET /orders?id=` → `data.items[]`، الحالة `status`: `TO_PAY` / `CANCELLED` / **`PAID`** — مؤكَّدة بأول دفعة حقيقية $1 في 2026-11-16، والرد فيه أيضاً `transaction_id` و`bank`) عبر `syncTogoOrder`؛ `verifyPayment` + `syncTogoPayments` (كل 30 دقيقة) + زر "🔄 تحقق" للأدمن.
 - ملاحظات Togo غير موثقة: receiver-address يتطلب حقل `details`. أداة `adminTogo {action:"dryrun"}` تنشئ طلب $1 وتلغيه وتعرض الردود.
 - الملفات المدفوعة في `private_files/{col}__{id}` (أدمن فقط)، تُسلَّم عبر "📦 مشترياتي" (والرابط `/?myorders=1` يفتحها). طلبات يدوية (واتساب/PayPal) عبر `adminCreateOrder`.
 - بجانب أزرار الشراء سطر "🔒 دفع آمن عبر Togo • استرداد خلال 7 أيام" يربط بـ `/privacy.html#refund`.
@@ -53,15 +53,15 @@
 - nodemailer عبر Gmail SMTP؛ كلمة مرور التطبيق في Secret Manager: `SMTP_PASS`.
 - `sendReceipt` (trigger على `orders/{id}`): إيصال تلقائي عند تحوّل الطلب إلى `paid` (مرة واحدة: `receiptClaimedAt` / `receiptSentAt`، والخطأ في `receiptError`). النص قابل للتعديل من `site_config/emails` (لوحة التحكم ← 💳 إعدادات الدفع) بالمتغيرات `{name}` `{invoice}` `{total}`، و`adminTestReceipt` يرسل نسخة تجريبية.
 - `adminWorkshopEmail`: إيميل جماعي لمسجلي ورشة (`{name}` لكل طالب، وزر تجربة)، والسجل في `workshop_emails`.
-- **لم يُختبر وصول أي إيميل فعلياً بعد.**
+- إيصال الدفع (`sendReceipt`) أُرسل فعلياً مع أول دفعة حقيقية (2026-11-16). إيميل الورشات لم يُختبر بعد.
 
 ## الورشات
 - `workshops/{id}` (title, slug, date, desc, open) و`workshop_registrations/{workshopId}__{phone}` (الاسم، الواتساب بصيغة دولية دون +، الإيميل، الدولة، التخصص، uid اختياري). التسجيل دون حساب؛ الرقم لا يتكرر في نفس الورشة.
 - صفحة التسجيل: `/register/?w={slug}`. لوحة التحكم ← 🎟️ الورشات: إنشاء، فتح/إغلاق، نسخ الرابط، المسجلون، تصدير Excel (SheetJS من cdnjs، الرقم نصّي + رابط wa.me) و CSV، وإيميل جماعي.
 
 ## الحالة الحالية / المهام المفتوحة
-1. **اختبار دفع حقيقي $1** بمنتج "🧪 منتج تجريبي" (slug `payment-test`) — ثم حذفه وتأكيد قيمة status المدفوعة.
-2. **اختبار الإيميلات** (الإيصال التجريبي + تجربة إيميل الورشة) و**الأدوات المتقدمة** (طلب يدوي بمبلغ 0 لحساب حسام ثم حفظ/تقرير).
+1. ✅ الدفع الحقيقي $1 نجح وتأكد (`PAID`) والإيصال وصل. باقي: إخفاء/حذف "🧪 منتج تجريبي" (slug `payment-test`) من لوحة التحكم.
+2. **اختبار إيميل الورشة** و**الأدوات المتقدمة** (طلب يدوي بمبلغ 0 لحساب حسام ثم حفظ/تقرير). **تفعيل Webhook من Togo** (انظر قسم الدفع).
 3. `https://3engs.com` بدون www: سجلات A الأربعة صحيحة و http يحوّل، لكن شهادة SSL للدومين بدون www لم تصدر بعد — إن استمر: إزالة الدومين من GitHub Pages وإعادة إضافته ثم Enforce HTTPS.
 4. بعد اختبار الدفع: عناوين أنظف (`/login/` بدل auth.html، `/payment/` بدل payment-success.html — انتبه لروابط الرجوع في createPayment).
 5. 3ENG CAD منشور على /cad/ — توسيع الترجمة العربية في locale_ar.txt وإضافة دوائر للمكتبة حسب الحاجة.
