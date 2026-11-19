@@ -171,7 +171,7 @@ const T = {
     hsFail: (e) => `لم تُشغَّل نقطة الاتصال: ${e}`,
     netCredit: "يعتمد 3ENG Gateway على Wokwi IoT Gateway (رخصة MIT، © Uri Shaked).",
     all: "الكل", lvl: ["مبتدئ", "متوسط", "متقدم"],
-    cats: { basics: "💡 أساسيات", sensors: "🌡️ حساسات", displays: "🖥️ شاشات", motors: "⚙️ محركات", iot: "🌐 اتصال وإنترنت الأشياء", projects: "🏆 مشاريع" }
+    cats: { ap: "📶 نقطة الوصول (AP)", basics: "💡 أساسيات", sensors: "🌡️ حساسات", displays: "🖥️ شاشات", motors: "⚙️ محركات", iot: "🌐 اتصال وإنترنت الأشياء", projects: "🏆 مشاريع" }
   },
   en: {
     doc: "Online ESP32 & Arduino Simulator — 3ENG CAD | 3ENG.s",
@@ -206,7 +206,7 @@ const T = {
     hsFail: (e) => `Hotspot not started: ${e}`,
     netCredit: "3ENG Gateway is based on the Wokwi IoT Gateway (MIT License, © Uri Shaked).",
     all: "All", lvl: ["Beginner", "Intermediate", "Advanced"],
-    cats: { basics: "💡 Basics", sensors: "🌡️ Sensors", displays: "🖥️ Displays", motors: "⚙️ Motors", iot: "🌐 Communication & IoT", projects: "🏆 Projects" }
+    cats: { ap: "📶 Access Point", basics: "💡 Basics", sensors: "🌡️ Sensors", displays: "🖥️ Displays", motors: "⚙️ Motors", iot: "🌐 Communication & IoT", projects: "🏆 Projects" }
   }
 };
 const FREE = 20;
@@ -259,7 +259,12 @@ const EX = [
   ["3engs-web-led","esp32","iot",1,"التحكم بـ LED من صفحة ويب","Web page LED control","صفحة ويب عربية على ESP32 فيها زرّا تشغيل وإطفاء؛ افتحها من الرابط في شاشة المنفذ التسلسلي.","An Arabic web page on the ESP32 with On/Off buttons; open it from the Serial Monitor link."],
   ["3engs-web-dht22","esp32","iot",2,"محطة طقس على الويب (DHT22)","Web weather station (DHT22)","صفحة ويب تعرض الحرارة والرطوبة وتتحدّث كل ثانيتين.","A web page showing temperature and humidity, refreshed every two seconds."],
   ["3engs-web-servo","esp32","iot",2,"التحكم بالسيرفو من صفحة ويب","Web servo slider","شريط تمرير في صفحة ويب يحرّك محرك السيرفو.","A slider on a web page moves the servo."],
-  ["3engs-softap","esp32","iot",1,"نقطة الوصول (Access Point)","Access Point (softAP)","اللوحة تُنشئ شبكتها الخاصة؛ في المحاكي يعمل الكود ويطبع البيانات فقط، وعلى اللوحة الحقيقية تتصل بها من هاتفك.","The board creates its own network; in the simulator the code runs and prints its details only — on real hardware connect from your phone."],
+  ["3engs-ap-led","esp32","ap",1,"التحكم بـ LED عبر نقطة الوصول","Access Point: LED control","اللوحة تُنشئ الشبكة 3ENG.S وتعرض صفحة فيها زرّا تشغيل وإطفاء. مع 🔌 شبكتي المحلية يتصل هاتفك بها فعلاً.","The board creates the network 3ENG.S with an On/Off page. With 🔌 My local network your phone really joins it."],
+  ["3engs-ap-motor","esp32","ap",2,"التحكم بسرعة واتجاه محرك عبر نقطة الوصول","Access Point: motor speed & direction","شريط تمرير للسرعة وزر لعكس الاتجاه، والمحرك الخطوي يدور في المحاكي.","A speed slider and a direction button; the stepper motor spins in the simulator."],
+  ["3engs-ap-rgb","esp32","ap",1,"اختيار لون LED عبر نقطة الوصول","Access Point: RGB colour picker","اختر أي لون من الهاتف فيظهر على المصباح ثلاثي الألوان.","Pick any colour on the phone and the RGB LED shows it."],
+  ["3engs-ap-servo","esp32","ap",1,"التحكم بالسيرفو عبر نقطة الوصول","Access Point: servo angle","حرّك زاوية السيرفو من الهاتف بشريط تمرير.","Move the servo angle from a slider on the phone."],
+  ["3engs-ap-dht22","esp32","ap",2,"محطة طقس على الهاتف عبر نقطة الوصول","Access Point: weather station on your phone","الحرارة والرطوبة من الحساس DHT22 تظهر على الهاتف وتتحدّث كل ثانيتين.","DHT22 temperature and humidity live on the phone, every two seconds."],
+  ["3engs-softap","esp32","ap",1,"نقطة الوصول (Access Point) — المثال الأساسي","Access Point (softAP) — basic","أبسط مثال لإنشاء شبكة خاصة باللوحة وصفحة ترحيب.","The simplest example: the board creates its own network and a welcome page."],
   ["esp32-ble-advertise","esp32","iot",2,"بث Bluetooth منخفض الطاقة (BLE)","ESP32 BLE Advertise","بث إعلان BLE من اللوحة.","Broadcast a BLE advertisement."],
   ["ir-remote-esp32","esp32","iot",2,"جهاز تحكم بالأشعة تحت الحمراء","IR Remote (ESP32)","استقبال أوامر جهاز التحكم عن بُعد.","Receive infrared remote codes."],
   ["i2c-scanner","uno","iot",2,"ماسح ناقل I2C","I2C Scanner","البحث عن عناوين الأجهزة الموصولة بناقل I2C.","Find devices on the I2C bus."],
