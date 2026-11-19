@@ -89,6 +89,35 @@ header img{width:34px;height:34px;border-radius:9px}
       }
       return notFound(!!sec);
     }
+    // دورة/مشروع/منتج/كتاب جديد لسا ما انبنتله صفحة ثابتة ← نعرضه فوراً من قاعدة البيانات (مع زر الشراء)
+    const COLS = { courses: "الدورات", projects: "المشاريع", products: "المنتجات", books: "الكتب" };
+    if (COLS[parts[0]] && parts.length >= 2) {
+      const items = await docs(parts[0]);
+      const it = items.find((i) => i.hidden !== true && i.published !== false && (slug3(i.slug) || auto3(i.title, i.id)) === parts[1]);
+      if (it && it.title) {
+        const col = parts[0];
+        const live = col === "courses" && Number(it.livePrice) > 0;
+        const price = it.liveOnly && live ? Number(it.livePrice) : Number(it.price || 0);
+        const free = !(price > 0) || it.isFree === true;
+        document.title = `${it.title} | 3ENG.s`;
+        if (it.unlisted === true) { const m = document.createElement("meta"); m.name = "robots"; m.content = "noindex, nofollow"; document.head.appendChild(m); }
+        const img = /^https?:\/\//.test(it.imageUrl || "") ? `<img class="cover" src="${esc(it.imageUrl)}" alt="${esc(it.title)}">` : "";
+        const buy = free
+          ? `<a class="btn" href="/?open=${col}:${esc(it.id)}">📥 احصل عليه مجاناً</a>`
+          : `${it.liveOnly && live ? "" : `<a class="btn" href="/?buy=${col}:${esc(it.id)}" rel="nofollow">🛒 اشترِ الآن — $${Number(it.price || 0)}</a>`}${live ? `<a class="btn" style="background:#0369a1;color:#fff;border-color:#0369a1" href="/?buy=${col}:${esc(it.id)}" rel="nofollow">🔴 الدورة المباشرة — $${Number(it.livePrice)}</a>` : ""}`;
+        main.innerHTML = `<article class="article">
+          <p style="font-size:.85rem;color:var(--mut)"><a href="/">الرئيسية</a> ‹ ${it.unlisted === true ? "🔒 خاص" : `<a href="/${col}/">${COLS[col]}</a>`}</p>
+          <h1>${it.emoji ? esc(it.emoji) + " " : ""}${esc(it.title)}</h1>
+          ${img}
+          ${it.shortDesc ? `<p style="color:var(--mut);margin-bottom:12px">${esc(it.shortDesc)}</p>` : ""}
+          <p style="font-size:1.4rem;font-weight:800;color:var(--acc2);margin:10px 0">${free ? "مجاني" : `$${price}`}${!free && Number(it.oldPrice) > price ? ` <s style="font-size:.7em;color:var(--mut)">$${Number(it.oldPrice)}</s>` : ""}</p>
+          <div class="links" style="justify-content:flex-start;margin:6px 0 18px">${buy}<a href="https://wa.me/970592753159?text=${encodeURIComponent("استفسار عن: " + it.title)}" rel="nofollow">💬 استفسار واتساب</a></div>
+          ${!free ? `<p style="font-size:.85rem;color:var(--mut)">🔒 دفع آمن عبر بوابة Togo — بيانات بطاقتك لا تصل إلينا • ↩️ <a href="/privacy.html#refund">استرداد خلال 7 أيام</a></p>` : ""}
+          ${it.desc ? `<div class="prose" style="margin-top:18px">${md3.render(String(it.desc))}</div>` : ""}
+        </article>`;
+        return;
+      }
+    }
     const known = ["courses", "projects", "products", "books", "topics"];
     notFound(parts.length >= 2 && known.includes(parts[0]));
   } catch (e) {

@@ -1380,7 +1380,7 @@ async function loadProds(){
     const typeMap={tool:{cls:'tt',lbl:'أداة'},template:{cls:'tm',lbl:'قالب'},ebook:{cls:'te',lbl:'كتاب رقمي'}};
     const badgeMap={new:{cls:'bn',txt:'جديد'},best:{cls:'bb',txt:'الأكثر مبيعاً'},sale:{cls:'bs',txt:'خصم'},free:{cls:'bf',txt:'مجاني'}};
     let html='';
-    const parr=[];snap.forEach(d=>parr.push({id:d.id,...d.data()}));parr.sort(byOrder);
+    const parr=[];snap.forEach(d=>{const x={id:d.id,...d.data()};if(isListed(x))parr.push(x);});parr.sort(byOrder);
     parr.forEach(p=>{const t=typeMap[p.type]||{cls:'tt',lbl:p.type||''};const bdg=badgeMap[p.badge];
       const bdgHTML=bdg?`<div class="cbwrap"><span class="cbadge ${bdg.cls}">${bdg.txt}</span></div>`:'';
       const thumb=p.imageUrl?`<img src="${optImg('products',p.id,p.imageUrl,1)}" data-orig="${escAttr(p.imageUrl)}" alt="${escAttr(p.title)}" loading="lazy" decoding="async" onerror="imgFb(this)">`:`<span class="ef">${p.emoji||'📦'}</span>`;
@@ -1406,7 +1406,7 @@ async function loadCourses(){
     const snap=await getDocs(collection(db,'courses'));
     if(snap.empty){grid.innerHTML=defaultCourses();reObs();return;}
     const cls=['cv1','cv2','cv3'];let i=0;
-    const arr=[]; snap.forEach(d=>{const x={id:d.id,...d.data()};if(x.hidden!==true&&x.published!==false)arr.push(x);});arr.sort(byOrder);
+    const arr=[]; snap.forEach(d=>{const x={id:d.id,...d.data()};if(isListed(x))arr.push(x);});arr.sort(byOrder);
     window._coursesData=arr;
     let html='';
     arr.forEach((c,idx)=>{
@@ -1442,7 +1442,7 @@ async function loadProjects(){
   try{
     const snap=await getDocs(collection(db,'projects'));
     if(snap.empty){grid.innerHTML='<div class="loading-ph">لا توجد مشاريع حالياً — قريباً!</div>';return;}
-    const arr=[]; snap.forEach(d=>arr.push({id:d.id,...d.data()}));arr.sort(byOrder);
+    const arr=[]; snap.forEach(d=>{const x={id:d.id,...d.data()};if(isListed(x))arr.push(x);});arr.sort(byOrder);
     window._projectsData=arr;
     let html='';
     arr.forEach((pr,idx)=>{
@@ -1576,7 +1576,7 @@ async function loadBooks(){
     if(snap.empty){grid.innerHTML=defaultBooks();reObs();return;}
     const cls=['bk1','bk2','bk3','bk4','bk5','bk6'];let i=0;
     let html='';
-    const barr=[];snap.forEach(d=>barr.push({id:d.id,...d.data()}));barr.sort(byOrder);
+    const barr=[];snap.forEach(d=>{const x={id:d.id,...d.data()};if(isListed(x))barr.push(x);});barr.sort(byOrder);
     barr.forEach(b=>{const bFree=isFreeItem(b);
       const bTitle=(b.title||'').replace(/"/g,'&quot;');
       const cover=b.imageUrl?`<img src="${optImg('books',b.id,b.imageUrl,1)}" data-orig="${escAttr(b.imageUrl)}" alt="${bTitle}" loading="lazy" decoding="async" onerror="imgFb(this)">`:'';
@@ -1611,7 +1611,7 @@ async function loadCustomSections(){
       // Load section items
       const q1=query(collection(db,'section_items'),where('sectionId','==',s.id));
       const itemsSnap=await getDocs(q1);
-      const items=[];itemsSnap.forEach(d=>{const x={id:d.id,...d.data()};if(x.hidden!==true)items.push(x);});
+      const items=[];itemsSnap.forEach(d=>{const x={id:d.id,...d.data()};if(isListed(x))items.push(x);});
       if(!items.length)continue; // قسم بدون عناصر منشورة (أو مسودات فقط) ما بيظهر
       const isArt=s.type==='articles';
       const secSlug=slug3(s.slug)||autoSlug3(s.name,s.id);
@@ -1736,6 +1736,8 @@ window.scrollToSec=function(id){
 let cart=[];
 try{cart=JSON.parse(localStorage.getItem('3engs_cart')||'[]').filter(i=>i&&i.col&&i.id);}catch(e){}
 const byOrder=(a,b)=>(a.order??1e9)-(b.order??1e9);
+// يظهر بالقوائم؟ لا للمسودة، ولا للمخفي (🔒 بالرابط فقط — صفحته وشراؤه شغالين)
+const isListed=x=>x.hidden!==true&&x.published!==false&&x.unlisted!==true;
 function isFreeItem(d){return d.isFree===true||!(parseFloat(d.price)>0);}
 // صور WebP مضغوطة يولّدها سكربت البناء في /img/ — ولو مش موجودة بعد نرجع للأصلية
 // النسخة المضغوطة فقط إذا كانت لنفس الصورة الحالية (وإلا الصورة الأصلية مباشرة — حتى يظهر الغلاف الجديد فوراً)

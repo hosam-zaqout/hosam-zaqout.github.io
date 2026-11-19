@@ -14,6 +14,8 @@
 - `build-static-pages.mjs` يشتغل **كل ساعة** (الدقيقة 17) عبر `.github/workflows/build-pages.yml`، أو يدوياً: `node build-static-pages.mjs` (يحتاج `npm install --no-save --no-package-lock sharp@0.34`). `INCLUDE_DRAFTS=1` للمعاينة المحلية. العناصر الجديدة تظهر بعد أول بناء (حتى ساعة)، أو شغّل الـ workflow يدوياً من GitHub Actions.
 - يولّد: صفحات `/courses|projects|products|books/{slug}/`، `/sections/{slug}/`، `/topics/{tag}/` (تصنيف ≥2 عناصر)، `/team/{slug}/`، `/about/`، `/tools/` و `/tools/{slug}/`، `sitemap.xml`، `llms.txt`، صور WebP في `/img/`، وكتل `<!--SSR:x-->` داخل index.html (منها أعداد المنتجات والدورات الحقيقية).
 - كل صفحة: "✅ باختصار"، Schema، meta description 130-155 حرف. الروابط القديمة تتحول تلقائياً (redirect stubs). رابط العنصر = `slug` من لوحة التحكم أو slug تلقائي من العنوان + أول 6 أحرف من id (زر 🔗 في لوحة التحكم ينسخه).
+- **🔒 مخفي (بالرابط فقط)** = حقل `unlisted: true` (checkbox في كل نماذج العناصر بلوحة التحكم، `addVisibilityBox`): له صفحة (`noindex, nofollow`) ورابط شراء، لكن خارج كل القوائم (الرئيسية عبر `isListed()`، صفحات الأقسام، التصنيفات، sitemap، llms.txt، IndexNow، العدادات). يختلف عن "مسودة" (`hidden`) التي لا تولّد صفحة أصلاً.
+- **فوري بدون انتظار البناء**: السعر في صفحات العناصر يُقرأ حياً من Firestore (`src/assets/checkout.js`، عناصر `data-p="price|oldPrice|livePrice"`)؛ والعنصر الجديد (دورة/مشروع/منتج/كتاب) يُعرض فوراً من `404.html` قبل توليد صفحته. تعديل النصوص فقط ينتظر البناء الساعي.
 - `assets/md.js`: محوّل Markdown مشترك. الفريق (TEAM في السكربت): حسام زقوت، إسراء الطويل، فرات الطويل؛ صورهم في `img/team/{slug}.jpg` (ناقصة).
 
 ## الحاسبات `/tools/` (15 حاسبة)

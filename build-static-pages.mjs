@@ -367,7 +367,7 @@ footer nav{display:flex;justify-content:center;flex-wrap:wrap;gap:16px;margin-bo
 @media(max-width:820px){.hero,.grid2{grid-template-columns:1fr}header.top .wrap{flex-wrap:wrap;height:auto;padding-top:8px;padding-bottom:6px;row-gap:4px}.nav{order:3;width:100%;overflow-x:auto;white-space:nowrap;gap:16px;padding:4px 0 6px;-webkit-overflow-scrolling:touch;scrollbar-width:none}.nav::-webkit-scrollbar{display:none}h1{font-size:1.4rem}.facts th{white-space:normal}}
 `;
 
-function layout({ title, description, canonical, image, schemas, body, ogType = "website", itemId = "" }) {
+function layout({ title, description, canonical, image, schemas, body, ogType = "website", itemId = "", noindex = false }) {
   const img = image || OG_DEFAULT;
   return `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -376,7 +376,7 @@ function layout({ title, description, canonical, image, schemas, body, ogType = 
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
-<meta name="robots" content="index, follow, max-image-preview:large">${itemId ? `\n<meta name="3engs-id" content="${esc(itemId)}">` : ""}
+<meta name="robots" content="${noindex ? "noindex, nofollow" : "index, follow, max-image-preview:large"}">${itemId ? `\n<meta name="3engs-id" content="${esc(itemId)}">` : ""}
 <link rel="canonical" href="${canonical}">
 <link rel="icon" href="/logo.jpg">
 <meta name="theme-color" content="#F59E0B">
@@ -397,7 +397,7 @@ function layout({ title, description, canonical, image, schemas, body, ogType = 
 <style>${CSS.replace(/\s*\n\s*/g, "").replace(/\s*([{}:;,])\s*/g, "$1").replace(/;}/g, "}")}</style>
 ${schemas.map(jsonLd).join("\n")}
 <!-- Google Analytics -->
-<script src="/assets/countries.js?v=1" defer></script><script src="/assets/checkout.js?v=1" defer></script>
+<script src="/assets/countries.js?v=1" defer></script><script src="/assets/checkout.js?v=2" defer></script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-GZJCYL5YM8"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-GZJCYL5YM8');</script>
 <script src="/assets/visit.js" defer></script>
@@ -879,7 +879,7 @@ ${bc.html}
     <h1>${esc(title)}</h1>
     ${item.shortDesc ? `<p class="lead">${esc(clean(item.shortDesc))}</p>` : ""}
     <div class="tags">${tags.map((t) => `<span class="tag">${esc(t)}</span>`).join("")}</div>
-    <div class="price">${!free ? (liveOnly ? `<span style="font-size:.6em;color:#0ea5e9">🔴 لايف</span> <b style="color:#0ea5e9">$${num(item.livePrice)}</b>` : sec.col === "courses" && num(item.livePrice) > 0 ? `<span style="font-size:.6em;color:var(--mut)">🎬 مسجّلة</span> <b>$${price}</b> <span style="font-size:.6em;color:#0ea5e9;margin-inline-start:14px">🔴 لايف</span> <b style="color:#0ea5e9">$${num(item.livePrice)}</b>` : `<b>$${price}</b>`) : `<b>مجاني</b>`}${!free && oldPrice && oldPrice > (liveOnly ? num(item.livePrice) : price) ? `<s>$${oldPrice}</s>` : ""}</div>
+    <div class="price">${!free ? (liveOnly ? `<span style="font-size:.6em;color:#0ea5e9">🔴 لايف</span> <b style="color:#0ea5e9" data-p="livePrice">$${num(item.livePrice)}</b>` : sec.col === "courses" && num(item.livePrice) > 0 ? `<span style="font-size:.6em;color:var(--mut)">🎬 مسجّلة</span> <b data-p="price">$${price}</b> <span style="font-size:.6em;color:#0ea5e9;margin-inline-start:14px">🔴 لايف</span> <b style="color:#0ea5e9" data-p="livePrice">$${num(item.livePrice)}</b>` : `<b data-p="price">$${price}</b>`) : `<b>مجاني</b>`}${!free && oldPrice && oldPrice > (liveOnly ? num(item.livePrice) : price) ? `<s data-p="oldPrice">$${oldPrice}</s>` : ""}</div>
     <div class="cta">
       ${liveOnly ? "" : !free
         ? `<a class="btn main" href="/?buy=${sec.col}:${item.id}" rel="nofollow" data-buy="${sec.col}:${item.id}" data-name="${esc(title)}" data-price="${price}" data-emoji="${esc(item.emoji || "🛒")}">🛒 ${sec.col === "courses" && num(item.livePrice) > 0 ? "اشترِ الدورة المسجّلة" : "اشترِ الآن"}</a>`
@@ -923,6 +923,7 @@ ${related.length ? `<h2 class="sec-title">🔗 قد يهمك أيضاً</h2><div
     ogType: "product",
     schemas,
     body,
+    noindex: item.unlisted === true, // 🔒 خاص: بالرابط فقط، لا يظهر بجوجل
     itemId: item.id,
   });
 }
@@ -1033,7 +1034,7 @@ ${bc.html}
 ${related.length ? `<h2 class="sec-title">🔗 قد يهمك أيضاً</h2><div class="cards">${related.map((r) => card(r._sec, r, r._sec !== sec)).join("")}</div>` : ""}
 ${/class="quiz"/.test(body0) ? QUIZ_JS : ""}
 `;
-  return layout({ title: `${cut(title, 55)} | ${BRAND}`, description: metaDescription(sec, item), canonical, image: imgAbs, ogType: "article", schemas, body, itemId: item.id });
+  return layout({ title: `${cut(title, 55)} | ${BRAND}`, description: metaDescription(sec, item), canonical, image: imgAbs, ogType: "article", schemas, body, itemId: item.id, noindex: item.unlisted === true });
 }
 
 // ---------------- صفحات الفريق /team/ ----------------
@@ -1446,10 +1447,12 @@ async function main() {
       if (old !== sl) redirects.push([old, sl, it.id]);
     }
     for (const [old] of redirects) seen.add(old);
-    if (!sec.custom) data[sec.col] = g.items;
+    // 🔒 خاص (بالرابط فقط): له صفحة، لكن ما بيظهر بأي قائمة ولا sitemap ولا llms.txt ولا تصنيف
+    g.listed = g.items.filter((i) => i.unlisted !== true);
+    if (!sec.custom) data[sec.col] = g.listed;
     redirectsBy[sec.key] = redirects;
     seenBy[sec.key] = seen;
-    all.push(...g.items);
+    all.push(...g.listed);
   }
 
   // 2) ضغط الصور
@@ -1463,7 +1466,7 @@ async function main() {
       if (d.isDirectory() && !keepSecs.has(d.name)) await fs.rm(path.join(OUT_DIR, "sections", d.name), { recursive: true });
   } catch {}
 
-  for (const { sec, items } of groups) {
+  for (const { sec, items, listed } of groups) {
     if (!items.length) continue;
 
     // روابط قديمة: إذا المجلد لعنصر لسا موجود (تغيّر رابطه) ← تحويل للرابط الجديد، وإلا ← حذف
@@ -1486,10 +1489,10 @@ async function main() {
       }
     } catch {}
 
-    if (await writeFile(`${sec.dir}/index.html`, hubPage(sec, items))) changed.push(`${SITE}/${sec.dir}/`);
+    if (await writeFile(`${sec.dir}/index.html`, hubPage(sec, listed))) changed.push(`${SITE}/${sec.dir}/`);
     entries.push({ loc: `/${sec.dir}/`, priority: sec.custom ? 0.8 : 0.9 });
-    if (sec.type === "Article" && items.some(artCat)) for (const c of ART_CATS) {
-      if (await writeFile(`${sec.dir}/c/${c.key}/index.html`, catPage(sec, c, items))) changed.push(`${SITE}/${sec.dir}/c/${c.key}/`);
+    if (sec.type === "Article" && listed.some(artCat)) for (const c of ART_CATS) {
+      if (await writeFile(`${sec.dir}/c/${c.key}/index.html`, catPage(sec, c, listed))) changed.push(`${SITE}/${sec.dir}/c/${c.key}/`);
       entries.push({ loc: `/${sec.dir}/c/${c.key}/`, priority: 0.7 });
     }
 
@@ -1497,10 +1500,12 @@ async function main() {
 
     for (const it of items) {
       const rel = `${sec.dir}/${it._slug}/index.html`;
-      const page = sec.type === "Article" ? articlePage(sec, it, all) : itemPage(sec, it, items, all);
-      if (await writeFile(rel, page)) changed.push(`${SITE}/${sec.dir}/${it._slug}/`);
-      entries.push({ loc: `/${sec.dir}/${it._slug}/`, priority: sec.type === "Article" ? 0.7 : 0.8, lastmod: isoDate(it._updated), image: absUrl(it._img || it.imageUrl), title: clean(it.title) });
+      const page = sec.type === "Article" ? articlePage(sec, it, all) : itemPage(sec, it, listed, all);
+      const wrote = await writeFile(rel, page);
       total++;
+      if (it.unlisted === true) continue; // 🔒 خاص: ما بنرسله لمحركات البحث ولا للـ sitemap
+      if (wrote) changed.push(`${SITE}/${sec.dir}/${it._slug}/`);
+      entries.push({ loc: `/${sec.dir}/${it._slug}/`, priority: sec.type === "Article" ? 0.7 : 0.8, lastmod: isoDate(it._updated), image: absUrl(it._img || it.imageUrl), title: clean(it.title) });
     }
     console.log(`✅ ${sec.label}: ${items.length}`);
   }

@@ -838,7 +838,7 @@ async function loadProducts(){
   document.getElementById('pc').textContent=window._prods.length;
   const el=document.getElementById('prodList');
   if(!window._prods.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد منتجات</p>';return;}
-  el.innerHTML=window._prods.map(p=>`<div class="irow"><div class="iemoji">${p.emoji||'📦'}</div><div class="iinfo"><div class="ititle">${p.title||''}</div><div class="imeta">${p.type||''} • $${p.price||0}${fileBadge(p)}${isFreeItem(p)?' • <span style="color:var(--ok)">مجاني</span>':''}</div></div><div class="iacts">${moveBtns('products','_prods',p.id,'loadProducts')}<button class="btn-edit" title="نسخ رابط الصفحة" onclick="copyItemLink('products','${p.id}')">🔗</button><button class="btn-edit" onclick="editItem('product','${p.id}')">✏️</button><button class="btn-del" onclick="delItem('products','${p.id}',loadProducts)">🗑️</button></div></div>`).join('');
+  el.innerHTML=window._prods.map(p=>`<div class="irow"><div class="iemoji">${p.emoji||'📦'}</div><div class="iinfo"><div class="ititle">${p.title||''}${p.unlisted?' <span style="font-size:.7rem;color:var(--p)">🔒 مخفي</span>':''}</div><div class="imeta">${p.type||''} • $${p.price||0}${fileBadge(p)}${isFreeItem(p)?' • <span style="color:var(--ok)">مجاني</span>':''}</div></div><div class="iacts">${moveBtns('products','_prods',p.id,'loadProducts')}<button class="btn-edit" title="نسخ رابط الصفحة" onclick="copyItemLink('products','${p.id}')">🔗</button><button class="btn-edit" onclick="editItem('product','${p.id}')">✏️</button><button class="btn-del" onclick="delItem('products','${p.id}',loadProducts)">🗑️</button></div></div>`).join('');
 }
 window.loadProducts=loadProducts;
 
@@ -850,7 +850,7 @@ async function loadCourses(){
   document.getElementById('cc').textContent=window._courses.length;
   const el=document.getElementById('courseList');
   if(!window._courses.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد دورات</p>';return;}
-  el.innerHTML=window._courses.map(c=>`<div class="irow"><div class="iemoji">${c.emoji||'🎓'}</div><div class="iinfo"><div class="ititle">${c.title||''}</div><div class="imeta">${c.category||''} • $${c.price||0}${c.oldPrice?` <span style="text-decoration:line-through;color:var(--mt);font-size:.7rem">$${c.oldPrice}</span>`:''}${c.imageUrl?' • <span style="color:var(--ok)">🖼️</span>':''}${c.videoUrl?' • <span style="color:var(--ac)">▶️</span>':''}</div></div><div class="iacts">${moveBtns('courses','_courses',c.id,'loadCourses')}<button class="btn-edit" title="نسخ رابط الصفحة" onclick="copyItemLink('courses','${c.id}')">🔗 رابط الشراء</button><button class="btn-edit" title="نسخ رابط المحاضرات (للمشتركين)" onclick="copyLearnLink('courses','${c.id}')">🎬 رابط المشتركين</button><button class="btn-edit" onclick="editItem('course','${c.id}')">✏️</button><button class="btn-del" onclick="delItem('courses','${c.id}',loadCourses)">🗑️</button></div></div>`).join('');
+  el.innerHTML=window._courses.map(c=>`<div class="irow"><div class="iemoji">${c.emoji||'🎓'}</div><div class="iinfo"><div class="ititle">${c.title||''}${c.unlisted?' <span style="font-size:.7rem;color:var(--p)">🔒 مخفي</span>':''}</div><div class="imeta">${c.category||''} • $${c.price||0}${c.oldPrice?` <span style="text-decoration:line-through;color:var(--mt);font-size:.7rem">$${c.oldPrice}</span>`:''}${c.imageUrl?' • <span style="color:var(--ok)">🖼️</span>':''}${c.videoUrl?' • <span style="color:var(--ac)">▶️</span>':''}</div></div><div class="iacts">${moveBtns('courses','_courses',c.id,'loadCourses')}<button class="btn-edit" title="نسخ رابط الصفحة" onclick="copyItemLink('courses','${c.id}')">🔗 رابط الشراء</button><button class="btn-edit" title="نسخ رابط المحاضرات (للمشتركين)" onclick="copyLearnLink('courses','${c.id}')">🎬 رابط المشتركين</button><button class="btn-edit" onclick="editItem('course','${c.id}')">✏️</button><button class="btn-del" onclick="delItem('courses','${c.id}',loadCourses)">🗑️</button></div></div>`).join('');
 }
 window.loadCourses=loadCourses;
 
@@ -862,7 +862,7 @@ async function loadBooks(){
   document.getElementById('bc').textContent=window._books.length;
   const el=document.getElementById('bookList');
   if(!window._books.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد كتب</p>';return;}
-  el.innerHTML=window._books.map(b=>`<div class="irow"><div class="iemoji">${b.emoji||'📚'}</div><div class="iinfo"><div class="ititle">${b.title||''}</div><div class="imeta">${b.author||''} • $${b.price||0}${isFreeItem(b)?' • <span style="color:var(--ok)">مجاني</span>':''}${fileBadge(b)}</div></div><div class="iacts">${moveBtns('books','_books',b.id,'loadBooks')}<button class="btn-edit" title="نسخ رابط الصفحة" onclick="copyItemLink('books','${b.id}')">🔗</button><button class="btn-edit" onclick="editItem('book','${b.id}')">✏️</button><button class="btn-del" onclick="delItem('books','${b.id}',loadBooks)">🗑️</button></div></div>`).join('');
+  el.innerHTML=window._books.map(b=>`<div class="irow"><div class="iemoji">${b.emoji||'📚'}</div><div class="iinfo"><div class="ititle">${b.title||''}${b.unlisted?' <span style="font-size:.7rem;color:var(--p)">🔒 مخفي</span>':''}</div><div class="imeta">${b.author||''} • $${b.price||0}${isFreeItem(b)?' • <span style="color:var(--ok)">مجاني</span>':''}${fileBadge(b)}</div></div><div class="iacts">${moveBtns('books','_books',b.id,'loadBooks')}<button class="btn-edit" title="نسخ رابط الصفحة" onclick="copyItemLink('books','${b.id}')">🔗</button><button class="btn-edit" onclick="editItem('book','${b.id}')">✏️</button><button class="btn-del" onclick="delItem('books','${b.id}',loadBooks)">🗑️</button></div></div>`).join('');
 }
 window.loadBooks=loadBooks;
 
@@ -874,7 +874,7 @@ async function loadProjects(){
   document.getElementById('prc').textContent=window._projects.length;
   const el=document.getElementById('projList');
   if(!window._projects.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد مشاريع — اضغط "إضافة مشروع"</p>';return;}
-  el.innerHTML=window._projects.map(p=>`<div class="irow"><div class="iemoji">${p.emoji||'🔧'}</div><div class="iinfo"><div class="ititle">${p.title||''}</div><div class="imeta">${p.category||''} • ${isFreeItem(p)?'<span style="color:var(--ok)">مجاني</span>':'$'+(p.price||0)}${p.oldPrice&&!isFreeItem(p)?` <span style="text-decoration:line-through;color:var(--mt);font-size:.7rem">$${p.oldPrice}</span>`:''}${fileBadge(p)}${p.videoUrl?' • <span style="color:var(--er)">▶️ فيديو</span>':''}</div></div><div class="iacts">${moveBtns('projects','_projects',p.id,'loadProjects')}<button class="btn-edit" title="نسخ رابط الصفحة" onclick="copyItemLink('projects','${p.id}')">🔗</button><button class="btn-edit" onclick="editItem('project','${p.id}')">✏️</button><button class="btn-del" onclick="delItem('projects','${p.id}',loadProjects)">🗑️</button></div></div>`).join('');
+  el.innerHTML=window._projects.map(p=>`<div class="irow"><div class="iemoji">${p.emoji||'🔧'}</div><div class="iinfo"><div class="ititle">${p.title||''}${p.unlisted?' <span style="font-size:.7rem;color:var(--p)">🔒 مخفي</span>':''}</div><div class="imeta">${p.category||''} • ${isFreeItem(p)?'<span style="color:var(--ok)">مجاني</span>':'$'+(p.price||0)}${p.oldPrice&&!isFreeItem(p)?` <span style="text-decoration:line-through;color:var(--mt);font-size:.7rem">$${p.oldPrice}</span>`:''}${fileBadge(p)}${p.videoUrl?' • <span style="color:var(--er)">▶️ فيديو</span>':''}</div></div><div class="iacts">${moveBtns('projects','_projects',p.id,'loadProjects')}<button class="btn-edit" title="نسخ رابط الصفحة" onclick="copyItemLink('projects','${p.id}')">🔗</button><button class="btn-edit" onclick="editItem('project','${p.id}')">✏️</button><button class="btn-del" onclick="delItem('projects','${p.id}',loadProjects)">🗑️</button></div></div>`).join('');
 }
 window.loadProjects=loadProjects;
 
@@ -918,7 +918,7 @@ async function loadSectionItems(){
   if(!items.length){el.innerHTML='<p style="color:var(--mt);text-align:center;padding:30px">لا توجد عناصر</p>';return;}
   const art=curSectionIsArticles();
   if(art)items.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));else items.sort(byOrder);
-  el.innerHTML=items.map(i=>`<div class="irow"><div class="iemoji">${i.emoji||(art?'📝':'•')}</div><div class="iinfo"><div class="ititle">${i.title||''}</div><div class="imeta">${art?`${i.hidden?'<span style="color:var(--p)">📄 مسودة</span>':'<span style="color:var(--ok)">✅ منشور</span>'} • ${i.createdAt?.toDate?.()?.toLocaleDateString('ar')||''} • ⏱ ${window.md3?md3.readingMinutes(i.body):1} د`:`${i.price?'$'+i.price:'مجاني'}${fileBadge(i)}`}${i.imageUrl?' • <span style="color:var(--ok)">🖼️</span>':''}</div></div><div class="iacts">${art?'':moveBtns('section_items','_curSectionItems',i.id,'loadSectionItems')}<button class="btn-edit" title="نسخ رابط صفحة العنصر" onclick="copySecItemLink('${i.id}')">🔗 رابط الشراء</button>${!art&&!isFreeItem(i)?`<button class="btn-edit" title="نسخ رابط المحاضرات (للمشتركين)" onclick="copyLearnLink('section_items','${i.id}')">🎬 رابط المشتركين</button>`:''}<button class="btn-edit" onclick="editSectionItem('${i.id}')">✏️</button><button class="btn-del" onclick="delSectionItem('${i.id}')">🗑️</button></div></div>`).join('');
+  el.innerHTML=items.map(i=>`<div class="irow"><div class="iemoji">${i.emoji||(art?'📝':'•')}</div><div class="iinfo"><div class="ititle">${i.title||''}${i.unlisted?' <span style="font-size:.7rem;color:var(--p)">🔒 مخفي</span>':''}</div><div class="imeta">${art?`${i.hidden?'<span style="color:var(--p)">📄 مسودة</span>':'<span style="color:var(--ok)">✅ منشور</span>'} • ${i.createdAt?.toDate?.()?.toLocaleDateString('ar')||''} • ⏱ ${window.md3?md3.readingMinutes(i.body):1} د`:`${i.price?'$'+i.price:'مجاني'}${fileBadge(i)}`}${i.imageUrl?' • <span style="color:var(--ok)">🖼️</span>':''}</div></div><div class="iacts">${art?'':moveBtns('section_items','_curSectionItems',i.id,'loadSectionItems')}<button class="btn-edit" title="نسخ رابط صفحة العنصر" onclick="copySecItemLink('${i.id}')">🔗 رابط الشراء</button>${!art&&!isFreeItem(i)?`<button class="btn-edit" title="نسخ رابط المحاضرات (للمشتركين)" onclick="copyLearnLink('section_items','${i.id}')">🎬 رابط المشتركين</button>`:''}<button class="btn-edit" onclick="editSectionItem('${i.id}')">✏️</button><button class="btn-del" onclick="delSectionItem('${i.id}')">🗑️</button></div></div>`).join('');
 }
 window.loadSectionItems=loadSectionItems;
 // 🎬 رابط صفحة المحاضرات الخاصة (بيفتح للمشترك أو صاحب الكود أو الإيميل المسموح)
@@ -929,7 +929,7 @@ window.openSectionItemModal=function(id=null){
   const art=curSectionIsArticles();
   window._mType=art?'articleItem':'sectionItem'; window._mId=id;
   document.getElementById('mTitle').textContent=art?(id?'تعديل مقال':'✍️ مقال جديد'):(id?'تعديل عنصر':'إضافة عنصر للقسم');
-  document.getElementById('mBody').innerHTML=art?mForms.articleItem:mForms.sectionItem;fillWsSelect();window._lessons=[];lsRender();splitTabs();
+  document.getElementById('mBody').innerHTML=art?mForms.articleItem:mForms.sectionItem;addVisibilityBox(window._mType);fillWsSelect();window._lessons=[];lsRender();splitTabs();
   if(id){
     const item=(window._curSectionItems||[]).find(i=>i.id===id);
     if(item){fillForm(item);loadPrivateFileUrl('sectionItem',id);}
@@ -1775,6 +1775,16 @@ function fillGeo(item){
   if(a)a.value=Array.isArray(item.audience)?item.audience.join('\n'):'';
   if(f)f.value=Array.isArray(item.faqs)?item.faqs.map(x=>`س: ${x.q}\nج: ${x.a}`).join('\n\n'):'';
 }
+// 🔒 مخفي (بالرابط فقط): العنصر له صفحة ورابط شراء، بس ما بيظهر بالموقع ولا بجوجل ولا بالتصنيفات
+const VIS_TYPES=['product','course','book','project','sectionItem','articleItem'];
+function addVisibilityBox(type){
+  if(!VIS_TYPES.includes(type))return;
+  const box=document.createElement('div');
+  box.className='cg';
+  box.style.cssText='border:1px dashed var(--b2);border-radius:10px;padding:10px 12px;margin-top:10px';
+  box.innerHTML='<label style="display:flex;align-items:center;gap:8px;font-size:.88rem;cursor:pointer;font-weight:700"><input type="checkbox" id="m-unlisted" style="accent-color:var(--p);width:16px;height:16px"> 🔒 مخفي — يظهر بالرابط فقط</label><div style="font-size:.74rem;color:var(--mt);margin-top:4px;line-height:1.7">ما بيظهر بالموقع ولا بجوجل ولا بالتصنيفات، بس صفحته شغالة وبينشرى منها. انسخ رابطه بزر 🔗 وابعته للشخص. (غير "مسودة" اللي بتلغي الصفحة كلها)</div>';
+  document.getElementById('mBody').appendChild(box);
+}
 function fillForm(item){
   Object.keys(item).forEach(k=>{
     const el=document.getElementById('m-'+k);
@@ -1792,7 +1802,7 @@ window.openModal=(type,id=null)=>{
   _learns.length=0;_topics.length=0;_components.length=0;_requirements.length=0;
   const labels={product:'منتج',course:'دورة',book:'كتاب',project:'مشروع',testimonial:'رأي',section:'قسم'};
   document.getElementById('mTitle').textContent=(id?'تعديل ':'إضافة ')+(labels[type]||type);
-  document.getElementById('mBody').innerHTML=mForms[type]||'';fillWsSelect();window._lessons=[];lsRender();splitTabs();
+  document.getElementById('mBody').innerHTML=mForms[type]||'';addVisibilityBox(type);fillWsSelect();window._lessons=[];lsRender();splitTabs();
   if(type==='testimonial')fillItemRefOptions();
   if(id){
     const colMap={product:window._prods,course:window._courses,book:window._books,project:window._projects,testimonial:window._tests,section:window._sections};
@@ -1821,6 +1831,7 @@ window.saveModal=async()=>{
   else if(type==='sectionItem'){if(!g('m-title')){toast('⚠️ العنوان مطلوب','err');return;}data={...data,sectionId:window._curSectionId,title:g('m-title'),desc:g('m-desc'),price:parseFloat(g('m-price'))||0,emoji:g('m-emoji'),imageUrl:g('m-imageUrl'),fileUrl:g('m-fileUrl'),videoUrl:g('m-videoUrl')};}
 
   if(['product','course','book','project','sectionItem','articleItem'].includes(type)&&document.getElementById('m-tags')){data.tags=parseTags(g('m-tags'));data.audience=parseLines(g('m-audience'));data.faqs=parseFaqs(g('m-faqs'));}
+  if(VIS_TYPES.includes(type))data.unlisted=gc('m-unlisted');
   if(['product','course','book','project','sectionItem','articleItem'].includes(type))data.slug=g('m-slug').toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80);
   const colMap={product:'products',course:'courses',book:'books',project:'projects',testimonial:'testimonials',section:'custom_sections',sectionItem:'section_items',articleItem:'section_items'};
   const reloads={product:loadProducts,course:loadCourses,book:loadBooks,project:loadProjects,testimonial:loadTestimonials,section:loadCustomSections,sectionItem:loadSectionItems,articleItem:()=>{loadSectionItems();loadArticles();}};
