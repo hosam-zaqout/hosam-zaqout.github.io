@@ -533,6 +533,10 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://www.3engs.com/tools/boolean-simplifier/</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://www.3engs.com/topics/</loc>
     <priority>0.7</priority>
   </url>

@@ -8,7 +8,7 @@ import JavaScriptObfuscator from "javascript-obfuscator";
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname.replace(/^\/(\w:)/, "$1"));
 // ملفات JS كاملة
-const JS = ["assets/tools.js", "assets/tools-pro.js", "assets/cad-pro.js", "assets/checkout.js"];
+const JS = ["assets/tools.js", "assets/tools-pro.js", "assets/cad-pro.js", "assets/checkout.js", "assets/logic.js"];
 // صفحات HTML: بنعقّد السكربتات المضمّنة فيها بس (بدون src)
 const HTML = ["cad/breadboard/index.html", "cad/index.html"];
 

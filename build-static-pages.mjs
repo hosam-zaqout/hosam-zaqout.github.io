@@ -1125,7 +1125,7 @@ ${related.length ? `<h2 class="sec-title">📚 تعلّم أكثر</h2><div clas
 <h2 class="sec-title">🧮 حاسبات أخرى</h2>
 <div class="tlinks">${siblings.map((x) => `<a href="/tools/${x.slug}/">${esc(x.emoji)} ${esc(x.name)}</a>`).join("")}</div>
 <script src="/assets/tools.js?v=4" defer></script>
-<script type="module" src="/assets/tools-pro.js?v=2"></script>`;
+${t.script ? `<script src="${t.script}" defer></script>\n` : ""}<script type="module" src="/assets/tools-pro.js?v=2"></script>`;
   return layout({ title: `${t.title} | ${BRAND}`, description: t.desc, canonical: SITE + url, schemas: [app, faq, bc.schema], body });
 }
 function toolsHub() {
@@ -1134,7 +1134,7 @@ function toolsHub() {
   const list = { "@context": "https://schema.org", "@type": "ItemList", itemListElement: TOOLS.map((t, i) => ({ "@type": "ListItem", position: i + 1, url: `${SITE}/tools/${t.slug}/`, name: t.title })) };
   const body = `${bc.html}
 <h1>🧮 الحاسبات الهندسية — ${BRAND}</h1>
-<p class="lead">${TOOLS.length} حاسبة كهربائية وإلكترونية مجانية بالعربي — أساسيات الإلكترونيات، التمديدات والقدرة، الطاقة الشمسية، والأنظمة المدمجة — كل وحدة مع شرح المعادلات وأمثلة عملية.</p>
+<p class="lead">${TOOLS.length} حاسبة كهربائية وإلكترونية مجانية بالعربي — أساسيات الإلكترونيات، التمديدات والقدرة، الطاقة الشمسية، والأنظمة المدمجة، والإلكترونيات الرقمية — كل وحدة مع شرح المعادلات وأمثلة عملية.</p>
 ${TOOL_CATS.map((c) => { const ts = TOOLS.filter((t) => t.cat === c.id); return ts.length ? `<h2 class="sec-title">${c.emoji} ${esc(c.label)}</h2><div class="cards">${ts.map((t) => `<a class="card" href="/tools/${t.slug}/"><div class="ph">${esc(t.emoji)}</div><div class="b"><h3>${esc(t.title)}</h3><div class="k">${esc(cut(t.desc, 90))}</div></div></a>`).join("")}</div>` : ""; }).join("")}`;
   return layout({
     title: `الحاسبات الهندسية والكهربائية بالعربي | ${BRAND}`,

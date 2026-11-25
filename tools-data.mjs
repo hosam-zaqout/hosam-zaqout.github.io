@@ -46,6 +46,7 @@ export const TOOL_CATS = [
   { id: "power", label: "التمديدات والقدرة", emoji: "🔌" },
   { id: "solar", label: "الطاقة الشمسية والبطاريات", emoji: "☀️" },
   { id: "embedded", label: "الأنظمة المدمجة", emoji: "🔧" },
+  { id: "digital", label: "الإلكترونيات الرقمية", emoji: "🔢" },
 ];
 
 export const TOOLS = [
@@ -438,6 +439,53 @@ ${f.sel("v", "جهد البطاريات", [["12", "12 V"], ["24", "24 V", 1], ["
       ["ما الفرق بين الواط والفولت أمبير في الإنفرتر؟", "الواط هو القدرة الفعلية، والفولت أمبير هو القدرة الظاهرية. وتساوي القدرة الفعلية القدرة الظاهرية مضروبة في معامل القدرة، فإنفرتر 3000 فولت أمبير بمعامل 0.8 يعطي نحو 2400 واط."],
       ["لماذا يفصل الإنفرتر عند تشغيل الثلاجة؟", "لأن تيار بدء الضاغط يتجاوز قدرة الذروة للإنفرتر لحظياً. الحل اختيار إنفرتر بقدرة ذروة أعلى، أو عدم تشغيل الأحمال الكبيرة معاً."],
       ["هل أختار إنفرتر موجة جيبية نقية؟", "نعم للمنازل وللأحمال الحساسة والمحركات، لأن الموجة المعدّلة تسبب سخونة المحركات وضجيجاً وقد تتلف بعض الأجهزة."],
+    ],
+  },
+  {
+    slug: "boolean-simplifier", cat: "digital", emoji: "🗺️", topics: ["electronics", "embedded-systems"],
+    script: "/assets/logic.js?v=1",
+    title: "حاسبة تبسيط الدوال المنطقية وخريطة كارنو",
+    name: "تبسيط الدوال المنطقية",
+    desc: "بسّط أي دالة منطقية أو حدود صغرى فوراً: خريطة كارنو ملوّنة، جدول الحقيقة، خطوات Quine–McCluskey، الدائرة بالبوابات، وكود Verilog، مع فتحها في المحاكي.",
+    answer: "تبسيط الدالة المنطقية يعني كتابتها بأقل عدد من الحدود والمتغيرات، فتقلّ البوابات اللازمة لبنائها. اكتب الدالة مثل A'B + AB'C + ABC أو حدودها الصغرى مثل m(1, 3, 5, 7)، فتعطيك الأداة الصيغة المبسطة بالشكلين SOP و POS مع خريطة كارنو وخطوات الحل والدائرة.",
+    form: `<style>
+.lg-ex{display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 12px;font-size:.82rem;color:var(--mut);align-items:center}
+.lg-ex button,.lg-tabs button,.lg-btn{background:#0a0f1d;border:1px solid var(--line);border-radius:999px;padding:4px 12px;color:var(--txt);font:inherit;cursor:pointer}
+.lg-ex button:hover,.lg-tabs button:hover,.lg-btn:hover{border-color:var(--acc)}
+.lg-tabs{display:flex;gap:8px;margin:16px 0 4px;flex-wrap:wrap}.lg-tabs button.on{background:var(--acc);color:#111;border-color:var(--acc);font-weight:700}
+.lg-h{font-size:1rem;margin:16px 0 8px;color:var(--acc2)}.lg-h small{color:var(--mut);font-weight:400;font-size:.78rem}
+.kmaps{display:flex;flex-wrap:wrap;gap:14px;justify-content:center}.kmap{max-width:100%;height:auto}
+.kmap .kc{fill:#0a0f1d;stroke:#3a4566;cursor:pointer}.kmap .kc:hover{fill:#1c2542}.kmap .k1{fill:#1c2542}.kmap .kx{fill:#151c33}
+.kmap .kt{fill:var(--txt);font-size:20px;font-weight:800;pointer-events:none}.kmap .kt.k0{fill:#5b6688;font-weight:400}
+.kmap .ki{fill:#5b6688;font-size:9px;pointer-events:none}.kmap .kh{fill:var(--acc2);font-size:13px;font-family:Consolas,monospace}.kmap .kv{fill:var(--txt);font-size:13px;font-weight:700}
+.kmap .kg{fill:none;stroke-width:3;pointer-events:none;opacity:.9}
+.klg{display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:center;margin:8px 0;font-size:.9rem}.klg i{display:inline-block;width:16px;height:12px;border:3px solid;border-radius:5px;margin-left:6px;vertical-align:middle}
+.gates{overflow-x:auto;color:#cbd3e6;text-align:center}.gates svg{max-width:100%;height:auto}.gates .gv{fill:var(--acc2);font-weight:800;font-size:15px}.gates .gs{fill:var(--mut);font-size:11px}.gates .dot{fill:currentColor}
+.lg-act{text-align:center;margin:10px 0}.lg-btn{border-color:var(--acc);color:var(--acc2);font-weight:700;padding:7px 16px}.lg-btn:disabled{opacity:.4;cursor:default}.lg-btn.sm{padding:3px 12px;font-weight:400;font-size:.85rem}
+.lg-d{margin:12px 0;border:1px solid var(--line);border-radius:12px;padding:8px 12px;background:#0d1326}.lg-d summary{cursor:pointer;font-weight:700}
+.lg-d pre{background:#0a0f1d;border:1px solid var(--line);border-radius:10px;padding:12px;overflow:auto;text-align:left;font-size:.85rem;margin:6px 0}
+.tw{overflow-x:auto;margin:8px 0}.qm{border-collapse:collapse;font-size:.85rem;margin:0 auto}.qm caption{color:var(--mut);font-size:.8rem;padding:4px}
+.qm th,.qm td{border:1px solid var(--line);padding:4px 10px;text-align:center}.qm th{background:#1a2340;color:var(--acc2)}.qm tr.g0 td{border-top:2px solid #3a4566}
+.qm .mono,.mono{font-family:Consolas,monospace}.qm.pi tr.sel td:first-child{color:var(--acc2);font-weight:700}
+.qm.tt tr.on td{background:#1c2542}.qm.tt tr.on .f{color:var(--acc2);font-weight:800}.qm.tt tr.dc .f{color:var(--mut)}.qm.tt .ki2{color:#5b6688}
+.steps{margin:8px 22px 4px 0;display:grid;gap:10px;line-height:1.9}.steps .eq{direction:ltr;text-align:center;font-family:Consolas,monospace;font-weight:700;color:var(--acc2);background:#0a0f1d;border:1px solid var(--line);border-radius:10px;padding:6px 10px;margin:6px 0}
+</style>
+<div class="fields"><label style="grid-column:1/-1"><span>الدالة المنطقية أو الحدود الصغرى</span><input name="expr" type="text" dir="ltr" autocomplete="off" spellcheck="false" placeholder="A'B + AB'C + ABC  أو  m(1, 3, 5, 7)" value="A'B + AB'C + ABC"></label>
+${f.sel("nv", "عدد المتغيرات (للحدود الصغرى)", [["", "تلقائي", 1], ["2", "2"], ["3", "3"], ["4", "4"], ["5", "5"], ["6", "6"], ["7", "7"], ["8", "8"]])}
+<label><span>حالات «لا يهم» (اختياري)</span><input name="dc" type="text" dir="ltr" autocomplete="off" placeholder="مثال: 10, 11"></label></div>
+<div class="lg-ex">أمثلة: <button type="button" data-ex="A'B + AB'C + ABC">A'B + AB'C + ABC</button><button type="button" data-ex="F(A,B,C,D) = Σm(0,1,2,5,8,9,10)">Σm(0,1,2,5,8,9,10)</button><button type="button" data-ex="F(A,B,C,D) = m(1,3,7,11,15) + d(0,2,5)">m(…) + d(…)</button><button type="button" data-ex="(A + B)(A + C')">(A + B)(A + C')</button><button type="button" data-ex="A ^ B ^ C">A ⊕ B ⊕ C</button><button type="button" data-ex="F(A,B,C) = ΠM(0,3,5,6)">ΠM(0,3,5,6)</button></div>
+<div class="lg-ex">خريطة فارغة: <button type="button" data-blank="2">متغيران</button><button type="button" data-blank="3">3 متغيرات</button><button type="button" data-blank="4">4 متغيرات</button><button type="button" data-blank="5">5 متغيرات</button></div>`,
+    how: `<p>تبدأ الأداة بحساب جدول الحقيقة، ثم تجمع الحدود الصغرى المتجاورة التي تختلف في متغير واحد فقط، لأن:</p>${eq("AB + AB' = A(B + B') = A")}
+<p>تتكرر هذه الخطوة حتى لا يبقى حدّان قابلان للدمج، فتنتج <b>الحدود الأولية</b>. تُختار أولاً الحدود الأولية <b>الأساسية</b> (التي تغطي حداً صغرى لا يغطيه غيرها)، ثم يُكمَل الغطاء بأقل عدد من الحدود (طريقة Petrick). هذه طريقة Quine–McCluskey، وهي النسخة المنهجية من خريطة كارنو.</p>
+<p>في خريطة كارنو تُرتَّب الخانات بترميز Gray، فكل خانتين متجاورتين (ومنها الطرفان المتقابلان) تختلفان في متغير واحد، وتكون المجموعات بأحجام 1 أو 2 أو 4 أو 8 خانات. وكلما كبرت المجموعة قلّت متغيرات الحد الناتج.</p>
+<p>طرق الكتابة المقبولة: النفي بـ <b dir="ltr">A'</b> أو <b dir="ltr">!A</b> أو <b dir="ltr">~A</b>، والضرب بالتجاور <b dir="ltr">AB</b> أو <b dir="ltr">A·B</b> أو <b dir="ltr">A&B</b>، والجمع بـ <b dir="ltr">+</b> أو <b dir="ltr">|</b>، و XOR بـ <b dir="ltr">^</b>، وكذلك الكلمات AND و OR و NOT و XOR و NAND و NOR.</p>`,
+    example: "الدالة A'B + AB'C + ABC تُبسَّط إلى A'B + AC، لأن الحدين AB'C و ABC يختلفان في B فقط فيندمجان في AC. وبصيغة جداء المجاميع تصبح (A + B)(A' + C).",
+    faq: [
+      ["ما الفرق بين صيغتي SOP و POS؟", "صيغة SOP مجموع حدود، كل حد منها حاصل ضرب متغيرات، وتُبنى ببوابات AND تتبعها بوابة OR. أما صيغة POS فجداء مجاميع، وتُبنى ببوابات OR تتبعها بوابة AND. تختار الصيغة الأقل بوابات أو الأنسب للدائرة."],
+      ["ما معنى حالات «لا يهم» (X)؟", "هي مداخل لا تحدث عملياً أو لا تهمّنا قيمة المخرج عندها، مثل القيم من 10 إلى 15 في دوائر BCD. يمكن عدّها 1 أو 0 حسب ما يكبّر المجموعات، فتعطي دالة أبسط."],
+      ["لماذا تُرتَّب خانات خريطة كارنو 00 ثم 01 ثم 11 ثم 10؟", "هذا ترميز Gray، وفيه تختلف كل خانتين متجاورتين في خانة ثنائية واحدة فقط، ولذلك يمكن دمج أي خانتين متجاورتين في الخريطة."],
+      ["هل يمكن أن يكون للدالة أكثر من صيغة مبسطة؟", "نعم، قد توجد عدة صيغ بالعدد نفسه من الحدود والمتغيرات، وكلها صحيحة. تعرض الأداة إحداها."],
+      ["كم متغيراً تدعم الأداة؟", "التبسيط يعمل حتى 8 متغيرات، وتُرسم خريطة كارنو حتى 6 متغيرات: خريطة واحدة حتى 4 متغيرات، وخريطتان لـ 5 متغيرات، وأربع خرائط لـ 6 متغيرات."],
     ],
   },
 ];
