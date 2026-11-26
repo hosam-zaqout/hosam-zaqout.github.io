@@ -1416,3 +1416,69 @@ exports.inviteAllowedEmails = onDocumentWritten(
     logger.info("Invites sent", { pid: event.params.pid, count: fresh.length });
   }
 );
+
+// ─────────────────────────────────────────────
+// track — عداد الزيارات والأحداث الخاص بالموقع (بدون كوكيز وبدون بيانات شخصية)
+// يستقبل navigator.sendBeacon من assets/track.js ويزيد عدادات stats_daily/{YYYY-MM-DD}
+// ─────────────────────────────────────────────
+const TRACK_EVENTS = new Set(["buy", "wa", "download", "tool", "login", "signup", "sim_open", "bb_build", "logic_sim", "share"]);
+const BOT_UA = /bot|crawl|spider|slurp|preview|headless|lighthouse|facebookexternalhit|whatsapp\/|telegram|python|curl|wget|monitor/i;
+const tkey = (s, n = 80) => String(s || "").toLowerCase().replace(/[^a-z0-9\-_]/g, "_").slice(0, n) || "none";
+const SOURCES = [
+  [/(^|\.)google\./, "google"], [/(^|\.)bing\.com$/, "bing"], [/(^|\.)duckduckgo\.com$/, "duckduckgo"], [/yandex\./, "yandex"],
+  [/(^|\.)(facebook\.com|fb\.com|fb\.me)$/, "facebook"], [/(^|\.)instagram\.com$/, "instagram"], [/(^|\.)tiktok\.com$/, "tiktok"],
+  [/(^|\.)(t\.co|twitter\.com|x\.com)$/, "x"], [/(^|\.)(wa\.me|whatsapp\.com)$/, "whatsapp"], [/(^|\.)(youtube\.com|youtu\.be)$/, "youtube"],
+  [/(^|\.)(linkedin\.com|lnkd\.in)$/, "linkedin"], [/(^|\.)(chatgpt\.com|openai\.com)$/, "chatgpt"], [/(^|\.)perplexity\.ai$/, "perplexity"],
+  [/(^|\.)claude\.ai$/, "claude"], [/(^|\.)gemini\.google\.com$/, "gemini"], [/(^|\.)t\.me$|telegram/, "telegram"], [/(^|\.)github\.com$/, "github"],
+];
+function sectionOf(path) {
+  const p = path.split("/").filter(Boolean);
+  if (!p.length || p[0] === "index.html") return "home";
+  if (p[0] === "cad") return p[1] === "esp32" ? "cad_esp32" : p[1] === "breadboard" ? "cad_breadboard" : "cad";
+  if (p[0] === "sections") return "sec_" + tkey(p[1] || "", 40);
+  if (["courses", "projects", "products", "books", "tools", "topics", "team", "about", "register", "downloads"].includes(p[0])) return p[0];
+  if (/^(auth|privacy|payment-success|404)\.html$/.test(p[0])) return p[0].replace(".html", "").replace("-", "_");
+  return "other";
+}
+exports.track = onRequest(
+  { region: "us-central1", memory: "256MiB", maxInstances: 10, concurrency: 80 },
+  async (req, res) => {
+    const origin = req.headers.origin || "";
+    if (/^https:\/\/(www\.)?3engs\.com$/.test(origin)) res.set("Access-Control-Allow-Origin", origin);
+    res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+    if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+    try {
+      if (req.method !== "POST" || BOT_UA.test(req.headers["user-agent"] || "")) return;
+      const raw = typeof req.body === "string" ? req.body : Buffer.isBuffer(req.rawBody) ? req.rawBody.toString("utf8") : JSON.stringify(req.body || {});
+      if (raw.length > 1500) return;
+      const d = JSON.parse(raw || "{}");
+      const path = String(d.p || "/").split(/[?#]/)[0].slice(0, 140);
+      if (!path.startsWith("/") || /^\/admin/.test(path)) return;
+      const day = new Date(Date.now() + 2 * 3600e3).toISOString().slice(0, 10); // توقيت فلسطين تقريباً
+      const inc = FieldValue.increment(1), u = { day };
+      if (d.e) {
+        const ev = tkey(d.e, 20);
+        if (!TRACK_EVENTS.has(ev)) return;
+        u.ev = { [ev]: inc };
+        if (d.x) u.evx = { [ev + "__" + tkey(d.x, 60)]: inc };
+      } else {
+        u.views = inc;
+        u.sec = { [sectionOf(path)]: inc };
+        u.pages = { [path.replace(/[^a-zA-Z0-9\-_/.]/g, "_").replace(/\//g, "|") || "|"]: inc };
+        if (d.u) { u.visitors = inc; u.dev = { [d.m ? "mobile" : "desktop"]: inc }; }
+        if (d.n) u.newVisitors = inc;
+        if (d.s) {
+          u.sessions = inc;
+          let host = ""; try { host = d.r ? new URL(d.r).hostname.replace(/^www\./, "") : ""; } catch (e) {}
+          const src = !host ? "direct" : (SOURCES.find(([re]) => re.test(host)) || [0, "other"])[1];
+          u.src = { [src]: inc };
+          if (src === "other") u.ref = { [tkey(host, 60)]: inc };
+          if (d.c) u.camp = { [tkey(d.c, 40)]: inc };
+        }
+      }
+      await db.collection("stats_daily").doc(day).set(u, { merge: true });
+    } catch (e) { logger.warn("track", e.message); }
+    finally { res.status(204).send(""); }
+  }
+);

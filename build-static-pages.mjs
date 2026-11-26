@@ -399,7 +399,7 @@ ${schemas.map(jsonLd).join("\n")}
 <!-- Google Analytics -->
 <script src="/assets/countries.js?v=1" defer></script><script src="/assets/checkout.js?v=2" defer></script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-GZJCYL5YM8"></script>
-<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-GZJCYL5YM8');</script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-GZJCYL5YM8');</script><script src="/assets/track.js?v=1" defer></script>
 <script src="/assets/visit.js" defer></script>
 </head>
 <body>

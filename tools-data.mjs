@@ -444,7 +444,7 @@ ${f.sel("v", "جهد البطاريات", [["12", "12 V"], ["24", "24 V", 1], ["
   {
     slug: "boolean-simplifier", cat: "digital", emoji: "🗺️", topics: ["electronics", "embedded-systems"],
     script: "/assets/logic.js?v=1",
-    title: "حاسبة تبسيط الدوال المنطقية وخريطة كارنو",
+    title: "حاسبة تبسيط الدوال المنطقية وخريطة كارنو (K-map)",
     name: "تبسيط الدوال المنطقية",
     desc: "بسّط أي دالة منطقية أو حدود صغرى فوراً: خريطة كارنو ملوّنة، جدول الحقيقة، خطوات Quine–McCluskey، الدائرة بالبوابات، وكود Verilog، مع فتحها في المحاكي.",
     answer: "تبسيط الدالة المنطقية يعني كتابتها بأقل عدد من الحدود والمتغيرات، فتقلّ البوابات اللازمة لبنائها. اكتب الدالة مثل A'B + AB'C + ABC أو حدودها الصغرى مثل m(1, 3, 5, 7)، فتعطيك الأداة الصيغة المبسطة بالشكلين SOP و POS مع خريطة كارنو وخطوات الحل والدائرة.",
@@ -470,9 +470,9 @@ ${f.sel("v", "جهد البطاريات", [["12", "12 V"], ["24", "24 V", 1], ["
 .qm.tt tr.on td{background:#1c2542}.qm.tt tr.on .f{color:var(--acc2);font-weight:800}.qm.tt tr.dc .f{color:var(--mut)}.qm.tt .ki2{color:#5b6688}
 .steps{margin:8px 22px 4px 0;display:grid;gap:10px;line-height:1.9}.steps .eq{direction:ltr;text-align:center;font-family:Consolas,monospace;font-weight:700;color:var(--acc2);background:#0a0f1d;border:1px solid var(--line);border-radius:10px;padding:6px 10px;margin:6px 0}
 </style>
-<div class="fields"><label style="grid-column:1/-1"><span>الدالة المنطقية أو الحدود الصغرى</span><input name="expr" type="text" dir="ltr" autocomplete="off" spellcheck="false" placeholder="A'B + AB'C + ABC  أو  m(1, 3, 5, 7)" value="A'B + AB'C + ABC"></label>
-${f.sel("nv", "عدد المتغيرات (للحدود الصغرى)", [["", "تلقائي", 1], ["2", "2"], ["3", "3"], ["4", "4"], ["5", "5"], ["6", "6"], ["7", "7"], ["8", "8"]])}
-<label><span>حالات «لا يهم» (اختياري)</span><input name="dc" type="text" dir="ltr" autocomplete="off" placeholder="مثال: 10, 11"></label></div>
+<div class="fields"><label style="grid-column:1/-1"><span>الدالة المنطقية (Boolean Expression) أو الحدود الصغرى (Minterms)</span><input name="expr" type="text" dir="ltr" autocomplete="off" spellcheck="false" placeholder="A'B + AB'C + ABC  أو  m(1, 3, 5, 7)" value="A'B + AB'C + ABC"></label>
+${f.sel("nv", "عدد المتغيرات (Variables)", [["", "تلقائي", 1], ["2", "2"], ["3", "3"], ["4", "4"], ["5", "5"], ["6", "6"], ["7", "7"], ["8", "8"]])}
+<label><span>حالات «لا يهم» (Don't Care) — اختياري</span><input name="dc" type="text" dir="ltr" autocomplete="off" placeholder="مثال: 10, 11"></label></div>
 <div class="lg-ex">أمثلة: <button type="button" data-ex="A'B + AB'C + ABC">A'B + AB'C + ABC</button><button type="button" data-ex="F(A,B,C,D) = Σm(0,1,2,5,8,9,10)">Σm(0,1,2,5,8,9,10)</button><button type="button" data-ex="F(A,B,C,D) = m(1,3,7,11,15) + d(0,2,5)">m(…) + d(…)</button><button type="button" data-ex="(A + B)(A + C')">(A + B)(A + C')</button><button type="button" data-ex="A ^ B ^ C">A ⊕ B ⊕ C</button><button type="button" data-ex="F(A,B,C) = ΠM(0,3,5,6)">ΠM(0,3,5,6)</button></div>
 <div class="lg-ex">خريطة فارغة: <button type="button" data-blank="2">متغيران</button><button type="button" data-blank="3">3 متغيرات</button><button type="button" data-blank="4">4 متغيرات</button><button type="button" data-blank="5">5 متغيرات</button></div>`,
     how: `<p>تبدأ الأداة بحساب جدول الحقيقة، ثم تجمع الحدود الصغرى المتجاورة التي تختلف في متغير واحد فقط، لأن:</p>${eq("AB + AB' = A(B + B') = A")}

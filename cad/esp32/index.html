@@ -19,7 +19,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"3ENG CAD — ESP32 Simulator","alternateName":"محاكي ESP32 و Arduino","url":"https://www.3engs.com/cad/esp32/","applicationCategory":"EducationalApplication","operatingSystem":"Web browser","inLanguage":["ar","en"],"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"publisher":{"@type":"Organization","name":"3ENG.s","url":"https://www.3engs.com/"}}</script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-GZJCYL5YM8"></script>
-<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-GZJCYL5YM8');</script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-GZJCYL5YM8');</script><script src="/assets/track.js?v=1" defer></script>
 <style>
 :root{--bg:#0b1020;--card:#131a2e;--line:#232c47;--txt:#e9edf7;--mut:#98a2bf;--acc:#F59E0B;--acc2:#fbbf24;--ok:#34d399;--er:#f87171}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -119,7 +119,7 @@ footer a{color:var(--acc)}
   <h1 data-t="netT"></h1>
   <p data-t="netIntro"></p>
   <ol style="margin:4px 0 12px;padding-inline-start:22px;line-height:2;color:#c8d0e4">
-    <li><span data-t="netS1"></span> <a class="btn" id="netDl" href="/downloads/3eng-gateway.exe" download data-t="netDl"></a></li>
+    <li><span data-t="netS1"></span> <a class="btn" id="netDl" href="/downloads/3eng-gateway.exe" download data-t="netDl"></a><br><small style="color:#98a2bf;line-height:1.7;display:block;margin-top:4px" data-t="netSafe"></small></li>
     <li data-t="netS2"></li>
     <li data-t="netS3"></li>
   </ol>
@@ -157,7 +157,7 @@ const T = {
     exGate: (n) => `بعد تسجيل الدخول تجد ${n} مثالاً جاهزاً تفتحه وتشغّله بضغطة واحدة.`,
     netBtn: "🔌 شبكتي المحلية", netT: "🔌 اربط المحاكي بشبكة جهازك",
     netIntro: "يتصل ESP32 داخل المحاكي بشبكتك الحقيقية عبر برنامج صغير على جهازك: يصل إلى الأجهزة والخدمات على شبكتك (مثل Node-RED أو وسيط MQTT محلي)، وتفتح صفحته من http://localhost:9080 أو من هاتفك المتصل بالشبكة نفسها.",
-    netS1: "نزّل برنامج 3ENG Gateway وشغّله (لويندوز):", netDl: "⬇️ تنزيل", netS2: "اترك نافذته مفتوحة، ثم اضغط «اتصال» أدناه واسمح للمتصفح بالوصول إلى الشبكة المحلية إن طلب ذلك.",
+    netS1: "نزّل برنامج 3ENG Gateway وشغّله (لويندوز):", netDl: "⬇️ تنزيل", netSafe: "🛡️ البرنامج جديد، لذلك قد ينبّهك المتصفح بأن الملف «غير شائع التنزيل»، فاختر «الاحتفاظ» (Keep). وإذا ظهرت رسالة «Windows protected your PC» فاضغط «More info» ثم «Run anyway». البرنامج آمن ومبني على أداة مفتوحة المصدر، ولا يعمل إلا ما دامت نافذته مفتوحة.", netS2: "اترك نافذته مفتوحة، ثم اضغط «اتصال» أدناه واسمح للمتصفح بالوصول إلى الشبكة المحلية إن طلب ذلك.",
     netS3: "شغّل المحاكاة (▶️). إن كانت تعمل من قبل فأوقفها ثم شغّلها من جديد.",
     netConnect: "اتصال", netDisconnect: "قطع الاتصال",
     netIdle: "غير متصل.", netTrying: "جارٍ الاتصال بالبرنامج على جهازك…",
@@ -192,7 +192,7 @@ const T = {
     exGate: (n) => `After signing in you get ${n} ready examples that open and run in one click.`,
     netBtn: "🔌 My local network", netT: "🔌 Connect the simulator to your network",
     netIntro: "The simulated ESP32 joins your real network through a small program on your computer: it can reach devices and services on your network (Node-RED, a local MQTT broker…), and its web page opens at http://localhost:9080 or from your phone on the same network.",
-    netS1: "Download and run 3ENG Gateway (Windows):", netDl: "⬇️ Download", netS2: "Keep its window open, press “Connect” below and allow local network access if the browser asks.",
+    netS1: "Download and run 3ENG Gateway (Windows):", netDl: "⬇️ Download", netSafe: "🛡️ The program is new, so your browser may warn that the file is “not commonly downloaded” — choose “Keep”. If “Windows protected your PC” appears, click “More info” then “Run anyway”. It is safe, based on open-source software, and runs only while its window is open.", netS2: "Keep its window open, press “Connect” below and allow local network access if the browser asks.",
     netS3: "Run the simulation (▶️). If it was already running, stop it and run it again.",
     netConnect: "Connect", netDisconnect: "Disconnect",
     netIdle: "Not connected.", netTrying: "Connecting to the program on your computer…",

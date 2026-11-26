@@ -46,6 +46,8 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
 .g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;}
+.st-k{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px}.st-k div{background:var(--cd);border:1px solid var(--br);border-radius:12px;padding:12px}.st-k b{display:block;font-size:1.5rem;color:var(--p)}.st-k span{font-size:.75rem;color:var(--mt)}
+.st-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}.st-t{width:100%;border-collapse:collapse;font-size:.8rem}.st-t td,.st-t th{padding:6px 8px;border-bottom:1px solid var(--b2);text-align:right}.st-t th{color:var(--mt);font-weight:600}.st-t td.n{text-align:left;font-weight:700;color:var(--pl);white-space:nowrap}.st-bar{height:6px;background:var(--p);border-radius:3px;opacity:.7}.st-c svg{width:100%;height:auto;display:block}.st-c text{fill:var(--mt);font-size:9px}
 .pc{background:var(--cd);border:1px solid var(--br);border-radius:14px;padding:20px;margin-bottom:16px;}
 .pc h3{font-size:.92rem;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
 .cg{margin-bottom:13px;}.cg label{display:block;font-size:.74rem;font-weight:700;color:var(--mt);margin-bottom:6px;}
@@ -134,6 +136,7 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
 @media(max-width:768px){.sidebar{transform:translateX(100%);}.sidebar.open{transform:translateX(0);}.main{margin-right:0;}.mob-toggle{display:block;}.tb-r .btn-preview{display:none;}.g2,.g3,.g4{grid-template-columns:1fr;}.content{padding:14px;}.topbar{padding:10px 14px;}.stats-grid{grid-template-columns:1fr 1fr;}.pc{padding:14px;}}
 @media(max-width:400px){.stats-grid{grid-template-columns:1fr;}}
 </style>
+<script>try{localStorage.setItem("3e-notrack","1")}catch(e){}</script>
 </head>
 <body>
 <div class="auth-loading" id="authLoad"><div class="spin"></div><p>جاري التحقق من الصلاحيات...</p></div>
@@ -162,6 +165,7 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
   <div class="ni" onclick="showP('testimonials',this)"><span class="ic">⭐</span> آراء الطلاب</div>
   <div class="ni" onclick="showP('sections',this)"><span class="ic">➕</span> أقسام مخصصة</div>
   <div class="ns">إدارة الموقع</div>
+  <div class="ni" onclick="showP('stats',this);stLoad()"><span class="ic">📊</span> الإحصاءات</div>
   <div class="ni" onclick="showP('progress',this);prLoad()"><span class="ic">👨‍🏫</span> متابعة الطلاب</div>
   <div class="ni" onclick="showP('coupons',this);cpInit()"><span class="ic">🏷️</span> أكواد الخصم</div>
   <div class="ni" onclick="showP('orders',this);loadOrders();moRenderItems();moFillUsers()"><span class="ic">🧾</span> الطلبات <span class="nb" id="oc">0</span></div>
@@ -423,6 +427,20 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
       <div class="pc"><h3>💬 رسائل التواصل</h3><div id="msgList"><div style="color:var(--mt);text-align:center;padding:30px">جاري التحميل...</div></div></div>
     </div>
 
+    <!-- STATS -->
+    <div class="panel" id="p-stats">
+      <div class="pc">
+        <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center">
+          <h3 style="margin:0">📊 الإحصاءات</h3>
+          <select class="cs" id="st-range" style="width:auto" onchange="stLoad()"><option value="1">اليوم</option><option value="7" selected>آخر 7 أيام</option><option value="30">آخر 30 يوم</option><option value="90">آخر 90 يوم</option><option value="3650">كل الفترة</option></select>
+          <label style="font-size:.8rem;color:var(--mt);display:flex;gap:6px;align-items:center"><input type="checkbox" id="st-noadmin" checked onchange="stLoad()"> إخفاء ترجمات الأدمن</label>
+          <button class="btn-edit" onclick="stLoad()">🔄 تحديث</button>
+        </div>
+        <p style="font-size:.75rem;color:var(--mt);margin-top:8px">العدّاد خاص بالموقع (بدون كوكيز)، وزياراتك من هذا المتصفح لا تُحسب. الزائر «الفريد» يُحسب مرة واحدة في اليوم لكل جهاز. بدأ التسجيل التفصيلي يوم تفعيل العداد، وما قبله غير متوفر.</p>
+      </div>
+      <div id="st-body"><div class="pc" style="color:var(--mt);text-align:center">جاري التحميل...</div></div>
+    </div>
+
     <!-- WORKSHOPS -->
     <div class="panel" id="p-workshops">
       <div class="pc"><h3>➕ ورشة جديدة</h3>
@@ -656,7 +674,7 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, setDoc, addDoc, deleteDoc, serverTimestamp, getDoc, updateDoc, query, where, deleteField, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, setDoc, addDoc, deleteDoc, serverTimestamp, getDoc, updateDoc, query, where, deleteField, writeBatch, limit as fsLimit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 const CFG={apiKey:"AIzaSyALJiF8l_wnk_6FU6etQpz44Z43lSORXQk",authDomain:"engs-website.firebaseapp.com",projectId:"engs-website",storageBucket:"engs-website.firebasestorage.app",messagingSenderId:"1028163586505",appId:"1:1028163586505:web:c09de00bb30a3369ca4018",measurementId:"G-GZJCYL5YM8"};
@@ -2099,12 +2117,82 @@ window.orderAction=async(invoiceId,action)=>{
   catch(e){toast('⚠️ '+e.message,'err');}
 };
 
+
+// ───────── 📊 الإحصاءات ─────────
+const ST_SEC={home:'🏠 الرئيسية',courses:'🎓 الدورات',projects:'🔧 المشاريع',products:'📦 المنتجات',books:'📚 الكتب',tools:'🧮 الحاسبات',topics:'🏷️ التصنيفات',team:'👷 الفريق',about:'ℹ️ من نحن',register:'🎟️ تسجيل الورشات',cad:'📐 3ENG CAD',cad_esp32:'📟 محاكي ESP32',cad_breadboard:'🧩 لوحة التجارب',auth:'🔐 الدخول',privacy:'📜 الخصوصية',payment_success:'💳 صفحة الدفع',downloads:'⬇️ التنزيلات','404':'❓ صفحة غير موجودة',other:'أخرى'};
+const ST_SRC={direct:'مباشر / بدون مصدر',google:'Google',bing:'Bing',facebook:'Facebook',instagram:'Instagram',tiktok:'TikTok',x:'X',whatsapp:'WhatsApp',youtube:'YouTube',linkedin:'LinkedIn',chatgpt:'ChatGPT',perplexity:'Perplexity',claude:'Claude',gemini:'Gemini',telegram:'Telegram',github:'GitHub',duckduckgo:'DuckDuckGo',yandex:'Yandex',other:'مواقع أخرى'};
+const ST_EV={buy:'🛒 نقر زر الشراء',wa:'💬 نقر واتساب',download:'⬇️ تنزيل ملف',tool:'🧮 استخدام حاسبة',bb_build:'🧩 بناء دالة على لوحة التجارب',logic_sim:'⚡ فتح دائرة منطقية في المحاكي',login:'🔐 دخول',signup:'🆕 تسجيل',share:'🔗 مشاركة',sim_open:'📟 فتح المحاكي'};
+const ST_SIM={new:'⚙️ ترجمة جديدة',ok:'✅ نجحت',fail:'❌ فشلت (خطأ بالكود)',cache:'⚡ من ذاكرة الترجمة',dedup:'🤝 مشتركة مع ترجمة جارية',quota:'⛔ رُفضت: انتهى الرصيد',login:'🔐 رُفضت: بدون دخول',localnet:'🔌 شبكتي المحلية',hotspot:'📶 نقطة وصول على الجوال'};
+const stDay=d=>new Date(d.getTime()+2*3600e3).toISOString().slice(0,10);
+function stSum(rows,field){const o={};rows.forEach(r=>{const m=r[field]||{};Object.keys(m).forEach(k=>o[k]=(o[k]||0)+(+m[k]||0));});return o;}
+function stTable(title,obj,labels,max=15,fmtKey){const e=Object.entries(obj).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,max);const top=e.length?e[0][1]:1;
+  return `<div class="pc"><h3>${title}</h3>${e.length?`<table class="st-t">${e.map(([k,v])=>`<tr><td>${escH(fmtKey?fmtKey(k):(labels&&labels[k])||k)}<div class="st-bar" style="width:${Math.max(3,v/top*100)}%"></div></td><td class="n">${v.toLocaleString('en')}</td></tr>`).join('')}</table>`:'<p style="color:var(--mt);font-size:.8rem">لا توجد بيانات بعد</p>'}</div>`;}
+function stChart(days,series){ // series: [[label,color,values]]
+  const W=640,H=170,pad=24,n=days.length,max=Math.max(1,...series.flatMap(s=>s[2]));const bw=(W-pad*2)/Math.max(1,n);
+  let g='';series.forEach(([l,c,v],si)=>{v.forEach((x,i)=>{const h=x/max*(H-pad*2);const w=bw/series.length*0.8;g+=`<rect x="${pad+i*bw+si*w+bw*0.1}" y="${H-pad-h}" width="${w}" height="${h}" fill="${c}" rx="2"><title>${days[i]} — ${l}: ${x}</title></rect>`;});});
+  const step=Math.ceil(n/8);days.forEach((d,i)=>{if(i%step===0)g+=`<text x="${pad+i*bw+bw/2}" y="${H-8}" text-anchor="middle">${d.slice(5)}</text>`;});
+  g+=`<text x="${pad}" y="12">${max}</text>`;
+  return `<div class="st-c"><svg viewBox="0 0 ${W} ${H}">${g}</svg></div><div style="display:flex;gap:14px;font-size:.75rem;color:var(--mt);margin-top:4px">${series.map(s=>`<span><i style="display:inline-block;width:10px;height:10px;background:${s[1]};border-radius:2px;margin-left:4px"></i>${s[0]}</span>`).join('')}</div>`;}
+window.stLoad=async()=>{
+  const box=document.getElementById('st-body');box.innerHTML='<div class="pc" style="color:var(--mt);text-align:center">جاري التحميل...</div>';
+  try{
+    const N=+document.getElementById('st-range').value,noAdmin=document.getElementById('st-noadmin').checked;
+    const from=stDay(new Date(Date.now()-(N-1)*864e5));
+    const [ds,es,us]=await Promise.all([getDocs(query(collection(db,'stats_daily'),where('day','>=',from))),getDocs(query(collection(db,'sim_events'),where('day','>=',from),fsLimit(5000))),getDocs(collection(db,'sim_users'))]);
+    const rows=[];ds.forEach(d=>rows.push({id:d.id,...d.data()}));rows.sort((a,b)=>a.id.localeCompare(b.id));
+    let ev=[];es.forEach(d=>ev.push({id:d.id,...d.data()}));if(noAdmin)ev=ev.filter(e=>!e.admin);
+    ev.sort((a,b)=>((b.at&&b.at.seconds)||0)-((a.at&&a.at.seconds)||0));
+    const tot=f=>rows.reduce((a,r)=>a+(+r[f]||0),0);
+    // سلسلة الأيام كاملة
+    const days=[];for(let i=Math.min(N,90)-1;i>=0;i--)days.push(stDay(new Date(Date.now()-i*864e5)));
+    const byDay=Object.fromEntries(rows.map(r=>[r.id,r]));
+    const simDay={};ev.forEach(e=>{const k=e.kind;if(!simDay[e.day])simDay[e.day]={};simDay[e.day][k]=(simDay[e.day][k]||0)+1;});
+    const simTot={};ev.forEach(e=>simTot[e.kind]=(simTot[e.kind]||0)+1);
+    const comp=(simTot.new||0)+(simTot.cache||0)+(simTot.dedup||0);
+    // المستخدمون في المحاكي
+    const per={};ev.forEach(e=>{if(!e.uid)return;const p=per[e.uid]||(per[e.uid]={name:e.name,email:e.email,admin:e.admin,c:{},last:0});p.c[e.kind]=(p.c[e.kind]||0)+1;p.last=Math.max(p.last,(e.at&&e.at.seconds)||0);});
+    const boards={},exs={};ev.forEach(e=>{if(['new','cache','dedup'].includes(e.kind)){if(e.board)boards[e.board]=(boards[e.board]||0)+1;if(e.example)exs[e.example]=(exs[e.example]||0)+1;}});
+    const allUsers=[];us.forEach(d=>allUsers.push({id:d.id,...d.data()}));
+    const pages=stSum(rows,'pages');
+    const evx=stSum(rows,'evx');
+    const fmtT=s=>s?new Date(s*1000).toLocaleString('ar',{dateStyle:'short',timeStyle:'short'}):'';
+    box.innerHTML=`
+<div class="st-k">
+  <div><b>${tot('views').toLocaleString('en')}</b><span>مشاهدة صفحة</span></div>
+  <div><b>${tot('visitors').toLocaleString('en')}</b><span>زائر فريد (يومي)</span></div>
+  <div><b>${tot('newVisitors').toLocaleString('en')}</b><span>زائر جديد لأول مرة</span></div>
+  <div><b>${tot('sessions').toLocaleString('en')}</b><span>جلسة (زيارة)</span></div>
+  <div><b>${comp.toLocaleString('en')}</b><span>ترجمة في محاكي ESP32</span></div>
+  <div><b>${Object.keys(per).length}</b><span>مستخدم استعمل المحاكي</span></div>
+  <div><b>${(simTot.localnet||0)}</b><span>اتصال «شبكتي المحلية»</span></div>
+  <div><b>${allUsers.length}</b><span>مستخدم للمحاكي (منذ البداية)</span></div>
+</div>
+<div class="pc"><h3>📈 الزيارات يومياً</h3>${stChart(days,[['مشاهدات','#F59E0B',days.map(d=>+(byDay[d]||{}).views||0)],['زوار فريدون','#0EA5E9',days.map(d=>+(byDay[d]||{}).visitors||0)]])}</div>
+<div class="pc"><h3>📟 الترجمة في محاكي ESP32 يومياً</h3>${stChart(days,[['جديدة','#F59E0B',days.map(d=>(simDay[d]||{}).new||0)],['من الذاكرة','#10B981',days.map(d=>((simDay[d]||{}).cache||0)+((simDay[d]||{}).dedup||0))],['فشلت','#EF4444',days.map(d=>(simDay[d]||{}).fail||0)]])}</div>
+<div class="st-g">
+  ${stTable('🗂️ الأقسام',stSum(rows,'sec'),ST_SEC,30,k=>ST_SEC[k]||(k.startsWith('sec_')?'📄 قسم: '+k.slice(4):k))}
+  ${stTable('📄 أكثر الصفحات زيارة',pages,null,30,k=>decodeURIComponent(k.replace(/\|/g,'/')))}
+  ${stTable('🌍 مصادر الزيارات',stSum(rows,'src'),ST_SRC)}
+  ${stTable('🔗 مواقع أخرى أرسلت زواراً',stSum(rows,'ref'),null,15,k=>k.replace(/_/g,'.'))}
+  ${stTable('📱 الأجهزة',stSum(rows,'dev'),{mobile:'📱 جوال',desktop:'💻 حاسوب'})}
+  ${stTable('📣 الحملات (utm_source)',stSum(rows,'camp'))}
+  ${stTable('🖱️ الأحداث',stSum(rows,'ev'),ST_EV)}
+  ${stTable('🔎 تفاصيل الأحداث',evx,null,30,k=>{const [a,b]=k.split('__');return (ST_EV[a]||a)+' ← '+b;})}
+  ${stTable('📟 المحاكي: أنواع الطلبات',simTot,ST_SIM)}
+  ${stTable('🔧 المحاكي: اللوحات',boards,null,15)}
+  ${stTable('📚 المحاكي: الأمثلة الجاهزة',exs,null,30)}
+</div>
+<div class="pc"><h3>👤 مستخدمو المحاكي في الفترة</h3>${Object.keys(per).length?`<div style="overflow-x:auto"><table class="st-t"><tr><th>المستخدم</th><th>جديدة</th><th>نجحت</th><th>فشلت</th><th>ذاكرة</th><th>رفض الرصيد</th><th>شبكتي</th><th>آخر نشاط</th></tr>${Object.values(per).sort((a,b)=>b.last-a.last).map(p=>`<tr><td>${escH(p.name||'')}${p.admin?' 👑':''}<div style="color:var(--mt);font-size:.72rem" dir="ltr">${escH(p.email||'')}</div></td><td class="n">${p.c.new||0}</td><td class="n">${p.c.ok||0}</td><td class="n">${p.c.fail||0}</td><td class="n">${(p.c.cache||0)+(p.c.dedup||0)}</td><td class="n">${p.c.quota||0}</td><td class="n">${(p.c.localnet||0)+(p.c.hotspot||0)}</td><td style="white-space:nowrap">${fmtT(p.last)}</td></tr>`).join('')}</table></div>`:'<p style="color:var(--mt);font-size:.8rem">لا يوجد نشاط في هذه الفترة</p>'}</div>
+<div class="pc"><h3>🕒 آخر نشاطات المحاكي</h3>${ev.length?`<div style="overflow-x:auto"><table class="st-t"><tr><th>الوقت</th><th>المستخدم</th><th>الحدث</th><th>اللوحة / المثال</th></tr>${ev.slice(0,60).map(e=>`<tr><td style="white-space:nowrap">${fmtT(e.at&&e.at.seconds)}</td><td>${escH(e.name||e.email||'— زائر —')}</td><td>${ST_SIM[e.kind]||e.kind}${e.ms?` <span style="color:var(--mt)">(${Math.round(e.ms/1000)} ث)</span>`:''}${e.error?` <span style="color:var(--er)">${escH(e.error)}</span>`:''}</td><td dir="ltr" style="font-size:.72rem">${escH((e.board||'').split(':').pop())}${e.example?' • '+escH(e.example):''}</td></tr>`).join('')}</table></div>`:'<p style="color:var(--mt);font-size:.8rem">لا توجد نشاطات بعد</p>'}</div>
+<div class="pc"><h3>🏆 كل مستخدمي المحاكي (منذ بدء التسجيل)</h3>${allUsers.length?`<div style="overflow-x:auto"><table class="st-t"><tr><th>المستخدم</th><th>جديدة</th><th>ذاكرة</th><th>فشلت</th><th>شبكتي</th><th>آخر نشاط</th></tr>${allUsers.filter(u=>!(noAdmin&&u.admin)).sort((a,b)=>((b.lastAt&&b.lastAt.seconds)||0)-((a.lastAt&&a.lastAt.seconds)||0)).map(u=>{const t=u.total||{};return `<tr><td>${escH(u.name||'')}${u.admin?' 👑':''}<div style="color:var(--mt);font-size:.72rem" dir="ltr">${escH(u.email||'')}</div></td><td class="n">${t.new||0}</td><td class="n">${(t.cache||0)+(t.dedup||0)}</td><td class="n">${t.fail||0}</td><td class="n">${(t.localnet||0)+(t.hotspot||0)}</td><td style="white-space:nowrap">${fmtT(u.lastAt&&u.lastAt.seconds)}</td></tr>`;}).join('')}</table></div>`:'<p style="color:var(--mt);font-size:.8rem">لا يوجد بعد</p>'}</div>`;
+  }catch(e){console.error(e);box.innerHTML=`<div class="pc" style="color:var(--er)">⚠️ ${escH(e.message)}</div>`;}
+};
 function toast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+(type||'');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);}
 window.toast=toast;
 </script>
 
 <script>
-const panelTitles={progress:'👨‍🏫 متابعة الطلاب',coupons:'🏷️ أكواد الخصم',workshops:'🎟️ الورشات',articles:'📝 المقالات',dashboard:'🏠 الرئيسية',hero:'🎯 القسم الرئيسي',layout:'🧭 ترتيب الصفحة والقائمة',team:'👷 الفريق',products:'📦 المنتجات',courses:'🎓 الدورات',books:'📚 الكتب',projects:'🔧 المشاريع',testimonials:'⭐ آراء الطلاب',sections:'➕ أقسام مخصصة',orders:'🧾 الطلبات',users:'👥 المستخدمون',messages:'💬 الرسائل',newsletter:'📧 النشرة',payment:'💳 إعدادات الدفع',design:'🎨 التصميم',seo:'🔍 SEO',brand:'💡 الهوية',social:'🔗 التواصل'};
+const panelTitles={stats:'📊 الإحصاءات',progress:'👨‍🏫 متابعة الطلاب',coupons:'🏷️ أكواد الخصم',workshops:'🎟️ الورشات',articles:'📝 المقالات',dashboard:'🏠 الرئيسية',hero:'🎯 القسم الرئيسي',layout:'🧭 ترتيب الصفحة والقائمة',team:'👷 الفريق',products:'📦 المنتجات',courses:'🎓 الدورات',books:'📚 الكتب',projects:'🔧 المشاريع',testimonials:'⭐ آراء الطلاب',sections:'➕ أقسام مخصصة',orders:'🧾 الطلبات',users:'👥 المستخدمون',messages:'💬 الرسائل',newsletter:'📧 النشرة',payment:'💳 إعدادات الدفع',design:'🎨 التصميم',seo:'🔍 SEO',brand:'💡 الهوية',social:'🔗 التواصل'};
 function showP(id,el){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));

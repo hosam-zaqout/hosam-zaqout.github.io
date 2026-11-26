@@ -205,6 +205,20 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
+    // 📊 الإحصاءات: يكتبها السيرفر فقط (دالة track ومحاكي ESP32)، ويقرؤها الأدمن
+    match /stats_daily/{day} {
+      allow read: if isAdmin();
+    }
+    match /sim_events/{id} {
+      allow read: if isAdmin();
+    }
+    match /sim_users/{uid} {
+      allow read: if isAdmin();
+    }
+    match /sim_usage/{uid} {
+      allow read: if isAdmin();
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
