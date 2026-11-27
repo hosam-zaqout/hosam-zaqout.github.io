@@ -1,0 +1,29 @@
+/* 3ENG.s — بطاقات المهندسين (الرئيسية و /team/) */
+.x-team{--tc-bg:var(--raise,var(--card,#162238));--tc-line:rgba(168,181,201,.22);--tc-mut:var(--mt,var(--mut,#A8B5C9));--tc-acc:var(--p,var(--acc,#F59E0B));--tc-mint:var(--mint,#4FE0B5);--tc-tx:var(--tx,var(--txt,#F1F5F9));
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;max-width:1180px;margin:0 auto}
+[data-theme="light"] .x-team{--tc-line:rgba(15,23,42,.14)}
+@media(max-width:959px){.x-team{grid-template-columns:1fr;max-width:560px}}
+.x-team .x-member{padding:0;text-align:right;background:var(--tc-bg);border:1px solid var(--tc-line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column}
+.x-art{margin:10px 10px 0;border:1px solid var(--tc-line);border-radius:11px;height:128px;display:grid;place-items:center;
+  background-color:rgba(15,23,42,.35);background-image:linear-gradient(var(--tc-line) 1px,transparent 1px),linear-gradient(90deg,var(--tc-line) 1px,transparent 1px);background-size:16px 16px}
+[data-theme="light"] .x-art{background-color:#F3F6FA}
+.x-art svg{width:100%;max-width:260px;height:auto}
+.x-art .tl{fill:none;stroke:var(--tc-mut);stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}
+.x-art .tm{fill:none;stroke:var(--tc-mint);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.x-art .tmd{fill:var(--tc-mint)}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+  .x-art .tm{stroke-dasharray:6 6;transition:stroke-dashoffset .8s ease}
+  .x-member:hover .x-art .tm{stroke-dashoffset:-48}
+}
+.x-body{padding:0 20px 22px;display:flex;flex-direction:column;flex:1}
+.x-team .x-av{width:72px;height:72px;margin:-30px 0 10px;border:3px solid var(--tc-bg);border-radius:50%;overflow:hidden;display:grid;place-items:center;font-size:1.25rem;font-weight:900;color:#0F172A;background:var(--tc-acc)}
+.x-team .x-av img{width:100%;height:100%;object-fit:cover}
+.x-team h3{font-size:1.15rem;margin-bottom:4px;line-height:1.5}
+.x-team h3 a{color:inherit;text-decoration:none}
+.x-team h3 a:hover{color:var(--tc-acc)}
+.x-team .x-role{color:var(--tc-acc);font-size:.9rem;font-weight:700;margin-bottom:10px;line-height:1.6}
+.x-team .x-member p{font-size:.92rem;opacity:1;color:var(--tc-mut);line-height:1.75;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;margin:0}
+.x-team .x-skills{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:6px;margin-top:12px}
+.x-team .x-skills span{font-size:.75rem;border:1px solid var(--tc-line);color:var(--tc-tx);border-radius:999px;padding:2px 10px}
+.x-team .x-links2{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-start;margin-top:auto;padding-top:14px}
+.x-team .x-links2 a{font-size:.8rem;font-weight:700;color:var(--tc-mint);border:1px solid var(--tc-line);border-radius:8px;min-height:36px;display:inline-flex;align-items:center;padding:4px 12px;text-decoration:none}

@@ -401,6 +401,7 @@ ${schemas.map(jsonLd).join("\n")}
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-GZJCYL5YM8"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-GZJCYL5YM8');</script><script src="/assets/track.js?v=1" defer></script>
 <script src="/assets/visit.js" defer></script>
+<link rel="stylesheet" href="/assets/team.css?v=1">
 </head>
 <body>
 <header class="top"><div class="wrap">
@@ -1085,9 +1086,9 @@ function teamHub(list) {
   const url = "/team/";
   const bc = crumbs([{ name: "الرئيسية", url: "/" }, { name: "فريق 3ENG.s", url }]);
   const body = `${bc.html}
-<h1>👷 فريق ${BRAND} — ${BRAND_AR}</h1>
+<h1>فريق ${BRAND} — ${BRAND_AR}</h1>
 <p class="lead">مهندسون كهربائيون ومدرّبون من فلسطين، يقدّمون الدورات والمشاريع والكتب على منصة ${BRAND}.</p>
-<div class="cards">${list.map(([m, photo]) => `<a class="card" href="/team/${m.slug}/">${photo ? `<img src="${photo}" alt="${esc(m.name)}" loading="lazy" width="480" height="480">` : `<div class="ph">${esc(m.name.replace(/^م\.\s*/, "")[0])}</div>`}<div class="b"><h3>${esc(m.name)}</h3><div class="k">${esc(m.role)}</div></div></a>`).join("")}</div>`;
+<div class="x-team">${list.map(([m, photo], i) => teamCard(m, photo, i)).join("")}</div>`;
   return layout({
     title: `فريق ${BRAND} | ${BRAND_AR}`,
     description: `تعرّف على فريق ${BRAND}: ${TEAM.map((m) => m.name).join("، ")} — مهندسون كهربائيون ومدرّبون من فلسطين.`,
@@ -1244,10 +1245,10 @@ function ssrReplace(html, key, content) {
 }
 function ssrItems(sec, items) {
   if (!items.length) return `<div class="loading-ph">لا توجد عناصر حالياً — قريباً!</div>`;
-  return `<div class="ssr-list">${items.map((it) => {
+  return `<div class="ssr-list">${items.slice(0, 6).map((it) => {
     const price = num(it.price) ?? 0;
-    return `<a href="/${sec.dir}/${it._slug}/">${esc(cut(it.title, 70))}<b>${sec.type === "Article" ? "📝" : price > 0 && !isFree(it) ? "$" + price : "مجاني"}</b></a>`;
-  }).join("")}</div>`;
+    return `<a href="/${sec.dir}/${it._slug}/">${esc(cut(it.title, 70))}<b>${sec.type === "Article" ? "مقال" : price > 0 && !isFree(it) ? "$" + price : "مجاني"}</b></a>`;
+  }).join("")}${items.length > 6 ? `<a class="ssr-all" href="/${sec.dir}/">عرض الكل (${items.length})</a>` : ""}</div>`;
 }
 function ssrTestimonials(list) {
   list = (list || []).filter((t) => clean(t.text) && clean(t.name));
@@ -1257,14 +1258,24 @@ function ssrTestimonials(list) {
     return `<div class="tcard"><div class="tstars">${"★".repeat(r)}${"☆".repeat(5 - r)}</div><div class="ttext">${esc(clean(t.text))}</div><div class="tauthor"><div class="tav">${esc(clean(t.name)[0])}</div><div><div class="taname">${esc(clean(t.name))}</div><div class="tarole">${esc(clean(t.role))}</div></div></div></div>`;
   }).join("");
 }
-// قسم "من نحن" بالرئيسية — نفس الشكل اللي بيرسمه index.html (renderTeam) من site_config/team
+// رسومات بطاقات المهندسين (نفس TEAM_ART في assets/ui.js): لوحة ESP32، حسّاس، علبة نموذج أولي
+const TEAM_ART = [
+  '<svg viewBox="0 0 240 120" aria-hidden="true"><g class="tl"><rect x="70" y="20" width="110" height="68" rx="6"/><rect x="128" y="28" width="44" height="52" rx="3"/><path d="M135 36h30M135 36v7h30v7h-30v7h30"/><circle cx="84" cy="34" r="3.5"/><path d="M80 88v9M92 88v9M104 88v9M116 88v9M128 88v9M140 88v9M152 88v9M164 88v9"/></g><path class="tm" d="M104 97v11H40V58H16"/><circle class="tmd" cx="16" cy="58" r="4"/></svg>',
+  '<svg viewBox="0 0 240 120" aria-hidden="true"><g class="tl"><rect x="62" y="28" width="96" height="64" rx="6"/><circle cx="96" cy="60" r="17"/><circle cx="96" cy="60" r="8"/><path d="M158 44h10M158 54h10M158 66h10M158 76h10"/><circle cx="74" cy="38" r="2.5"/><circle cx="74" cy="82" r="2.5"/></g><path class="tm" d="M168 54c8 0 8-16 16-16s8 32 16 32 8-16 16-16 8 0 12 0"/><circle class="tmd" cx="228" cy="54" r="4"/></svg>',
+  '<svg viewBox="0 0 240 120" aria-hidden="true"><g class="tl"><path d="M78 42l22-16h100l-22 16Z"/><path d="M178 42l22-16v54l-22 16Z"/><rect x="78" y="42" width="100" height="54" rx="3"/><rect x="92" y="62" width="18" height="12" rx="2"/><path d="M124 58h40M124 68h40M124 78h26"/></g><path class="tm" d="M92 68H60c-14 0-14 26-28 26H18"/><rect class="tmd" x="8" y="88" width="12" height="12" rx="2"/></svg>',
+];
+function initials(name) {
+  const w = String(name || "").replace(/^م\.?\s*/, "").trim().split(/\s+/).filter(Boolean);
+  return (w[0] ? w[0][0] : "") + (w[1] ? " " + w[1][0] : "");
+}
+function teamCard(m, photo, i) {
+  const av = photo ? `<img src="${esc(photo)}" alt="${esc(m.name)}" width="72" height="72" loading="lazy">` : `<span>${esc(initials(m.name))}</span>`;
+  return `<article class="x-member"><div class="x-art">${TEAM_ART[i % TEAM_ART.length]}</div><div class="x-body"><div class="x-av">${av}</div><h3><a href="/team/${m.slug}/">${esc(m.name)}</a></h3><div class="x-role">${esc(m.role)}</div><p>${esc(m.bio.join(" "))}</p>${(m.skills || []).length ? `<div class="x-skills">${m.skills.map((k) => `<span>${esc(k)}</span>`).join("")}</div>` : ""}${m.sameAs.length ? `<div class="x-links2">${m.sameAs.map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener me">${/linkedin\.com/i.test(u) ? "LinkedIn" : esc(u.replace(/^https?:\/\/(www\.)?/, "").split("/")[0])}</a>`).join("")}</div>` : ""}</div></article>`;
+}
+// قسم "من نحن" بالرئيسية — نفس الشكل اللي بيرسمه index.html (loadTeam) من site_config/team
 async function ssrTeam() {
   const out = [];
-  for (const m of TEAM) {
-    const photo = await teamPhoto(m);
-    const av = photo ? `<img src="${esc(photo)}" alt="${esc(m.name)}" width="84" height="84" loading="lazy">` : esc(m.name.replace(/^م\.\s*/, "")[0] || "");
-    out.push(`<div class="x-member"><div class="x-av">${av}</div><h3><a href="/team/${m.slug}/" style="color:inherit;text-decoration:none">${esc(m.name)}</a></h3><div class="x-role">${esc(m.role)}</div><p>${esc(m.bio.join(" "))}</p>${(m.skills || []).length ? `<div class="x-skills">${m.skills.map((k) => `<span>${esc(k)}</span>`).join("")}</div>` : ""}${m.sameAs.length ? `<div class="x-links2">${m.sameAs.map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener me">${/linkedin\.com/i.test(u) ? "in LinkedIn" : esc(u.replace(/^https?:\/\/(www\.)?/, "").split("/")[0])}</a>`).join("")}</div>` : ""}</div>`);
-  }
+  for (const [i, m] of TEAM.entries()) out.push(teamCard(m, await teamPhoto(m), i));
   return out.join("");
 }
 async function updateHome(data) {

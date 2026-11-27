@@ -584,6 +584,9 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
 </script>
 <script src="/assets/visit.js" defer></script>
 <script src="/assets/track.js?v=1" defer></script>
+<link rel="stylesheet" href="/assets/ui.css?v=1">
+<link rel="stylesheet" href="/assets/team.css?v=1">
+<script src="/assets/ui.js?v=1"></script>
 </head>
 <body>
 
@@ -679,73 +682,95 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
 </div>
 
 <!-- NAV -->
-<nav id="nav">
-  <a href="#" class="logo-wrap">
-    <img class="logo-img" src="logo.jpg" alt="3ENG.s Logo" onerror="this.style.display='none'">
+<nav id="nav" aria-label="القائمة الرئيسية">
+  <a href="/" class="logo-wrap" aria-label="3ENG.s — الصفحة الرئيسية">
+    <img class="logo-img" src="/logo.jpg" alt="" width="40" height="40" onerror="this.style.display='none'">
     <div><span class="lname" id="bname">3ENG.s</span></div>
   </a>
   <ul class="nav-links" id="navLinks">
     <li><a href="/courses/">الدورات</a></li>
     <li><a href="/projects/">المشاريع</a></li>
-    <li><a href="/products/">المنتجات الرقمية</a></li>
-    <li><a href="/books/">الكتب</a></li>
+    <li class="nav-grp"><button type="button" class="nav-gbtn" aria-expanded="false" aria-controls="navLib">المكتبة<svg class="i" aria-hidden="true"><use href="/assets/icons.svg#chev"/></svg></button><div class="nav-sub" id="navLib"><a href="/books/"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#book"/></svg>الكتب</a><a href="/products/"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#package"/></svg>المنتجات الرقمية</a></div></li>
     <li><a href="/tools/">الحاسبات</a></li>
     <li><a href="/cad/">3ENG CAD</a></li>
     <li><a href="/team/">الفريق</a></li>
     <li><a href="#contact" onclick="scrollToSec('contact');return false">تواصل</a></li>
   </ul>
   <div class="nav-right">
-    <button class="tm-toggle" id="tmToggle" onclick="cycleTheme()" title="تغيير المظهر">🌙</button>
-    <button class="cart-btn" onclick="openCart()">🛒 <span class="cart-count" id="cartCount">0</span></button>
+    <button class="tm-toggle" id="tmToggle" onclick="cycleTheme()" aria-label="تغيير المظهر" title="تغيير المظهر"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#contrast"/></svg></button>
+    <button class="cart-btn" onclick="openCart()" aria-label="السلة: 0 عناصر" id="cartBtn"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#basket"/></svg><span class="cart-count" id="cartCount" aria-hidden="true">0</span></button>
     <div class="nav-user-wrap" id="uWrap" style="display:none">
-      <button class="nav-ubtn" id="uBtn" onclick="toggleUserMenu()">👤 حسابي ▾</button>
+      <button class="nav-ubtn" id="uBtn" onclick="toggleUserMenu()" aria-haspopup="true"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#user"/></svg><span id="uName">حسابي</span><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#chev"/></svg></button>
       <div class="nav-dd" id="userDD">
-        <a class="ddi" href="admin.html" id="adminLnk" style="display:none">🛡️ لوحة الأدمن</a>
+        <a class="ddi" href="admin.html" id="adminLnk" style="display:none"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#shield"/></svg>لوحة الأدمن</a>
         <div class="ddi-sep" id="adminSep" style="display:none"></div>
-        <a class="ddi" href="/my-courses/">🎓 دوراتي</a>
-        <a class="ddi" onclick="openMyOrders();closeUserMenu()">📦 مشترياتي</a>
-        <a class="ddi" onclick="openCart();closeUserMenu()">🛒 سلتي (<span id="ddCartCount">0</span>)</a>
+        <a class="ddi" href="/my-courses/"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#module"/></svg>دوراتي</a>
+        <a class="ddi" href="#" onclick="openMyOrders();closeUserMenu();return false"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#package"/></svg>مشترياتي</a>
+        <a class="ddi" href="#" onclick="openCart();closeUserMenu();return false"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#basket"/></svg>سلتي (<span id="ddCartCount">0</span>)</a>
         <div class="ddi-sep"></div>
-        <button class="ddi red" onclick="doLogout()">🚪 تسجيل الخروج</button>
+        <button class="ddi red" onclick="doLogout()"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#logout"/></svg>تسجيل الخروج</button>
       </div>
     </div>
-    <a href="auth.html" class="nav-cta" id="loginBtn">دخول ⚡</a>
-    <button class="hbg" id="hbg" onclick="toggleMob()"><span></span><span></span><span></span></button>
+    <a href="auth.html" class="nav-cta" id="loginBtn"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#login"/></svg>دخول</a>
+    <button class="hbg" id="hbg" onclick="toggleMob()" aria-label="فتح القائمة" aria-expanded="false" aria-controls="mobMenu"><svg class="i i-open" aria-hidden="true"><use href="/assets/icons.svg#menu"/></svg><svg class="i i-shut" aria-hidden="true"><use href="/assets/icons.svg#close"/></svg></button>
   </div>
 </nav>
 
-<div class="mob-menu" id="mobMenu">
+<div class="mob-menu" id="mobMenu" aria-label="القائمة">
   <div id="mobLinks">
-  <a href="/courses/">🎓 الدورات</a>
-  <a href="/projects/">🛠️ المشاريع</a>
-  <a href="/products/">📦 المنتجات الرقمية</a>
-  <a href="/books/">📚 الكتب</a>
-  <a href="/tools/">🧮 الحاسبات</a>
-  <a href="/cad/">🛠️ 3ENG CAD — محاكي الدوائر</a>
-  <a href="/team/">👷 الفريق</a>
-  <a href="#contact" onclick="scrollToSec('contact');closeMob();return false">✉️ تواصل معنا</a>
+  <a href="/courses/"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#module"/></svg>الدورات</a>
+  <a href="/projects/"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#bench"/></svg>المشاريع</a>
+  <a href="/books/"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#book"/></svg>الكتب</a>
+  <a href="/products/"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#package"/></svg>المنتجات الرقمية</a>
+  <a href="/tools/"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#calc"/></svg>الحاسبات</a>
+  <a href="/cad/"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#square"/></svg>3ENG CAD — محاكي الدوائر</a>
+  <a href="/team/"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#team"/></svg>الفريق</a>
+  <a href="#contact" onclick="scrollToSec('contact');closeMob();return false"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#chat"/></svg>تواصل معنا</a>
   </div>
-  <a href="auth.html" class="mob-cta">تسجيل الدخول ⚡</a>
+  <a href="auth.html" class="mob-cta"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#login"/></svg>تسجيل الدخول</a>
 </div>
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-bg"></div>
-  <div class="hdots" id="hdots"></div>
-  <div class="hero-badge"><span class="blink"></span><span id="hbadge">المهندسون الثلاثة — 3ENG.s</span><span class="blink"></span></div>
-  <div class="hero-logo"><img src="/logo.jpg" alt="شعار 3ENG.s — المهندسون الثلاثة" width="120" height="120" onerror="this.parentElement.innerHTML='<span style=font-size:2.8rem>💡</span>'"></div>
-  <h1 class="hh" id="htitle">تعلّم. ابنِ. <span class="g">تميّز.</span><span class="hh-sub">دورات ومشاريع وكتب في الهندسة الكهربائية، ESP32، أردوينو وإنترنت الأشياء</span></h1>
-  <p class="hero-sub" id="hsub">منصة 3ENG.s — رفيقك في الهندسة الكهربائية والأنظمة المدمجة. دورات، مشاريع، كتب من مهندسين لمهندسين.</p>
-  <div class="hero-tags" id="heroTags">
-    <div class="htag">⚡ الهندسة الكهربائية</div>
-    <div class="htag">🔧 الأنظمة المدمجة</div>
-    <div class="htag">💡 ESP32 & Arduino</div>
-    <div class="htag">🤖 الذكاء الاصطناعي</div>
-    <div class="htag">📡 IoT</div>
-  </div>
-  <div class="hbtns">
-    <button class="bp" onclick="scrollToSec('courses')">استعرض الدورات ↓</button>
-    <button class="bo" onclick="scrollToSec('projects')">المشاريع الهندسية</button>
+  <div class="hero-in">
+    <div class="hero-copy">
+      <p class="hero-kick" id="hbadge">المهندسون الثلاثة — 3ENG.s</p>
+      <h1 class="hh" id="htitle">تعلّم الهندسة بالتطبيق<span class="hh-sub">دورات ومشاريع وكتب في الهندسة الكهربائية، ESP32، أردوينو وإنترنت الأشياء</span></h1>
+      <p class="hero-sub" id="hsub">دورات ومشاريع عملية في الهندسة الكهربائية والأنظمة المدمجة، يقدّمها مهندسون كهربائيون من فلسطين: تتعلّم الفكرة ثم تبنيها بيدك.</p>
+      <div class="hbtns">
+        <a class="bp" href="/courses/">استعرض الدورات</a>
+        <a class="bo" href="/projects/">استكشف المشاريع</a>
+      </div>
+      <div class="hero-tags" id="heroTags" role="navigation" aria-label="تصفّح حسب المجال">
+        <a class="htag" href="/topics/electronics/"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#bolt"/></svg>الإلكترونيات</a>
+        <a class="htag" href="/topics/embedded-systems/"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#cpu"/></svg>الأنظمة المدمجة</a>
+        <a class="htag" href="/topics/esp32/"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#board"/></svg>ESP32</a>
+        <a class="htag" href="/topics/arduino/"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#board"/></svg>أردوينو</a>
+        <a class="htag" href="/topics/iot/"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#antenna"/></svg>إنترنت الأشياء</a>
+        <a class="htag" href="/topics/ai/"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#nodes"/></svg>الذكاء الاصطناعي</a>
+        <a class="htag" href="/topics/renewable-energy/"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#sunpanel"/></svg>الطاقة المتجددة</a>
+      </div>
+    </div>
+    <div class="hero-art"><svg class="hart" viewBox="0 0 480 360" role="img" aria-label="رسم لوحة ESP32 على لوحة تجارب، ومسار يصل أحد منافذها بمقاومة وثنائي ضوئي">
+  <defs><pattern id="hp" width="16" height="16" patternUnits="userSpaceOnUse"><rect x="6" y="6" width="4" height="4" rx="1" class="hh-hole"/></pattern></defs>
+  <rect x="16" y="150" width="448" height="196" rx="14" class="hb-bb"/>
+  <rect x="32" y="166" width="416" height="164" fill="url(#hp)"/>
+  <path d="M32 248h416" class="hb-gap"/>
+  <g class="hb-board">
+    <rect x="132" y="40" width="200" height="120" rx="9"/>
+    <rect x="232" y="52" width="86" height="96" rx="5" class="hb-mod"/>
+    <path d="M244 64h62M244 64v10h62v10h-62v10h62" class="hb-ant"/>
+    <circle cx="152" cy="60" r="5" class="hb-led0"/>
+    <text x="176" y="126" class="hb-txt">ESP32</text>
+    <path d="M148 160v14M164 160v14M180 160v14M196 160v14M212 160v14M228 160v14M244 160v14M260 160v14M276 160v14M292 160v14M308 160v14M324 160v14" class="hb-pin"/>
+  </g>
+  <path d="M196 174v62h132" class="hb-trace"/>
+  <path d="M328 236l6-10 8 20 8-20 8 20 8-20 6 10" class="hb-res"/>
+  <path d="M372 236h28" class="hb-trace hb-t2"/>
+  <circle cx="412" cy="236" r="12" class="hb-led"/>
+  <circle cx="412" cy="236" r="26" class="hb-glow"/>
+  <path d="M424 236h12v74H180v-136" class="hb-gnd"/>
+</svg></div>
   </div>
 </section>
 
@@ -758,13 +783,13 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
     <div><b><!--SSR:count-books-->4<!--/SSR:count-books--></b>كتاب هندسي</div>
   </div>
   <div class="x-links" id="quickLinks" style="display:none">
-    <a href="/courses/">🎓 كل الدورات</a>
-    <a href="/projects/">🛠️ كل المشاريع</a>
-    <a href="/products/">📦 المنتجات الرقمية</a>
-    <a href="/books/">📚 الكتب</a>
-    <a href="/tools/">🧮 الحاسبات</a>
-    <a href="/cad/">🛠️ 3ENG CAD</a>
-    <a href="/team/">👷 تعرّف على الفريق</a>
+    <a href="/courses/"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#module"/></svg>كل الدورات</a>
+    <a href="/projects/"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#bench"/></svg>كل المشاريع</a>
+    <a href="/products/"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#package"/></svg>المنتجات الرقمية</a>
+    <a href="/books/"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#book"/></svg>الكتب</a>
+    <a href="/tools/"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#calc"/></svg>الحاسبات</a>
+    <a href="/cad/"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#square"/></svg>3ENG CAD</a>
+    <a href="/team/"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#team"/></svg>تعرّف على الفريق</a>
   </div>
 </section>
 
@@ -794,10 +819,10 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
 <!-- FEATURES -->
 <div class="fstrip" id="features">
   <div class="fgrid">
-    <div class="feat reveal"><div class="ficon">🔒</div><div class="ftext"><h4>دفع آمن 100%</h4><p>طرق دفع آمنة وموثوقة</p></div></div>
-    <div class="feat reveal"><div class="ficon">⚡</div><div class="ftext"><h4>تسليم فوري</h4><p>احصل على منتجاتك فور الدفع</p></div></div>
-    <div class="feat reveal"><div class="ficon">📥</div><div class="ftext"><h4>تحميل مباشر</h4><p>المحتوى المجاني متاح للتحميل مباشرة</p></div></div>
-    <div class="feat reveal"><div class="ficon">🔧</div><div class="ftext"><h4>محتوى تخصصي</h4><p>من مهندسين متخصصين</p></div></div>
+    <div class="feat reveal"><div class="ficon"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#lock"/></svg></div><div class="ftext"><h4>دفع آمن 100%</h4><p>طرق دفع آمنة وموثوقة</p></div></div>
+    <div class="feat reveal"><div class="ficon"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#instant"/></svg></div><div class="ftext"><h4>تسليم فوري</h4><p>احصل على منتجاتك فور الدفع</p></div></div>
+    <div class="feat reveal"><div class="ficon"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#download"/></svg></div><div class="ftext"><h4>تحميل مباشر</h4><p>المحتوى المجاني متاح للتحميل مباشرة</p></div></div>
+    <div class="feat reveal"><div class="ficon"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#expert"/></svg></div><div class="ftext"><h4>محتوى تخصصي</h4><p>من مهندسين متخصصين</p></div></div>
   </div>
 </div>
 
@@ -808,7 +833,7 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
   <div class="shdr reveal">
     <div><div class="stag">المشاريع الهندسية</div><div class="gline"></div><h2 class="stitle">مشاريع <span class="g">تطبيقية جاهزة</span></h2><p class="sdesc">كود + مخططات + شرح فيديو لمشاريع ESP32, Arduino, IoT والمزيد</p></div>
   </div>
-  <div class="prgrid" id="prGrid"><!--SSR:projects--><div class="ssr-list"><a href="/projects/arduino-weather-station/">كيف تصنع محطة طقس منزلية باستخدام الأردوينو<b>$5</b></a><a href="/projects/arduino-altimeter-bmp180/">كيف تصنع جهاز قياس الارتفاع باستخدام الأردوينو<b>$5</b></a><a href="/projects/arduino-rain-alarm/">كيف تصنع جهاز إنذار المطر باستخدام الأردوينو<b>$5</b></a><a href="/projects/arduino-smart-irrigation/">كيف تصنع نظام ريّ ذكي باستخدام الأردوينو<b>$5</b></a><a href="/projects/arduino-waterproof-thermometer/">كيف تصنع ميزان حرارة مقاوم للماء باستخدام الأردوينو<b>$5</b></a><a href="/projects/arduino-real-time-clock/">كيف تصنع ساعة رقمية دقيقة باستخدام الأردوينو<b>$5</b></a><a href="/projects/arduino-gas-leak-detector/">كيف تصنع كاشف تسرّب الغاز باستخدام الأردوينو<b>$5</b></a><a href="/projects/arduino-parking-sensor/">كيف تصنع حسّاس ركن السيارة باستخدام الأردوينو<b>$5</b></a><a href="/projects/arduino-burglar-alarm/">كيف تصنع إنذار ضد اللصوص باستخدام الأردوينو<b>$5</b></a><a href="/projects/arduino-tilt-alarm/">جهاز إنذار الانحدار باستخدام الأردوينو<b>$5</b></a><a href="/projects/arduino-clap-switch/">كيف تصنع مصباح يعمل بالتصفيق باستخدام الأردوينو<b>$5</b></a><a href="/projects/arduino-door-alarm/">كيف تصنع إنذار فتح الباب باستخدام الأردوينو<b>$5</b></a><a href="/projects/arduino-rfid-door-lock/">كيف تصنع قفل باب بالبطاقة باستخدام الأردوينو<b>$5</b></a><a href="/projects/arduino-motion-light/">كيف تصنع إنارة ذكية بالحركة باستخدام الأردوينو<b>$5</b></a><a href="/projects/arduino-wireless-remote-nrf24/">كيف تصنع ريموت لاسلكي باستخدام الأردوينو<b>$5</b></a><a href="/projects/arduino-wireless-doorbell-433mhz/">كيف تصنع جرس باب لاسلكي باستخدام الأردوينو<b>$5</b></a><a href="/projects/arduino-oled-thermometer/">كيف تصنع شاشة حرارة ورطوبة باستخدام الأردوينو<b>$5</b></a><a href="/projects/arduino-led-matrix-faces/">كيف تصنع وجوه تعبيرية مضيئة باستخدام الأردوينو<b>$5</b></a><a href="/projects/arduino-rgb-led-strip/">كيف تصنع إضاءة قوس قزح باستخدام الأردوينو<b>$5</b></a><a href="/projects/arduino-keypad-password-lock/">كيف تصنع قفل برمز سري باستخدام الأردوينو<b>$5</b></a><a href="/projects/arduino-color-tft-display/">كيف تصنع شاشة ألوان صغيرة باستخدام الأردوينو<b>$5</b></a><a href="/projects/arduino-sms-security-alarm/">كيف تصنع إنذار يرسل رسالة SMS باستخدام الأردوينو<b>$5</b></a><a href="/projects/arduino-sd-data-logger/">كيف تصنع مسجّل بيانات الحرارة باستخدام الأردوينو<b>$5</b></a><a href="/projects/arduino-color-sorter-tcs3200/">كيف تصنع كاشف الألوان باستخدام الأردوينو<b>$5</b></a><a href="/projects/security-system-factory/">نظام حماية المصانع باستخدام PIC18F4550 | Factory Security System<b>$12</b></a><a href="/projects/weather-station-project/">محطة طقس متنقلة ذكية<b>$8</b></a><a href="/projects/blind-stick-project/">العصا الذكية للمكفوفين (Smart Blind Stick)<b>$5</b></a></div><!--/SSR:projects--></div>
+  <div class="prgrid" id="prGrid"><!--SSR:projects--><div class="ssr-list"><a href="/projects/arduino-weather-station/">كيف تصنع محطة طقس منزلية باستخدام الأردوينو<b>$5</b></a><a href="/projects/arduino-altimeter-bmp180/">كيف تصنع جهاز قياس الارتفاع باستخدام الأردوينو<b>$5</b></a><a href="/projects/arduino-rain-alarm/">كيف تصنع جهاز إنذار المطر باستخدام الأردوينو<b>$5</b></a><a href="/projects/arduino-smart-irrigation/">كيف تصنع نظام ريّ ذكي باستخدام الأردوينو<b>$5</b></a><a href="/projects/arduino-waterproof-thermometer/">كيف تصنع ميزان حرارة مقاوم للماء باستخدام الأردوينو<b>$5</b></a><a href="/projects/arduino-real-time-clock/">كيف تصنع ساعة رقمية دقيقة باستخدام الأردوينو<b>$5</b></a><a class="ssr-all" href="/projects/">عرض الكل (27)</a></div><!--/SSR:projects--></div>
 </section>
 
 <!-- BOOKS -->
@@ -820,7 +845,7 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
 </section>
 
 <!-- Custom sections placeholder -->
-<div id="customSectionsHost"><!--SSR:custom--><section class="csec"><div class="shdr"><div><div class="stag">📝 شروحات ومقارنات عملية في الإلكترونيات والأنظمة المدمجة وإنترنت الأشياء</div><h2 class="stitle">مقالات هندسية</h2></div></div><div class="ssr-list"><a href="/sections/articles/from-engineering-student-to-job-ready/">كيف تنتقل من طالب هندسة إلى مهندس جاهز لسوق العمل؟<b>📝</b></a><a href="/sections/articles/simulation-vs-practical-implementation/">ما الفرق بين Simulation وPractical Implementation في المشاريع…<b>📝</b></a><a href="/sections/articles/free-resources-learn-engineering-electronics/">أفضل مصادر تعلم الهندسة والإلكترونيات مجاناً<b>📝</b></a><a href="/sections/articles/github-for-engineering-students/">كيف تستفيد من GitHub كطالب هندسة؟<b>📝</b></a></div><div class="more-wrap"><a class="more-btn" href="/sections/articles/">اكتشف المزيد ←</a></div></section><section class="csec"><div class="shdr"><div><div class="stag">🛠️ ورشات هندسية</div><h2 class="stitle">ورش تدريبية</h2></div></div><div class="ssr-list"><a href="/sections/workshop/wireless-iot/">مخيم هواة الاتصالات اللاسلكية وإنترنت الأشياء 🚀<b>$29</b></a><a href="/sections/workshop/arduino-bootcamp/">بوتكامب الأردوينو للمبتدئين: 5 مشاريع هندسية في 3 أيام (أونلاين)<b>$15</b></a><a href="/sections/workshop/solar-energy-workshop/">ورشة الطاقة الشمسية المتكاملة مجاناً: من حساب الأحمال إلى التركيب…<b>مجاني</b></a></div><div class="more-wrap"><a class="more-btn" href="/sections/workshop/">اكتشف المزيد ←</a></div></section><!--/SSR:custom--></div>
+<div id="customSectionsHost"><!--SSR:custom--><section class="csec"><div class="shdr"><div><div class="stag">📝 شروحات ومقارنات عملية في الإلكترونيات والأنظمة المدمجة وإنترنت الأشياء</div><h2 class="stitle">مقالات هندسية</h2></div></div><div class="ssr-list"><a href="/sections/articles/from-engineering-student-to-job-ready/">كيف تنتقل من طالب هندسة إلى مهندس جاهز لسوق العمل؟<b>مقال</b></a><a href="/sections/articles/simulation-vs-practical-implementation/">ما الفرق بين Simulation وPractical Implementation في المشاريع…<b>مقال</b></a><a href="/sections/articles/free-resources-learn-engineering-electronics/">أفضل مصادر تعلم الهندسة والإلكترونيات مجاناً<b>مقال</b></a><a href="/sections/articles/github-for-engineering-students/">كيف تستفيد من GitHub كطالب هندسة؟<b>مقال</b></a></div><div class="more-wrap"><a class="more-btn" href="/sections/articles/">اكتشف المزيد ←</a></div></section><section class="csec"><div class="shdr"><div><div class="stag">🛠️ ورشات هندسية</div><h2 class="stitle">ورش تدريبية</h2></div></div><div class="ssr-list"><a href="/sections/workshop/wireless-iot/">مخيم هواة الاتصالات اللاسلكية وإنترنت الأشياء 🚀<b>$29</b></a><a href="/sections/workshop/arduino-bootcamp/">بوتكامب الأردوينو للمبتدئين: 5 مشاريع هندسية في 3 أيام (أونلاين)<b>$15</b></a><a href="/sections/workshop/solar-energy-workshop/">ورشة الطاقة الشمسية المتكاملة مجاناً: من حساب الأحمال إلى التركيب…<b>مجاني</b></a></div><div class="more-wrap"><a class="more-btn" href="/sections/workshop/">اكتشف المزيد ←</a></div></section><!--/SSR:custom--></div>
 
 <!-- TESTIMONIALS -->
 <section id="testimonials">
@@ -838,7 +863,7 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
     نقدّم دورات تدريبية، مشاريع جاهزة، وكتباً هندسية مبسطة في مجالات ESP32 و Arduino و PIC وإنترنت الأشياء والذكاء الاصطناعي،
     وكل محتوانا مبني على تجربة حقيقية في التدريس الجامعي والمشاريع العملية.<!--/SSR:about-intro--></span>
   </p>
-  <div class="x-team" id="xTeam"><!--SSR:team--><div class="x-member"><div class="x-av">ح</div><h3><a href="/team/hosam-zaqout/" style="color:inherit;text-decoration:none">م. حسام زقوت</a></h3><div class="x-role">مهندس كهربائي • مؤسس ومطوّر منصة 3ENG.s • مدرّب</div><p>مهندس كهربائي، مؤسس منصة 3ENG.s الإلكترونية ومطوّرها. حاصل على بكالوريوس الهندسة الكهربائية من الجامعة الإسلامية بغزة، وعمل مساعد تدريس وبحث ومحاضراً زائراً في إنترنت الأشياء والحساسات. متخصص في الأنظمة المدمجة وتصميم الدوائر المطبوعة PCB والعتاد المدمج بالذكاء الاصطناعي، ويدرّب على ESP32 و Arduino و Python ومعالجة الصور.</p><div class="x-skills"><span>ESP32</span><span>IoT</span><span>PCB Design</span><span>Embedded AI</span><span>Control Systems</span></div><div class="x-links2"><a href="https://www.linkedin.com/in/hosam-r-k-zaqout-142533202/" target="_blank" rel="noopener me">in LinkedIn</a><a href="https://www.researchgate.net/profile/Hosam-Zaqout/" target="_blank" rel="noopener me">researchgate.net</a><a href="https://www.youtube.com/@hosam.zaqout" target="_blank" rel="noopener me">youtube.com</a></div></div><div class="x-member"><div class="x-av">إ</div><h3><a href="/team/israa-altaweel/" style="color:inherit;text-decoration:none">م. إسراء الطويل</a></h3><div class="x-role">مؤسِّسة فريق المهندسون الثلاثة • مهندسة أنظمة مدمجة ومدرّبة</div><p>مؤسِّسة فريق المهندسون الثلاثة (3ENG.s)، ومهندسة متخصصة في إنترنت الأشياء والأنظمة المدمجة، درّبت أكثر من 300 طالب. لها مشاريع عملية في الطاقة الشمسية والأتمتة والأجهزة الذكية.</p><div class="x-skills"><span>IoT</span><span>Arduino</span><span>Python</span><span>Electronics</span></div></div><div class="x-member"><div class="x-av">ف</div><h3><a href="/team/furat-altaweel/" style="color:inherit;text-decoration:none">م. فرات الطويل</a></h3><div class="x-role">مهندسة أنظمة ذكية • تطوير المنتجات والتدريب</div><p>مهندسة أنظمة ذكية مهتمة بتطوير المنتجات، وبتعليم الأطفال علوم الإلكترونيات واللغات. لديها خبرة كبيرة في إعداد السيرة الذاتية، وتدريب الطلاب على اجتياز المقابلات والتقدّم للمنح الدراسية.</p><div class="x-skills"><span>Smart Systems</span><span>Product Development</span><span>تعليم الأطفال</span><span>CV &amp; Interviews</span><span>المنح الدراسية</span></div></div><!--/SSR:team--></div>
+  <div class="x-team" id="xTeam"><!--SSR:team--><article class="x-member"><div class="x-art"><svg viewBox="0 0 240 120" aria-hidden="true"><g class="tl"><rect x="70" y="20" width="110" height="68" rx="6"/><rect x="128" y="28" width="44" height="52" rx="3"/><path d="M135 36h30M135 36v7h30v7h-30v7h30"/><circle cx="84" cy="34" r="3.5"/><path d="M80 88v9M92 88v9M104 88v9M116 88v9M128 88v9M140 88v9M152 88v9M164 88v9"/></g><path class="tm" d="M104 97v11H40V58H16"/><circle class="tmd" cx="16" cy="58" r="4"/></svg></div><div class="x-body"><div class="x-av"><span>ح ز</span></div><h3><a href="/team/hosam-zaqout/">م. حسام زقوت</a></h3><div class="x-role">مهندس كهربائي • مؤسس ومطوّر منصة 3ENG.s • مدرّب</div><p>مهندس كهربائي، مؤسس منصة 3ENG.s الإلكترونية ومطوّرها. حاصل على بكالوريوس الهندسة الكهربائية من الجامعة الإسلامية بغزة، وعمل مساعد تدريس وبحث ومحاضراً زائراً في إنترنت الأشياء والحساسات. متخصص في الأنظمة المدمجة وتصميم الدوائر المطبوعة PCB والعتاد المدمج بالذكاء الاصطناعي، ويدرّب على ESP32 و Arduino و Python ومعالجة الصور.</p><div class="x-skills"><span>ESP32</span><span>IoT</span><span>PCB Design</span><span>Embedded AI</span><span>Control Systems</span></div><div class="x-links2"><a href="https://www.linkedin.com/in/hosam-r-k-zaqout-142533202/" target="_blank" rel="noopener me">LinkedIn</a><a href="https://www.researchgate.net/profile/Hosam-Zaqout/" target="_blank" rel="noopener me">researchgate.net</a><a href="https://www.youtube.com/@hosam.zaqout" target="_blank" rel="noopener me">youtube.com</a></div></div></article><article class="x-member"><div class="x-art"><svg viewBox="0 0 240 120" aria-hidden="true"><g class="tl"><rect x="62" y="28" width="96" height="64" rx="6"/><circle cx="96" cy="60" r="17"/><circle cx="96" cy="60" r="8"/><path d="M158 44h10M158 54h10M158 66h10M158 76h10"/><circle cx="74" cy="38" r="2.5"/><circle cx="74" cy="82" r="2.5"/></g><path class="tm" d="M168 54c8 0 8-16 16-16s8 32 16 32 8-16 16-16 8 0 12 0"/><circle class="tmd" cx="228" cy="54" r="4"/></svg></div><div class="x-body"><div class="x-av"><span>إ ا</span></div><h3><a href="/team/israa-altaweel/">م. إسراء الطويل</a></h3><div class="x-role">مؤسِّسة فريق المهندسون الثلاثة • مهندسة أنظمة مدمجة ومدرّبة</div><p>مؤسِّسة فريق المهندسون الثلاثة (3ENG.s)، ومهندسة متخصصة في إنترنت الأشياء والأنظمة المدمجة، درّبت أكثر من 300 طالب. لها مشاريع عملية في الطاقة الشمسية والأتمتة والأجهزة الذكية.</p><div class="x-skills"><span>IoT</span><span>Arduino</span><span>Python</span><span>Electronics</span></div></div></article><article class="x-member"><div class="x-art"><svg viewBox="0 0 240 120" aria-hidden="true"><g class="tl"><path d="M78 42l22-16h100l-22 16Z"/><path d="M178 42l22-16v54l-22 16Z"/><rect x="78" y="42" width="100" height="54" rx="3"/><rect x="92" y="62" width="18" height="12" rx="2"/><path d="M124 58h40M124 68h40M124 78h26"/></g><path class="tm" d="M92 68H60c-14 0-14 26-28 26H18"/><rect class="tmd" x="8" y="88" width="12" height="12" rx="2"/></svg></div><div class="x-body"><div class="x-av"><span>ف ا</span></div><h3><a href="/team/furat-altaweel/">م. فرات الطويل</a></h3><div class="x-role">مهندسة أنظمة ذكية • تطوير المنتجات والتدريب</div><p>مهندسة أنظمة ذكية مهتمة بتطوير المنتجات، وبتعليم الأطفال علوم الإلكترونيات واللغات. لديها خبرة كبيرة في إعداد السيرة الذاتية، وتدريب الطلاب على اجتياز المقابلات والتقدّم للمنح الدراسية.</p><div class="x-skills"><span>Smart Systems</span><span>Product Development</span><span>تعليم الأطفال</span><span>CV &amp; Interviews</span><span>المنح الدراسية</span></div></div></article><!--/SSR:team--></div>
 </section>
 
 <!-- FAQ -->
@@ -866,11 +891,11 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
   <div class="cgrid2">
     <div class="reveal">
       <div class="clinks">
-        <a class="clink" id="waLink" href="https://wa.me/970592753159" target="_blank" rel="noopener"><div class="clico iwa">💬</div><div><div class="cllbl">واتساب</div><div class="clval" dir="ltr" id="waVal">+970 59 275 3159</div></div></a>
-        <a class="clink" id="mailLink" href="mailto:info@3engs.com"><div class="clico iml">📧</div><div><div class="cllbl">البريد</div><div class="clval" dir="ltr" id="mailVal">info@3engs.com</div></div></a>
-        <a class="clink" id="igLink" href="https://www.instagram.com/3eng.s" target="_blank" rel="noopener"><div class="clico iig">📸</div><div><div class="cllbl">إنستغرام</div><div class="clval" id="igVal">@3eng.s</div></div></a>
-        <a class="clink" id="ttLink" href="https://www.tiktok.com/@3eng.s" target="_blank" rel="noopener"><div class="clico itt">🎵</div><div><div class="cllbl">تيكتوك</div><div class="clval" id="ttVal">@3eng.s</div></div></a>
-        <a class="clink" id="fbLink" href="https://www.facebook.com/profile.php?id=61584936014304" target="_blank" rel="noopener"><div class="clico ifb">👥</div><div><div class="cllbl">فيسبوك</div><div class="clval" id="fbVal">3ENG.s</div></div></a>
+        <a class="clink" id="waLink" href="https://wa.me/970592753159" target="_blank" rel="noopener"><div class="clico iwa"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#chat"/></svg></div><div><div class="cllbl">واتساب</div><div class="clval" dir="ltr" id="waVal">+970 59 275 3159</div></div></a>
+        <a class="clink" id="mailLink" href="mailto:info@3engs.com"><div class="clico iml"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#mail"/></svg></div><div><div class="cllbl">البريد</div><div class="clval" dir="ltr" id="mailVal">info@3engs.com</div></div></a>
+        <a class="clink" id="igLink" href="https://www.instagram.com/3eng.s" target="_blank" rel="noopener"><div class="clico iig"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#camera"/></svg></div><div><div class="cllbl">إنستغرام</div><div class="clval" id="igVal">@3eng.s</div></div></a>
+        <a class="clink" id="ttLink" href="https://www.tiktok.com/@3eng.s" target="_blank" rel="noopener"><div class="clico itt"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#note"/></svg></div><div><div class="cllbl">تيكتوك</div><div class="clval" id="ttVal">@3eng.s</div></div></a>
+        <a class="clink" id="fbLink" href="https://www.facebook.com/profile.php?id=61584936014304" target="_blank" rel="noopener"><div class="clico ifb"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#people"/></svg></div><div><div class="cllbl">فيسبوك</div><div class="clval" id="fbVal">3ENG.s</div></div></a>
       </div>
     </div>
     <div class="cf-wrap reveal">
@@ -882,7 +907,7 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
       </div>
       <div class="fg"><label>الموضوع</label><input type="text" id="cf-sub" placeholder="كيف نساعدك؟"></div>
       <div class="fg"><label>الرسالة *</label><textarea id="cf-msg" rows="5"></textarea></div>
-      <button class="btn-sub" onclick="submitContact()"><span id="cfTxt">إرسال الرسالة ✉️</span></button>
+      <button class="btn-sub" onclick="submitContact()"><span id="cfTxt">إرسال الرسالة</span><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#send"/></svg></button>
     </div>
   </div>
 </section>
@@ -893,7 +918,7 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
   <p>اشترك واحصل على خصم 20% على أول عملية شراء</p>
   <div class="nl-form">
     <input type="email" id="nlEmail" placeholder="أدخل بريدك الإلكتروني" dir="ltr">
-    <button class="bp" onclick="doNewsletter()">اشترك ⚡</button>
+    <button class="bp" onclick="doNewsletter()">اشترك</button>
   </div>
 </div>
 
@@ -901,17 +926,17 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
 <footer>
   <div class="fgr">
     <div class="fbrand">
-      <a href="#" class="logo-wrap" style="text-decoration:none">
+      <a href="/" class="logo-wrap" style="text-decoration:none" aria-label="3ENG.s — الصفحة الرئيسية">
         <img class="logo-img" src="/logo.jpg" alt="شعار 3ENG.s" width="38" height="38" onerror="this.style.display='none'">
         <div><span class="lname" id="fn">3ENG.s</span><span class="lslogan" id="fs">Smart Idea</span></div>
       </a>
       <p>منصة 3ENG.s — منتجات رقمية ودورات وكتب ومشاريع في الهندسة الكهربائية.</p>
-      <a href="https://www.3engs.com" class="fdomain" id="fdom" target="_blank">🌐 www.3engs.com</a>
+      <a href="https://www.3engs.com" class="fdomain" id="fdom"><svg class="i" aria-hidden="true"><use href="/assets/icons.svg#globe"/></svg><span>www.3engs.com</span></a>
       <div class="slinks">
-        <a class="sbtn" id="fw" href="https://wa.me/970592753159" target="_blank" rel="noopener" aria-label="واتساب">💬</a>
-        <a class="sbtn" id="fi" href="https://www.instagram.com/3eng.s" target="_blank" rel="noopener" aria-label="إنستغرام">📸</a>
-        <a class="sbtn" id="ft" href="https://www.tiktok.com/@3eng.s" target="_blank" rel="noopener" aria-label="تيك توك">🎵</a>
-        <a class="sbtn" id="ff" href="https://www.facebook.com/profile.php?id=61584936014304" target="_blank" rel="noopener" aria-label="فيسبوك">👥</a>
+        <a class="sbtn" id="fw" href="https://wa.me/970592753159" target="_blank" rel="noopener" aria-label="واتساب">واتساب</a>
+        <a class="sbtn" id="fi" href="https://www.instagram.com/3eng.s" target="_blank" rel="noopener" aria-label="إنستغرام">إنستغرام</a>
+        <a class="sbtn" id="ft" href="https://www.tiktok.com/@3eng.s" target="_blank" rel="noopener" aria-label="تيك توك">تيك توك</a>
+        <a class="sbtn" id="ff" href="https://www.facebook.com/profile.php?id=61584936014304" target="_blank" rel="noopener" aria-label="فيسبوك">فيسبوك</a>
       </div>
     </div>
     <div class="fcol"><h4>المحتوى</h4><ul><li><a href="/courses/">الدورات</a></li><li><a href="/projects/">المشاريع الجاهزة</a></li><li><a href="/products/">المنتجات الرقمية</a></li><li><a href="/books/">الكتب الهندسية</a></li></ul></div>
@@ -920,7 +945,7 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
   </div>
   <div class="fbot">
     <p>© 2026 <a href="https://www.3engs.com/">3ENG.s</a> — جميع الحقوق محفوظة • يُمنع نسخ المحتوى أو الكود دون إذن</p>
-    <p>صُنع بـ ❤️ من مهندسين للمهندسين ⚡</p>
+    <p>من مهندسين للمهندسين</p>
   </div>
 </footer>
 
@@ -969,7 +994,7 @@ onAuthStateChanged(auth,user=>{
   if(user){
     uw.style.display='block';lb.style.display='none';
     const nm=user.displayName||user.email?.split('@')[0]||'مستخدم';
-    document.getElementById('uBtn').textContent='👤 '+nm+' ▾';
+    document.getElementById('uName').textContent=nm;
     const showAdmin=()=>{document.getElementById('adminLnk').style.display='block';document.getElementById('adminSep').style.display='block';};
     if(ADMINS.includes(user.email))showAdmin();
     else if(user.emailVerified)getDoc(doc(db,'users',user.uid)).then(s=>{if(s.exists()&&s.data().role==='admin')showAdmin();}).catch(()=>{});
@@ -1041,19 +1066,21 @@ async function loadConfig(){
     // Hero
     if(cfg.hero){const h=cfg.hero;
       if(h.badge)document.getElementById('hbadge').textContent=h.badge;
-      if(h.l1||h.l2){const t=document.getElementById('htitle'),sub=t.querySelector('.hh-sub');t.innerHTML=`${h.l1||'تعلّم. ابنِ.'} <span class="g">${h.l2||'تميّز.'}</span>`;if(sub)t.appendChild(sub);}
+      if(h.l1||h.l2){const t=document.getElementById('htitle'),sub=t.querySelector('.hh-sub');t.textContent=[h.l1,h.l2].filter(Boolean).join(' ');if(sub)t.appendChild(sub);}
       if(h.sub)document.getElementById('hsub').textContent=h.sub;
       ['1','2','3','4'].forEach(i=>{const s=h['stat'+i];if(s){const n=document.getElementById('s'+i+'n'),l=document.getElementById('s'+i+'l');if(n&&s.num)n.textContent=s.num;if(l&&s.label)l.textContent=s.label;}});
     }
 
     // Social
-    if(cfg.social){const s=cfg.social;
+    if(cfg.social){const s0=cfg.social,ok=(v,re)=>typeof v==='string'&&re.test(v.trim())?v.trim():'';
+      const s={wa:ok(s0.wa,/^[0-9]{8,15}$/),email:ok(s0.email,/^[^\s@<>"]+@[^\s@<>"]+\.[a-z]{2,}$/i),ig:ok(s0.ig,/^https:\/\/(www\.)?instagram\.com\/[\w.\-\/]+$/i),
+        tt:ok(s0.tt,/^https:\/\/(www\.)?tiktok\.com\/[\w.@\-\/]+$/i),fb:ok(s0.fb,/^https:\/\/(www\.|m\.)?facebook\.com\/\S+$/i),domain:ok(s0.domain,/^[a-z0-9.-]+\.[a-z]{2,}$/i)};
       if(s.wa){document.getElementById('waLink').href='https://wa.me/'+s.wa;document.getElementById('waVal').textContent=s.wa==='970592753159'?'+970 59 275 3159':'+'+s.wa;document.getElementById('fw').href='https://wa.me/'+s.wa;}
       if(s.email){document.getElementById('mailLink').href='mailto:'+s.email;document.getElementById('mailVal').textContent=s.email;document.getElementById('cfEmailTxt').textContent='سنرد عليك على '+s.email;document.getElementById('fmail').href='mailto:'+s.email;document.getElementById('fmail').textContent=s.email;}
       if(s.ig){document.getElementById('igLink').href=s.ig;const h=s.ig.replace(/.*instagram\.com\//,'').replace(/\/$/,'');document.getElementById('igVal').textContent='@'+h;document.getElementById('fi').href=s.ig;}
       if(s.tt){document.getElementById('ttLink').href=s.tt;document.getElementById('ft').href=s.tt;}
       if(s.fb){document.getElementById('fbLink').href=s.fb;document.getElementById('ff').href=s.fb;}
-      if(s.domain){document.getElementById('fdom').textContent='🌐 '+s.domain;document.getElementById('fdom').href='https://'+s.domain;}
+      if(s.domain){document.getElementById('fdom').querySelector('span').textContent=s.domain;document.getElementById('fdom').href='https://'+s.domain;}
     }
 
     // Brand
@@ -1085,13 +1112,7 @@ const BLOCK_EL={quick:['quick'],courses:['courses'],products:['prodCats','produc
 function applyLayout(L){
   const esc=t=>String(t||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const safeHref=h=>/^(\/|#|https?:\/\/)/.test(h||'')?h:'#';
-  if(Array.isArray(L.nav)&&L.nav.length){
-    const items=L.nav.filter(n=>n&&n.show!==false&&n.label);
-    const a=(n,mob)=>{const h=safeHref(n.href);const sec=/^#[\w-]+$/.test(h)?h.slice(1):'';
-      return `<a href="${esc(h)}"${sec?` onclick="scrollToSec('${sec}');${mob?'closeMob();':''}return false"`:''}>${mob&&n.emoji?esc(n.emoji)+' ':''}${esc(n.label)}</a>`;};
-    document.getElementById('navLinks').innerHTML=items.map(n=>'<li>'+a(n,0)+'</li>').join('');
-    document.getElementById('mobLinks').innerHTML=items.map(n=>a(n,1)).join('');
-  }
+  if(Array.isArray(L.nav)&&L.nav.length)renderNav(L.nav.filter(n=>n&&n.show!==false&&n.label).map(n=>({label:n.label,href:safeHref(n.href)})));
   if(Array.isArray(L.blocks)&&L.blocks.length){
     let anchor=document.querySelector('section.hero');const seen=new Set();
     const order=[...L.blocks.filter(b=>b&&BLOCK_EL[b.k]),...Object.keys(BLOCK_EL).filter(k=>!L.blocks.some(b=>b&&b.k===k)).map(k=>({k,show:true}))];
@@ -1100,7 +1121,6 @@ function applyLayout(L){
         el.style.display=b.show===false?'none':'';anchor.after(el);anchor=el;});});
   }
   if(L.quickLinks)document.getElementById('quickLinks').style.display='';
-  if(Array.isArray(L.heroTags)&&L.heroTags.length)document.getElementById('heroTags').innerHTML=L.heroTags.map(t=>`<div class="htag">${esc(t)}</div>`).join('');
 }
 
 // 👷 من نحن — من لوحة التحكم (site_config/team)، ونفس شكل ssrTeam في سكربت البناء
@@ -1116,8 +1136,8 @@ async function loadTeam(){
       const slug=sl(m.slug)||sl(m.en)||'member-'+(i+1);
       const links=[m.linkedin,...String(m.links||'').split('\n')].map(x=>(x||'').trim()).filter(isUrl);
       const skills=String(m.skills||'').split(/[,،]/).map(x=>x.trim()).filter(Boolean);
-      const av=isUrl(m.photoUrl)?`<img src="${esc(m.photoUrl)}" alt="${esc(m.name)}" loading="lazy">`:esc(m.name.replace(/^م\.?\s*/,'')[0]||'');
-      return `<div class="x-member"><div class="x-av">${av}</div><h3><a href="/team/${slug}/" style="color:inherit;text-decoration:none">${esc(m.name)}</a></h3><div class="x-role">${esc(m.role)}</div><p>${esc(String(m.bio||'').replace(/\s+/g,' '))}</p>${skills.length?`<div class="x-skills">${skills.map(k=>`<span>${esc(k)}</span>`).join('')}</div>`:''}${links.length?`<div class="x-links2">${links.map(u=>`<a href="${esc(u)}" target="_blank" rel="noopener me">${/linkedin\.com/i.test(u)?'in LinkedIn':esc(u.replace(/^https?:\/\/(www\.)?/,'').split('/')[0])}</a>`).join('')}</div>`:''}</div>`;
+      const av=isUrl(m.photoUrl)?`<img src="${esc(m.photoUrl)}" alt="${esc(m.name)}" loading="lazy" width="72" height="72">`:`<span>${esc(initials(m.name))}</span>`;
+      return `<article class="x-member"><div class="x-art">${TEAM_ART[i%TEAM_ART.length]}</div><div class="x-body"><div class="x-av">${av}</div><h3><a href="/team/${slug}/">${esc(m.name)}</a></h3><div class="x-role">${esc(m.role)}</div><p>${esc(String(m.bio||'').replace(/\s+/g,' '))}</p>${skills.length?`<div class="x-skills">${skills.map(k=>`<span>${esc(k)}</span>`).join('')}</div>`:''}${links.length?`<div class="x-links2">${links.map(u=>`<a href="${esc(u)}" target="_blank" rel="noopener me">${/linkedin\.com/i.test(u)?'LinkedIn':esc(u.replace(/^https?:\/\/(www\.)?/,'').split('/')[0])}</a>`).join('')}</div>`:''}</div></article>`;
     }).join('');
   }catch(e){console.log('Team:',e.message);}
 }
@@ -1391,7 +1411,7 @@ async function loadProds(){
       const pTitle=(p.title||'').replace(/"/g,'&quot;');
       // البطاقة بتفتح صفحة المنتج (فيها الشرح والشراء/التحميل) — ولو الصفحة لسا ما انبنت: السلوك القديم
       const fbAttrs=pFree?`data-fb="free" data-fileurl="${escAttr(p.fileUrl)}" data-name="${pTitle}" data-oid="${p.id}"`:`data-fb="cart" data-name="${pTitle}" data-price="${p.price||0}" data-emoji="${p.emoji||'📦'}" data-col="products" data-id="${p.id}"`;
-      const actionBtn=`<button class="${pFree?'btn-free':'btn-c'}">${pFree?'📥 التفاصيل والتحميل':'عرض التفاصيل ←'}</button>`;
+      const actionBtn=`<button class="${pFree?'btn-free':'btn-c'}">${pFree?ic('download')+'التفاصيل والتحميل':'عرض التفاصيل'}</button>`;
       html+=`<div class="pcard reveal" data-cat="${p.type||'tool'}" style="cursor:pointer" onclick="goPage(event,'/products/${itemSlug3(p)}/')" ${fbAttrs}>${bdgHTML}<div class="cthumb ${t.cls}">${thumb}</div><div class="cbody"><div class="ctype">${t.lbl}</div><div class="ctitle">${p.title||''}</div><div class="cdesc">${p.desc||''}</div><div class="cfooter"><div>${priceDisp}</div><span class="pstars">★★★★★</span></div>${actionBtn}</div></div>`;
     });
     grid.innerHTML=html;limitGrid(grid,'/products/');
@@ -1419,9 +1439,9 @@ async function loadCourses(){
           <div class="cov-title">${c.title||''}</div>
           <div class="cov-desc">${c.desc||''}</div>
           <div class="cov-meta">
-            ${c.duration?`<span class="meta">⏱ ${c.duration}</span>`:''}
-            ${c.lessons?`<span class="meta">📹 ${c.lessons}</span>`:''}
-            ${c.level?`<span class="meta">🎯 ${c.level}</span>`:''}
+            ${c.duration?`<span class="meta">${ic('clock')}${c.duration}</span>`:''}
+            ${c.lessons?`<span class="meta">${ic('lessons')}${c.lessons}</span>`:''}
+            ${c.level?`<span class="meta">${ic('level')}${c.level}</span>`:''}
           </div>
           <div class="cov-foot">
             <div class="instr"><div class="iav">3E</div><div><div class="inm">فريق 3ENG.s</div><div class="irl">مهندسون</div></div></div>
@@ -1448,7 +1468,7 @@ async function loadProjects(){
     let html='';
     arr.forEach((pr,idx)=>{
       const thumb=pr.imageUrl?`<img src="${optImg('projects',pr.id,pr.imageUrl,1)}" data-orig="${escAttr(pr.imageUrl)}" alt="${escAttr(pr.title)}" loading="lazy" decoding="async" onerror="imgFb(this)"><span class="pr-emoji" style="display:none">${pr.emoji||'🔧'}</span>`:`<span class="pr-emoji">${pr.emoji||'🔧'}</span>`;
-      const videoTag=pr.videoUrl?`<div class="pr-video-tag">▶️ فيديو</div>`:'';
+      const videoTag=pr.videoUrl?`<div class="pr-video-tag">${ic('play')}فيديو</div>`:'';
       const catTag=pr.category?`<div class="pr-cat">${pr.category}</div>`:'';
       const oldP=pr.oldPrice?`<span class="price-old-s">$${pr.oldPrice}</span> `:'';
       const prPrice=isFreeItem(pr)?'<span class="price-new-s" style="color:var(--ok)">مجاني</span>':`${oldP}<span class="price-new-s">$${pr.price||0}</span>`;
@@ -1458,8 +1478,8 @@ async function loadProjects(){
           <div class="pr-title">${pr.title||''}</div>
           <div class="pr-short">${pr.shortDesc||pr.desc||''}</div>
           <div class="pr-meta">
-            ${pr.level?`<span class="meta">🎯 ${pr.level}</span>`:''}
-            ${pr.duration?`<span class="meta">⏱ ${pr.duration}</span>`:''}
+            ${pr.level?`<span class="meta">${ic('level')}${pr.level}</span>`:''}
+            ${pr.duration?`<span class="meta">${ic('clock')}${pr.duration}</span>`:''}
           </div>
           <div class="pr-foot">
             <div class="instr"><div class="iav">3E</div><div><div class="inm">3ENG.s</div><div class="irl">مشروع جاهز</div></div></div>
@@ -1692,7 +1712,7 @@ window.submitContact=async()=>{
     toast('✅ تم إرسال رسالتك! سنرد قريباً','ok');
     ['cf-name','cf-email','cf-sub','cf-msg'].forEach(id=>document.getElementById(id).value='');
   }catch(e){toast('⚠️ حدث خطأ','err');}
-  btn.style.opacity='';btn.style.pointerEvents='';document.getElementById('cfTxt').textContent='إرسال الرسالة ✉️';
+  btn.style.opacity='';btn.style.pointerEvents='';document.getElementById('cfTxt').textContent='إرسال الرسالة';
 };
 window.doNewsletter=async()=>{
   const email=document.getElementById('nlEmail').value.trim();
@@ -1718,10 +1738,10 @@ function applyTheme(theme){
   if(theme==='default')r.removeAttribute('data-theme');
   else r.setAttribute('data-theme',theme);
   try{localStorage.setItem('3engs_theme',theme);}catch(e){}
-  const icons={default:'🌙',dark:'⚫',light:'☀️'};
-  const titles={default:'الوضع العادي',dark:'الوضع الداكن جداً',light:'الوضع الفاتح'};
-  document.getElementById('tmToggle').textContent=icons[theme]||'🌙';
-  document.getElementById('tmToggle').title=titles[theme]||'';
+  const icons={default:'contrast',dark:'moon',light:'sun'};
+  const titles={default:'المظهر: الكحلي',dark:'المظهر: الداكن',light:'المظهر: الفاتح'};
+  const b=document.getElementById('tmToggle');b.innerHTML=ic(icons[theme]||'contrast');
+  b.title=titles[theme]||'';b.setAttribute('aria-label',(titles[theme]||'المظهر')+' — اضغط للتغيير');
 }
 applyTheme(localStorage.getItem('3engs_theme')||'default');
 window.cycleTheme=cycleTheme;
@@ -1787,6 +1807,7 @@ function updateCartUI(){
   const count=cart.length;
   const cc=document.getElementById('cartCount'),dcc=document.getElementById('ddCartCount');
   if(cc){cc.textContent=count;cc.classList.toggle('show',count>0);}
+  const cb=document.getElementById('cartBtn');if(cb)cb.setAttribute('aria-label','السلة: '+count+(count===1?' عنصر':' عناصر'));
   if(dcc)dcc.textContent=count;
   renderCartItems();
 }
@@ -1849,8 +1870,14 @@ reObs();
 window.addEventListener('scroll',()=>{document.getElementById('nav').style.padding=window.scrollY>60?'10px 50px':'14px 50px';},{passive:true});
 
 // Mobile
-function toggleMob(){document.getElementById('hbg').classList.toggle('open');document.getElementById('mobMenu').classList.toggle('open');}
-function closeMob(){document.getElementById('hbg').classList.remove('open');document.getElementById('mobMenu').classList.remove('open');}
+function setMob(open,focusBack){const b=document.getElementById('hbg'),m=document.getElementById('mobMenu');
+  b.classList.toggle('open',open);m.classList.toggle('open',open);b.setAttribute('aria-expanded',open?'true':'false');b.setAttribute('aria-label',open?'إغلاق القائمة':'فتح القائمة');
+  if(open)m.querySelector('a')?.focus();else if(focusBack)b.focus();}
+function toggleMob(){setMob(!document.getElementById('mobMenu').classList.contains('open'));}
+function closeMob(){setMob(false);}
+document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;
+  if(document.getElementById('mobMenu').classList.contains('open'))setMob(false,true);
+  document.querySelectorAll('.nav-gbtn[aria-expanded="true"]').forEach(b=>{b.setAttribute('aria-expanded','false');b.focus();});});
 window.toggleMob=toggleMob;window.closeMob=closeMob;
 
 // Filter
@@ -1866,9 +1893,6 @@ function fCat(btn,cat){
 }
 window.fCat=fCat;
 
-// Dots
-const dc=document.getElementById('hdots');
-for(let i=0;i<18;i++){const d=document.createElement('div');d.className='dot';d.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;animation-duration:${6+Math.random()*10}s;animation-delay:${Math.random()*8}s;width:${1+Math.random()*3}px;height:${1+Math.random()*3}px;`;dc.appendChild(d);}
 
 // DEFAULT CONTENT — لما القسم فارغ (بدون عناصر أو آراء وهمية)
 function emptyPh(t){return `<div class="loading-ph">${t}</div>`;}
