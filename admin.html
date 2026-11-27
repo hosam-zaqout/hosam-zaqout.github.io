@@ -239,7 +239,7 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
         <div class="cg"><label>الفقرة اللي تحت عنوان "من نحن" بالرئيسية (فصحى)</label><textarea class="cta" id="tm-intro" rows="4"></textarea></div>
       </div>
       <div class="pc"><h3>👥 أعضاء الفريق</h3>
-        <p style="font-size:.78rem;color:var(--mt);margin-bottom:10px">التعديلات بتظهر بالرئيسية فوراً، وبصفحات الفريق (/team/) خلال ساعة. الصورة بتنقص مربعة تلقائياً. كل النصوص هون بيشوفها الزوار، فخليها بالفصحى.</p>
+        <p style="font-size:.78rem;color:var(--mt);margin-bottom:10px">التعديلات بتظهر بالرئيسية فوراً، وبصفحات الفريق (/team/) خلال 3 دقائق تقريباً. الصورة بتنقص مربعة تلقائياً. كل النصوص هون بيشوفها الزوار، فخليها بالفصحى.</p>
         <div id="tmList"></div>
         <button class="btn-add" style="margin-top:8px" onclick="tmAdd()">➕ عضو جديد</button>
       </div>
@@ -306,7 +306,7 @@ html,body{height:100%;font-family:'Cairo',sans-serif;background:var(--dk);color:
         <p style="font-size:.8rem;color:var(--mt);margin-bottom:12px">المقالات أقوى طريقة للظهور بجوجل والذكاء الاصطناعي. اكتب عن الأسئلة اللي بيسألها طلابك. <b>المسودة</b> ما بتظهر بالموقع لحد ما تضغط <b>📢 نشر</b>.</p>
         <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px"><button class="btn-add" onclick="newArticle()">✍️ مقال جديد</button></div>
         <div id="artList"><div style="color:var(--mt);text-align:center;padding:30px">جاري التحميل...</div></div>
-        <div class="note-info" style="margin-top:14px">⏱ بعد النشر، صفحة المقال الكاملة بتجهز خلال ساعة تقريباً (أو فوراً من GitHub ← Actions ← Run workflow)، وبتظهر بالصفحة الرئيسية فوراً.</div>
+        <div class="note-info" style="margin-top:14px">⏱ بعد النشر، صفحة المقال الكاملة بتجهز تلقائياً خلال 3 دقائق تقريباً، وبتظهر بالصفحة الرئيسية فوراً.</div>
       </div>
     </div>
 
@@ -787,7 +787,7 @@ window.editArticle=async function(id){const s=articlesSection();if(!s)return;use
 window.toggleArticle=async function(id,isPublished){
   if(!isPublished&&!confirm('نشر المقال على الموقع الآن؟'))return;
   await updateDoc(doc(db,'section_items',id),{hidden:isPublished,updatedAt:serverTimestamp()});
-  toast(isPublished?'📄 تم إخفاء المقال':'📢 تم النشر! بيظهر بالرئيسية فوراً، وصفحته الكاملة خلال ساعة');
+  toast(isPublished?'📄 تم إخفاء المقال':'📢 تم النشر! بيظهر بالرئيسية فوراً، وصفحته الكاملة خلال دقائق');
   loadArticles();
 };
 window.deleteArticle=async function(id){
@@ -844,7 +844,7 @@ window.moveItem=async(col,arr,id,dir,fn)=>{
   [a[i],a[j]]=[a[j],a[i]];
   const b=writeBatch(db);let n=0;
   a.forEach((x,k)=>{if(x.order!==k+1){x.order=k+1;b.update(doc(db,col,x.id),{order:k+1});n++;}});
-  try{if(n)await b.commit();toast('✅ تم تغيير الترتيب — الصفحات الثابتة بتتحدث خلال ساعة');}catch(e){toast('⚠️ '+e.message,'err');}
+  try{if(n)await b.commit();toast('✅ تم تغيير الترتيب — الصفحات بتتحدث خلال دقائق');}catch(e){toast('⚠️ '+e.message,'err');}
   window[fn]();
 };
 
@@ -940,7 +940,7 @@ async function loadSectionItems(){
 }
 window.loadSectionItems=loadSectionItems;
 // 🎬 رابط صفحة المحاضرات الخاصة (بيفتح للمشترك أو صاحب الكود أو الإيميل المسموح)
-window.copySecItemLink=async(id)=>{const it=(window._curSectionItems||[]).find(x=>x.id===id);const sec=(window._sections||[]).find(x=>x.id===window._curSectionId);if(!it||!sec)return;const ss=itemSlug({slug:sec.slug,title:sec.name,id:sec.id});const u='https://www.3engs.com/sections/'+ss+'/'+itemSlug(it)+'/';try{await navigator.clipboard.writeText(u);toast('🔗 تم نسخ رابط الصفحة — الجديدة بتجهز خلال ساعة');}catch{prompt('رابط الصفحة:',u);}};
+window.copySecItemLink=async(id)=>{const it=(window._curSectionItems||[]).find(x=>x.id===id);const sec=(window._sections||[]).find(x=>x.id===window._curSectionId);if(!it||!sec)return;const ss=itemSlug({slug:sec.slug,title:sec.name,id:sec.id});const u='https://www.3engs.com/sections/'+ss+'/'+itemSlug(it)+'/';try{await navigator.clipboard.writeText(u);toast('🔗 تم نسخ رابط الصفحة — الجديدة بتجهز خلال دقائق');}catch{prompt('رابط الصفحة:',u);}};
 window.copyLearnLink=async(col,id)=>{const u='https://www.3engs.com/learn/?item='+col+':'+id;try{await navigator.clipboard.writeText(u);toast('🎬 تم نسخ رابط المحاضرات');}catch{prompt('رابط المحاضرات:',u);}};
 function curSectionIsArticles(){return (window._sections||[]).find(x=>x.id===window._curSectionId)?.type==='articles';}
 window.openSectionItemModal=function(id=null){
@@ -1249,7 +1249,7 @@ window.saveTeam=async()=>{
   const bad=members.find(m=>m.linkedin&&!/^https:\/\/([a-z]+\.)?linkedin\.com\//i.test(m.linkedin.trim()));
   if(bad){toast('⚠️ رابط LinkedIn غير صحيح: '+bad.name,'err');return;}
   try{await setDoc(doc(db,'site_config','team'),{intro:document.getElementById('tm-intro').value.trim(),members,updatedAt:serverTimestamp()});
-    toast('✅ تم حفظ الفريق — الرئيسية فوراً، وصفحات الفريق خلال ساعة');}
+    toast('✅ تم حفظ الفريق — الرئيسية فوراً، وصفحات الفريق خلال دقائق');}
   catch(e){toast('⚠️ '+e.message,'err');}
 };
 
@@ -1296,7 +1296,7 @@ window.importProjects=async(input)=>{
       ok++;say(`✅ تم`);
     }catch(e){say('❌ '+e.message);}
   }
-  say(`\n🎉 انضاف ${ok} من ${todo.length}. الصفحات بتنشر خلال ساعة (أو GitHub ← Actions ← Run workflow).`);
+  say(`\n🎉 انضاف ${ok} من ${todo.length}. الصفحات بتنشر خلال دقائق.`);
   toast(`✅ انضاف ${ok} مشروع`);loadProjects();
 };
 
@@ -1357,7 +1357,7 @@ window.saveAllSections=async()=>{await Promise.all(['hero','social','brand','des
 // 🔗 رابط صفحة العنصر — نفس منطق build-static-pages.mjs (slugify)
 function itemSlug(it){const c=String(it.slug||'').toLowerCase().replace(/[^a-z0-9-]+/g,'-').replace(/^-+|-+$/g,'');if(c)return c;const w=(String(it.title||'').toLowerCase().match(/[a-z0-9]+/g)||[]).slice(0,5);return w.length?w.join('-')+'-'+it.id.slice(0,6).toLowerCase():it.id.toLowerCase();}
 window.copyItemLink=async(col,id)=>{const list={products:window._prods,courses:window._courses,books:window._books,projects:window._projects}[col]||[];const it=list.find(x=>x.id===id);if(!it)return;
-  const u=`https://www.3engs.com/${col}/${itemSlug(it)}/`;try{await navigator.clipboard.writeText(u);toast('🔗 تم نسخ الرابط — الصفحات الجديدة بتجهز خلال ساعة');}catch{prompt('رابط الصفحة:',u);}};
+  const u=`https://www.3engs.com/${col}/${itemSlug(it)}/`;try{await navigator.clipboard.writeText(u);toast('🔗 تم نسخ الرابط — الصفحات الجديدة بتجهز خلال دقائق');}catch{prompt('رابط الصفحة:',u);}};
 window.delItem=async(col,id,reloadFn)=>{
   if(!confirm('تأكيد الحذف؟'))return;
   await deleteDoc(doc(db,col,id));
@@ -1726,7 +1726,7 @@ ${GEO_FIELDS}${AFTER_PAY()}
     <div class="cg"><label>رابط فيديو يوتيوب (اختياري)</label><input class="ci" id="m-videoUrl" placeholder="https://youtube.com/..." dir="ltr"></div>
     ${GEO_FIELDS}
     <div class="cg" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="m-hidden" style="accent-color:var(--p);width:16px;height:16px"><label for="m-hidden" style="cursor:pointer;font-size:.86rem">📄 مسودة — لا تنشره بعد</label></div>
-    <div class="note-info">⏱ صفحة المقال بتنشر تلقائياً خلال ساعة (أو فوراً من GitHub ← Actions ← Run workflow). لحد ما تنعمل صفحته، الرابط بيعرض المقال مباشرة.</div>`
+    <div class="note-info">⏱ صفحة المقال بتنشر تلقائياً خلال دقائق. لحد ما تنعمل صفحته، الرابط بيعرض المقال مباشرة.</div>`
 };
 
 // قوالب جاهزة — بنية بيحبها جوجل والذكاء الاصطناعي (كل قسم بيجاوب سؤال)

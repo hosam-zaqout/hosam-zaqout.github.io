@@ -1218,6 +1218,46 @@ exports.useCoupon = onDocumentWritten(
 );
 
 // ─────────────────────────────────────────────
+// 🚀 بناء الصفحات تلقائياً بعد أي تعديل من لوحة التحكم
+// كل كتابة على المحتوى بتشغّل workflow البناء بـ GitHub (build-pages.yml).
+// تجميع: تعديلات ورا بعض خلال 20 ثانية = تشغيل واحد (التشغيل بيقرأ Firestore بعد ~40 ثانية من بدايته،
+// و GitHub بيحتفظ بتشغيل واحد منتظر بس بفضل concurrency، فآخر تعديل دايماً بينبني).
+// التوكن: Fine-grained PAT صلاحيته Actions: Read and write على مستودع الموقع فقط → Secret Manager: GH_DISPATCH_TOKEN
+// ─────────────────────────────────────────────
+const GH_DISPATCH_TOKEN = defineSecret("GH_DISPATCH_TOKEN");
+const GH_REPO = "hosam-zaqout/hosam-zaqout.github.io";
+const BUILD_DEBOUNCE_MS = 20000;
+async function dispatchBuild(reason) {
+  const ref = db.collection("build_dispatch").doc("state");
+  const go = await db.runTransaction(async (t) => {
+    const s = (await t.get(ref)).data() || {};
+    const last = s.lastAt?.toMillis ? s.lastAt.toMillis() : 0;
+    if (Date.now() - last < BUILD_DEBOUNCE_MS) return false;
+    t.set(ref, { lastAt: FieldValue.serverTimestamp(), reason }, { merge: true });
+    return true;
+  });
+  if (!go) return;
+  const r = await fetch(`https://api.github.com/repos/${GH_REPO}/actions/workflows/build-pages.yml/dispatches`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${GH_DISPATCH_TOKEN.value()}`, Accept: "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28", "User-Agent": "3engs-build" },
+    body: JSON.stringify({ ref: "main" }),
+  });
+  if (r.status === 204) { logger.info("Build dispatched", { reason }); await ref.set({ lastOk: FieldValue.serverTimestamp(), lastError: FieldValue.delete() }, { merge: true }); return; }
+  const err = `HTTP ${r.status} ${(await r.text()).slice(0, 300)}`;
+  logger.error("Build dispatch failed", { reason, err });
+  // نسمح بإعادة المحاولة مع التعديل الجاي فوراً
+  await ref.set({ lastAt: null, lastError: err }, { merge: true });
+}
+const BUILD_DOCS = ["courses/{id}", "projects/{id}", "products/{id}", "books/{id}", "section_items/{id}", "custom_sections/{id}", "testimonials/{id}", "site_config/{id}"];
+BUILD_DOCS.forEach((path) => {
+  const name = "autoBuild_" + path.split("/")[0].replace(/_(\w)/g, (_, c) => c.toUpperCase());
+  exports[name] = onDocumentWritten({ document: path, region: "us-central1", secrets: [GH_DISPATCH_TOKEN], retry: false }, async (event) => {
+    if (path.startsWith("site_config/") && !["main", "team"].includes(event.params.id)) return;
+    await dispatchBuild(path.split("/")[0] + "/" + event.params.id);
+  });
+});
+
+// ─────────────────────────────────────────────
 // 📈 التقدم والكويز والواجبات — course_progress/{col}__{id}__{uid} (تكتبه الدالة بس)
 // صيغة الكويز (spec): كل سؤال بلوك: "س: ..." ثم "- خيار" و"* الخيار الصحيح"
 // صيغة الواجب (spec): كل سؤال بلوك: "س: ..." ثم "معيار: ..." (سطر أو أكثر)

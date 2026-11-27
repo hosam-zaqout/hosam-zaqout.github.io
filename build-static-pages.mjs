@@ -446,6 +446,7 @@ ${body}
   <nav><a href="/">الرئيسية</a>${SECTIONS.map((s) => `<a href="/${s.dir}/">${s.label}</a>`).join("")}<a href="/tools/">الحاسبات</a><a href="/cad/">3ENG CAD</a><a href="/topics/">التصنيفات</a><a href="/team/">الفريق</a><a href="/about/">من نحن</a><a href="/#faq">الأسئلة الشائعة</a><a href="/privacy.html">سياسة الخصوصية</a></nav>
   © ${new Date().getFullYear()} ${BRAND} — ${BRAND_AR} • جميع الحقوق محفوظة — يُمنع نسخ المحتوى أو الكود دون إذن (<a href="/privacy.html" style="color:inherit">الشروط</a>)
 </div></footer>
+${body.includes('" data-col="') ? LIVE_PRICES_JS : ""}
 </body>
 </html>`;
 }
@@ -1000,7 +1001,7 @@ function card(sec, it, showType = false) {
     : `<b>$${price}</b>${num(it.oldPrice) > price ? ` <s>$${num(it.oldPrice)}</s>` : ""}`;
   const q = clean(it.title).toLowerCase();
   const tp = itemTopics(it).map((t) => t.slug).join(" ");
-  return `<a class="card${sec.col === "books" ? " bk" : ""}" href="/${sec.dir}/${it._slug}/" data-q="${esc(q)}" data-t="${esc(tp)}" data-free="${paid ? 0 : 1}">${img
+  return `<a class="card${sec.col === "books" ? " bk" : ""}" href="/${sec.dir}/${it._slug}/"${sec.type === "Article" ? "" : ` data-col="${esc(sec.col)}" data-id="${esc(it.id)}"`} data-q="${esc(q)}" data-t="${esc(tp)}" data-free="${paid ? 0 : 1}">${img
     ? `<img src="${esc(img)}" alt="${esc(clean(it.title))}" loading="lazy" decoding="async" width="480" height="${h}">`
     : `<div class="ph">${it.emoji || sec.emoji}</div>`}<div class="b">${showType ? `<div class="k">${ic(SEC_IC[sec.col] || "tag")}${esc(sec.one)}</div>` : ""}<h3>${esc(cut(it.title, 70))}</h3>${sec.type === "Article"
       ? `<div class="k">${articleDate(it) ? ic("clock") + articleDate(it) + " • " : ""}${md.readingMinutes(it.body)} دقائق قراءة</div>`
@@ -1360,6 +1361,12 @@ function filterBar(sec, items) {
   <p class="flt-n" id="fltN" aria-live="polite">العدد: ${items.length}</p>
 </div>`;
 }
+// الأسعار على بطاقات القوائم تُقرأ حياً من Firestore (نفس منطق card()) — تعديل السعر يظهر فوراً
+const LIVE_PRICES_JS = `<script>(function(){var cs=[].slice.call(document.querySelectorAll(".card[data-id]"));if(!cs.length)return;var by={};cs.forEach(function(c){(by[c.dataset.col]=by[c.dataset.col]||[]).push(c);});
+var n=function(v){return v?Number(v.integerValue!=null?v.integerValue:v.doubleValue||0):0;},b=function(v){return !!(v&&v.booleanValue);};
+Object.keys(by).forEach(function(col){fetch("https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/"+col+"?key=${API_KEY}&pageSize=300&mask.fieldPaths=price&mask.fieldPaths=oldPrice&mask.fieldPaths=livePrice&mask.fieldPaths=liveOnly&mask.fieldPaths=isFree").then(function(r){return r.ok?r.json():{};}).then(function(j){var m={};(j.documents||[]).forEach(function(d){m[d.name.split("/").pop()]=d.fields||{};});
+by[col].forEach(function(c){var f=m[c.dataset.id],el=c.querySelector(".p");if(!f||!el)return;var pr=n(f.price),lp=n(f.livePrice),op=n(f.oldPrice),live=lp>0,lo=b(f.liveOnly)&&live,paid=(pr>0&&!b(f.isFree))||lo;
+el.innerHTML=!paid?'<span class="free">مجاني</span>':lo?'<span class="pv live">لايف</span> <b style="color:#0ea5e9">$'+lp+'</b>':live?'<span class="pv">مسجّلة</span> <b>$'+pr+'</b> <span class="pv live">لايف</span> <b style="color:#0ea5e9">$'+lp+'</b>':'<b>$'+pr+'</b>'+(op>pr?' <s>$'+op+'</s>':'');c.dataset.free=paid?0:1;});}).catch(function(){});});})();</script>`;
 const FILTER_JS = `<script>(function(){var q=document.getElementById("fltQ"),f="",cs=[].slice.call(document.querySelectorAll("#cards .card")),n=document.getElementById("fltN"),em=document.getElementById("fltEmpty"),bs=[].slice.call(document.querySelectorAll(".flt-c button"));
 function go(){var v=(q.value||"").trim().toLowerCase(),k=0;cs.forEach(function(c){var ok=(!v||c.dataset.q.indexOf(v)>=0)&&(!f||(f==="free"?c.dataset.free==="1":(" "+c.dataset.t+" ").indexOf(" "+f+" ")>=0));c.hidden=!ok;if(ok)k++;});n.textContent="النتائج: "+k+" من "+cs.length;em.hidden=k>0;}
 q.addEventListener("input",go);bs.forEach(function(b){b.addEventListener("click",function(){f=b.dataset.f;bs.forEach(function(x){x.classList.toggle("on",x===b);x.setAttribute("aria-pressed",x===b?"true":"false");});go();});});})();</script>`;
