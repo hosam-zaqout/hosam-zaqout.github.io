@@ -584,7 +584,7 @@ footer{background:var(--d2);border-top:1px solid var(--br);padding:60px 50px 28p
 </script>
 <script src="/assets/visit.js" defer></script>
 <script src="/assets/track.js?v=1" defer></script>
-<link rel="stylesheet" href="/assets/ui.css?v=1">
+<link rel="stylesheet" href="/assets/ui.css?v=2">
 <link rel="stylesheet" href="/assets/team.css?v=1">
 <script src="/assets/ui.js?v=1"></script>
 </head>
@@ -1393,6 +1393,19 @@ window.payWithWhatsApp=()=>{
 };
 
 // LOAD PRODUCTS
+// بطاقة موحّدة للرئيسية — نفس شكل بطاقات /courses/ /projects/ /products/ /books/
+const SEC_LBL={courses:'دورة',projects:'مشروع',products:'منتج رقمي',books:'كتاب'};
+function hcard(col,it,href,attrs='',extra={}){
+  const e=escAttr,live=Number(it.livePrice)>0,liveOnly=it.liveOnly===true&&live,paid=!isFreeItem(it)||liveOnly;
+  const meta=[it.level?['level',it.level]:null,it.duration?['clock',it.duration]:null,it.lessons?['lessons',it.lessons]:null,
+    it.pages?['book',it.pages+' صفحة']:null,col==='projects'&&it.videoUrl?['play','فيديو']:null,col==='books'&&it.author?['user',it.author]:null].filter(Boolean).slice(0,3);
+  const price=!paid?'<span class="free">مجاني</span>'
+    :liveOnly?`<span class="pv live">لايف</span> <b class="lv">$${e(it.livePrice)}</b>`
+    :live?`<span class="pv">مسجّلة</span> <b>$${e(it.price||0)}</b> <span class="pv live">لايف</span> <b class="lv">$${e(it.livePrice)}</b>`
+    :`<b>$${e(it.price||0)}</b>${Number(it.oldPrice)>Number(it.price||0)?` <s>$${e(it.oldPrice)}</s>`:''}`;
+  const img=it.imageUrl?`<img src="${optImg(col,it.id,it.imageUrl,1)}" data-orig="${e(it.imageUrl)}" alt="${e(it.title)}" loading="lazy" decoding="async" width="480" height="${col==='books'?640:270}" onerror="imgFb(this)">`:`<div class="ph">${e(it.emoji||'')}</div>`;
+  return `<div class="hcard${col==='books'?' bk':''}" role="link" tabindex="0" onclick="goPage(event,'${href}')" onkeydown="if(event.key==='Enter')this.click()" ${attrs}>${img}<div class="b">${extra.k?`<div class="k">${extra.k}</div>`:''}<h3>${e(it.title)}</h3>${meta.length?`<div class="m">${meta.map(([n,t])=>`<span>${ic(n)}${e(t)}</span>`).join('')}</div>`:''}<div class="p">${price}</div></div></div>`;
+}
 async function loadProds(){
   const grid=document.getElementById('pGrid');
   try{
@@ -1402,17 +1415,12 @@ async function loadProds(){
     const badgeMap={new:{cls:'bn',txt:'جديد'},best:{cls:'bb',txt:'الأكثر مبيعاً'},sale:{cls:'bs',txt:'خصم'},free:{cls:'bf',txt:'مجاني'}};
     let html='';
     const parr=[];snap.forEach(d=>{const x={id:d.id,...d.data()};if(isListed(x))parr.push(x);});parr.sort(byOrder);
-    parr.forEach(p=>{const t=typeMap[p.type]||{cls:'tt',lbl:p.type||''};const bdg=badgeMap[p.badge];
-      const bdgHTML=bdg?`<div class="cbwrap"><span class="cbadge ${bdg.cls}">${bdg.txt}</span></div>`:'';
-      const thumb=p.imageUrl?`<img src="${optImg('products',p.id,p.imageUrl,1)}" data-orig="${escAttr(p.imageUrl)}" alt="${escAttr(p.title)}" loading="lazy" decoding="async" onerror="imgFb(this)">`:`<span class="ef">${p.emoji||'📦'}</span>`;
-      const oldP=p.oldPrice?`<span class="pold">$${p.oldPrice}</span>`:'';
-      const pFree=isFreeItem(p);
-      const priceDisp=pFree?`<span style="color:var(--ok);font-size:1.1rem;font-weight:900">مجاني</span>`:`${oldP}<span class="pcur">$${p.price||0}</span>`;
-      const pTitle=(p.title||'').replace(/"/g,'&quot;');
-      // البطاقة بتفتح صفحة المنتج (فيها الشرح والشراء/التحميل) — ولو الصفحة لسا ما انبنت: السلوك القديم
-      const fbAttrs=pFree?`data-fb="free" data-fileurl="${escAttr(p.fileUrl)}" data-name="${pTitle}" data-oid="${p.id}"`:`data-fb="cart" data-name="${pTitle}" data-price="${p.price||0}" data-emoji="${p.emoji||'📦'}" data-col="products" data-id="${p.id}"`;
-      const actionBtn=`<button class="${pFree?'btn-free':'btn-c'}">${pFree?ic('download')+'التفاصيل والتحميل':'عرض التفاصيل'}</button>`;
-      html+=`<div class="pcard reveal" data-cat="${p.type||'tool'}" style="cursor:pointer" onclick="goPage(event,'/products/${itemSlug3(p)}/')" ${fbAttrs}>${bdgHTML}<div class="cthumb ${t.cls}">${thumb}</div><div class="cbody"><div class="ctype">${t.lbl}</div><div class="ctitle">${p.title||''}</div><div class="cdesc">${p.desc||''}</div><div class="cfooter"><div>${priceDisp}</div><span class="pstars">★★★★★</span></div>${actionBtn}</div></div>`;
+    parr.forEach(p=>{const t=typeMap[p.type]||{lbl:p.type||''};const bdg=badgeMap[p.badge];const pFree=isFreeItem(p);
+      const pTitle=escAttr(p.title);
+      // البطاقة بتفتح صفحة المنتج — ولو الصفحة لسا ما انبنت: السلوك القديم (سلة/تحميل)
+      const fbAttrs=`data-cat="${escAttr(p.type||'tool')}" `+(pFree?`data-fb="free" data-fileurl="${escAttr(p.fileUrl)}" data-name="${pTitle}" data-oid="${p.id}"`:`data-fb="cart" data-name="${pTitle}" data-price="${escAttr(p.price||0)}" data-emoji="${escAttr(p.emoji||'📦')}" data-col="products" data-id="${p.id}"`);
+      const k=[t.lbl?`${ic('package')}${escAttr(t.lbl)}`:'',bdg&&bdg.txt!=='مجاني'?`<span class="bdg">${bdg.txt}</span>`:''].filter(Boolean).join('');
+      html+=hcard('products',p,`/products/${itemSlug3(p)}/`,fbAttrs,{k});
     });
     grid.innerHTML=html;limitGrid(grid,'/products/');
   }catch(e){console.error(e);grid.innerHTML=defaultProds();reObs();}
@@ -1426,31 +1434,10 @@ async function loadCourses(){
   try{
     const snap=await getDocs(collection(db,'courses'));
     if(snap.empty){grid.innerHTML=defaultCourses();reObs();return;}
-    const cls=['cv1','cv2','cv3'];let i=0;
     const arr=[]; snap.forEach(d=>{const x={id:d.id,...d.data()};if(isListed(x))arr.push(x);});arr.sort(byOrder);
     window._coursesData=arr;
     let html='';
-    arr.forEach((c,idx)=>{
-      const thumb=c.imageUrl?`<img src="${optImg('courses',c.id,c.imageUrl,1)}" data-orig="${escAttr(c.imageUrl)}" alt="${escAttr(c.title)}" loading="lazy" decoding="async" onerror="imgFb(this)"><span class="cov-emoji" style="display:none">${c.emoji||'🎓'}</span>`:`<span class="cov-emoji">${c.emoji||'🎓'}</span>`;
-      const _cp=c.liveOnly&&c.livePrice>0?Number(c.livePrice):Number(c.price||0);const oldP=Number(c.oldPrice)>_cp?`<span class="price-old-s">$${c.oldPrice}</span> `:'';
-      html+=`<div class="ccard reveal" onclick="goPage(event,'/courses/${itemSlug3(c)}/')" data-fb="course" data-idx="${idx}">
-        <div class="cov-thumb ${cls[i%3]}">${thumb}<div class="cov-overlay">${c.category||''}</div></div>
-        <div class="cov-body">
-          <div class="cov-title">${c.title||''}</div>
-          <div class="cov-desc">${c.desc||''}</div>
-          <div class="cov-meta">
-            ${c.duration?`<span class="meta">${ic('clock')}${c.duration}</span>`:''}
-            ${c.lessons?`<span class="meta">${ic('lessons')}${c.lessons}</span>`:''}
-            ${c.level?`<span class="meta">${ic('level')}${c.level}</span>`:''}
-          </div>
-          <div class="cov-foot">
-            <div class="instr"><div class="iav">3E</div><div><div class="inm">فريق 3ENG.s</div><div class="irl">مهندسون</div></div></div>
-            <div class="price-wrap">${oldP}${c.liveOnly&&c.livePrice>0?'':`<span class="price-new-s">${c.livePrice>0?'🎬 ':''}$${c.price||0}</span>`}${c.livePrice>0?`<span class="price-new-s" style="color:#0ea5e9;margin-inline-start:8px">🔴 $${c.livePrice}</span>`:''}</div>
-          </div>
-        </div>
-      </div>`;
-      i++;
-    });
+    arr.forEach((c,idx)=>{html+=hcard('courses',c,`/courses/${itemSlug3(c)}/`,`data-fb="course" data-idx="${idx}"`,{k:c.category?`${ic('module')}${escAttr(c.category)}`:''});});
     grid.innerHTML=html;limitGrid(grid,'/courses/');
   }catch(e){console.error(e);grid.innerHTML=defaultCourses();reObs();}
   reObs();
@@ -1466,28 +1453,7 @@ async function loadProjects(){
     const arr=[]; snap.forEach(d=>{const x={id:d.id,...d.data()};if(isListed(x))arr.push(x);});arr.sort(byOrder);
     window._projectsData=arr;
     let html='';
-    arr.forEach((pr,idx)=>{
-      const thumb=pr.imageUrl?`<img src="${optImg('projects',pr.id,pr.imageUrl,1)}" data-orig="${escAttr(pr.imageUrl)}" alt="${escAttr(pr.title)}" loading="lazy" decoding="async" onerror="imgFb(this)"><span class="pr-emoji" style="display:none">${pr.emoji||'🔧'}</span>`:`<span class="pr-emoji">${pr.emoji||'🔧'}</span>`;
-      const videoTag=pr.videoUrl?`<div class="pr-video-tag">${ic('play')}فيديو</div>`:'';
-      const catTag=pr.category?`<div class="pr-cat">${pr.category}</div>`:'';
-      const oldP=pr.oldPrice?`<span class="price-old-s">$${pr.oldPrice}</span> `:'';
-      const prPrice=isFreeItem(pr)?'<span class="price-new-s" style="color:var(--ok)">مجاني</span>':`${oldP}<span class="price-new-s">$${pr.price||0}</span>`;
-      html+=`<div class="prcard reveal" onclick="goPage(event,'/projects/${itemSlug3(pr)}/')" data-fb="project" data-idx="${idx}">
-        <div class="pr-thumb">${thumb}${videoTag}${catTag}</div>
-        <div class="pr-body">
-          <div class="pr-title">${pr.title||''}</div>
-          <div class="pr-short">${pr.shortDesc||pr.desc||''}</div>
-          <div class="pr-meta">
-            ${pr.level?`<span class="meta">${ic('level')}${pr.level}</span>`:''}
-            ${pr.duration?`<span class="meta">${ic('clock')}${pr.duration}</span>`:''}
-          </div>
-          <div class="pr-foot">
-            <div class="instr"><div class="iav">3E</div><div><div class="inm">3ENG.s</div><div class="irl">مشروع جاهز</div></div></div>
-            <div class="price-wrap">${prPrice}</div>
-          </div>
-        </div>
-      </div>`;
-    });
+    arr.forEach((pr,idx)=>{html+=hcard('projects',pr,`/projects/${itemSlug3(pr)}/`,`data-fb="project" data-idx="${idx}"`);});
     grid.innerHTML=html;limitGrid(grid,'/projects/');
   }catch(e){console.error(e);grid.innerHTML='<div class="loading-ph">لا توجد مشاريع حالياً</div>';reObs();}
   reObs();
@@ -1595,23 +1561,12 @@ async function loadBooks(){
   try{
     const snap=await getDocs(collection(db,'books'));
     if(snap.empty){grid.innerHTML=defaultBooks();reObs();return;}
-    const cls=['bk1','bk2','bk3','bk4','bk5','bk6'];let i=0;
     let html='';
     const barr=[];snap.forEach(d=>{const x={id:d.id,...d.data()};if(isListed(x))barr.push(x);});barr.sort(byOrder);
-    barr.forEach(b=>{const bFree=isFreeItem(b);
-      const bTitle=(b.title||'').replace(/"/g,'&quot;');
-      const cover=b.imageUrl?`<img src="${optImg('books',b.id,b.imageUrl,1)}" data-orig="${escAttr(b.imageUrl)}" alt="${bTitle}" loading="lazy" decoding="async" onerror="imgFb(this)">`:'';
-      const action=bFree
-        ?`onclick="goPage(event,'/books/${itemSlug3(b)}/')" data-fb="free" data-fileurl="${escAttr(b.fileUrl)}" data-name="${bTitle}" data-oid="${b.id}"`
-        :`onclick="goPage(event,'/books/${itemSlug3(b)}/')" data-fb="cart" data-name="${bTitle}" data-price="${b.price||0}" data-emoji="${b.emoji||'📚'}" data-col="books" data-id="${b.id}"`;
-      html+=`<div class="bkcard reveal" ${action}>
-        <div class="bkcover ${cls[i%6]}"><div class="bkspine"></div>${cover}<span class="bke">${b.emoji||'📚'}</span></div>
-        ${bFree?'<div class="bk-free-tag">📥 تحميل مجاني</div>':''}
-        <div class="bktitle">${b.title||''}</div>
-        <div class="bkauthor">${b.author||'فريق 3ENG.s'}</div>
-        <div class="bkprice">${bFree?'<span style="color:var(--ok)">مجاني</span>':'$'+(b.price||0)}</div>
-      </div>`;
-      i++;
+    barr.forEach(b=>{const bFree=isFreeItem(b),bTitle=escAttr(b.title);
+      const attrs=bFree?`data-fb="free" data-fileurl="${escAttr(b.fileUrl)}" data-name="${bTitle}" data-oid="${b.id}"`
+        :`data-fb="cart" data-name="${bTitle}" data-price="${escAttr(b.price||0)}" data-emoji="${escAttr(b.emoji||'📚')}" data-col="books" data-id="${b.id}"`;
+      html+=hcard('books',b,`/books/${itemSlug3(b)}/`,attrs);
     });
     grid.innerHTML=html;limitGrid(grid,'/books/');
   }catch(e){console.error(e);grid.innerHTML=defaultBooks();reObs();}
@@ -1884,12 +1839,10 @@ window.toggleMob=toggleMob;window.closeMob=closeMob;
 function fCat(btn,cat){
   document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
   const pg=document.getElementById('pGrid');
-  if(cat==='all'){limitGrid(pg,'/products/');}else{pg.querySelectorAll('.pcard').forEach(c=>c.classList.remove('x-more'));pg.querySelector(':scope > .more-wrap')?.remove();}
-  document.querySelectorAll('.pcard').forEach(card=>{
-    const show=cat==='all'||card.dataset.cat===cat;
-    if(show){card.style.display='';requestAnimationFrame(()=>{card.style.opacity='1';card.style.transform='';});}
-    else{card.style.opacity='0';card.style.transform='scale(0.95)';setTimeout(()=>card.style.display='none',260);}
-  });
+  if(cat==='all'){limitGrid(pg,'/products/');}else{pg.querySelectorAll('.hcard').forEach(c=>c.classList.remove('x-more'));pg.querySelector(':scope > .more-wrap')?.remove();}
+  let n=0;pg.querySelectorAll('.hcard').forEach(card=>{card.hidden=!(cat==='all'||card.dataset.cat===cat);if(!card.hidden)n++;});
+  pg.querySelector(':scope > .f-empty')?.remove();
+  if(!n)pg.insertAdjacentHTML('beforeend','<p class="f-empty loading-ph" style="grid-column:1/-1">لا توجد منتجات في هذا التصنيف حالياً. اختر «الكل» لعرض كل المنتجات.</p>');
 }
 window.fCat=fCat;
 

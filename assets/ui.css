@@ -97,3 +97,25 @@ h1.hh .hh-sub{display:block;font-size:clamp(.95rem,1.6vw,1.08rem);font-weight:70
 
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 .mob-menu{max-height:calc(100vh - 64px);overflow-y:auto;overscroll-behavior:contain}
+
+/* بطاقة موحّدة بالرئيسية — نفس بطاقات صفحات الأقسام */
+#cGrid,#prGrid,#pGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px}
+#bGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:18px}
+@media(max-width:600px){#cGrid,#prGrid,#pGrid{grid-template-columns:1fr}#bGrid{grid-template-columns:repeat(2,1fr);gap:12px}}
+.hcard{display:flex;flex-direction:column;background:var(--raise);border:1px solid var(--line);border-radius:16px;overflow:hidden;cursor:pointer;transition:border-color .2s,transform .2s;color:var(--tx)}
+.hcard[hidden]{display:none}
+.hcard:hover{border-color:var(--p);transform:translateY(-2px)}
+.hcard>img,.hcard>.ph{width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;display:block;background:rgba(15,23,42,.5)}
+.hcard.bk>img,.hcard.bk>.ph{aspect-ratio:3/4}
+.hcard>.ph{display:grid;place-items:center;font-size:2.6rem}
+.hcard .b{display:flex;flex-direction:column;gap:6px;flex:1;padding:14px 16px}
+.hcard h3{font-size:1rem;line-height:1.6;margin:0;font-weight:800}
+.hcard .k{display:flex;align-items:center;gap:6px;font-size:.76rem;color:var(--mt);flex-wrap:wrap}.hcard .k .i{color:var(--mint);width:15px;height:15px}
+.hcard .bdg{background:rgba(245,158,11,.14);color:var(--p);border-radius:6px;padding:1px 8px;font-weight:700}
+.hcard .m{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:.8rem;color:var(--mt)}.hcard .m span{display:inline-flex;align-items:center;gap:4px}.hcard .m .i{color:var(--mint);width:15px;height:15px}
+.hcard .p{margin-top:auto;padding-top:6px;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.hcard .p b{font-size:1.1rem;color:var(--p)}.hcard .p b.lv{color:#0ea5e9}.hcard .p s{color:var(--mt);font-size:.85rem}
+.hcard .free{color:var(--ok);font-weight:800}
+.hcard .pv{font-size:.72rem;color:var(--mt);font-weight:700}.hcard .pv.live{color:#0ea5e9}
+.hcard .pv.live::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444;margin-inline-end:5px;vertical-align:middle}
+.hcard.bk h3{font-size:.95rem}

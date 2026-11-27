@@ -368,7 +368,7 @@ footer nav{display:flex;justify-content:center;flex-wrap:wrap;gap:16px;margin-bo
 ol.lessons{list-style:none;display:grid;gap:6px;counter-reset:l}ol.lessons li{display:flex;align-items:center;gap:10px;counter-increment:l;padding:6px 0;border-bottom:1px dashed var(--line)}
 ol.lessons li::before{content:counter(l);min-width:26px;color:var(--mut);font-size:.82rem;font-weight:700}ol.lessons li .i{color:var(--mut);width:15px;height:15px;order:2;margin-inline-start:auto}
 .pv{font-size:.62em;color:var(--mut);font-weight:700}.pv.live{color:#0ea5e9}.pv.live::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444;margin-inline-end:5px;vertical-align:middle}
-.card{display:flex;flex-direction:column}.card img{height:auto;aspect-ratio:16/9;object-fit:cover}.card .b{display:flex;flex-direction:column;gap:6px;flex:1;padding:14px 16px}
+.card{display:flex;flex-direction:column}.card img{height:auto;aspect-ratio:16/9;object-fit:cover}.card.bk img,.card.bk .ph{aspect-ratio:3/4}.card .b{display:flex;flex-direction:column;gap:6px;flex:1;padding:14px 16px}
 .card h3{margin:0}.card .k{display:flex;align-items:center;gap:6px}.card .k .i{color:var(--mint)}
 .card .m{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:.8rem;color:var(--mut)}.card .m span{display:inline-flex;align-items:center;gap:4px}.card .m .i{color:var(--mint);width:15px;height:15px}
 .card .p{margin-top:auto;padding-top:6px;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}.card .p b{font-size:1.1rem}.card .p s{color:var(--mut);font-size:.85rem}
@@ -1000,7 +1000,7 @@ function card(sec, it, showType = false) {
     : `<b>$${price}</b>${num(it.oldPrice) > price ? ` <s>$${num(it.oldPrice)}</s>` : ""}`;
   const q = clean(it.title).toLowerCase();
   const tp = itemTopics(it).map((t) => t.slug).join(" ");
-  return `<a class="card" href="/${sec.dir}/${it._slug}/" data-q="${esc(q)}" data-t="${esc(tp)}" data-free="${paid ? 0 : 1}">${img
+  return `<a class="card${sec.col === "books" ? " bk" : ""}" href="/${sec.dir}/${it._slug}/" data-q="${esc(q)}" data-t="${esc(tp)}" data-free="${paid ? 0 : 1}">${img
     ? `<img src="${esc(img)}" alt="${esc(clean(it.title))}" loading="lazy" decoding="async" width="480" height="${h}">`
     : `<div class="ph">${it.emoji || sec.emoji}</div>`}<div class="b">${showType ? `<div class="k">${ic(SEC_IC[sec.col] || "tag")}${esc(sec.one)}</div>` : ""}<h3>${esc(cut(it.title, 70))}</h3>${sec.type === "Article"
       ? `<div class="k">${articleDate(it) ? ic("clock") + articleDate(it) + " • " : ""}${md.readingMinutes(it.body)} دقائق قراءة</div>`
