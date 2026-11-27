@@ -229,16 +229,6 @@
     <image:image><image:loc>https://www.3engs.com/img/products/AX88UPXucTD67WRfMkRY.webp?v=5581304d981f</image:loc><image:title>CP210 Driver</image:title></image:image>
   </url>
   <url>
-    <loc>https://www.3engs.com/products/wrcdypwcmv7tirkikw6x/</loc>
-    <lastmod>2026-11-16</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.3engs.com/products/trainer-fare/</loc>
-    <lastmod>2026-11-01</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://www.3engs.com/products/advanced-tools/</loc>
     <lastmod>2026-10-07</lastmod>
     <priority>0.8</priority>
@@ -439,14 +429,17 @@
   <url>
     <loc>https://www.3engs.com/team/hosam-zaqout/</loc>
     <priority>0.6</priority>
+    <image:image><image:loc>https://www.3engs.com/img/team/hosam-zaqout.webp</image:loc><image:title>م. حسام زقوت</image:title></image:image>
   </url>
   <url>
     <loc>https://www.3engs.com/team/israa-altaweel/</loc>
     <priority>0.6</priority>
+    <image:image><image:loc>https://www.3engs.com/img/team/israa-altaweel.webp</image:loc><image:title>م. إسراء الطويل</image:title></image:image>
   </url>
   <url>
     <loc>https://www.3engs.com/team/furat-altaweel/</loc>
     <priority>0.6</priority>
+    <image:image><image:loc>https://www.3engs.com/img/team/furat-altaweel.webp</image:loc><image:title>م. فرات الطويل</image:title></image:image>
   </url>
   <url>
     <loc>https://www.3engs.com/about/</loc>
