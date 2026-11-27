@@ -213,11 +213,14 @@ function paragraphs(text = "") {
   return String(text).split(/\n{2,}|\r\n\r\n/).map((p) => p.trim()).filter(Boolean)
     .map((p) => `<p>${esc(p).replace(/\n/g, "<br>")}</p>`).join("\n");
 }
-function list(title, items, icon = "✔") {
+// رموز الواجهة (assets/icons.svg) — بدل الإيموجي في القوالب
+const ic = (n) => `<svg class="i" aria-hidden="true"><use href="/assets/icons.svg#${n}"/></svg>`;
+const hd = (n, t) => `${ic(n)}${t}`;
+function list(title, items, mark = "check") {
   items = arr(items);
   if (!items.length) return "";
-  return `<section class="box"><h2>${title}</h2><ul class="list">${items
-    .map((i) => `<li><span>${icon}</span>${esc(clean(i))}</li>`).join("")}</ul></section>`;
+  return `<section class="box"><h2>${title}</h2><ul class="list${mark === "check" ? "" : " dots"}">${items
+    .map((i) => `<li>${mark === "check" ? ic("check") : `<span class="d"></span>`}${esc(clean(i))}</li>`).join("")}</ul></section>`;
 }
 
 // ---------------- القالب ----------------
@@ -353,6 +356,34 @@ footer nav{display:flex;justify-content:center;flex-wrap:wrap;gap:16px;margin-bo
 .calc .del{background:none;border:0;color:#f87171;cursor:pointer;font-size:1rem}
 .tlinks{display:flex;flex-wrap:wrap;gap:8px}.tlinks a{border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:.88rem}.tlinks a:hover{border-color:var(--acc)}
 [hidden]{display:none!important}
+:root{--mint:#4FE0B5}
+.i{width:1.1em;height:1.1em;flex-shrink:0;vertical-align:-.18em;display:inline-block}
+:focus-visible{outline:2px solid var(--mint);outline-offset:2px;border-radius:6px}
+.box h2{display:flex;align-items:center;gap:8px}.box h2 .i{color:var(--mint);width:20px;height:20px}
+.tag{display:inline-flex;align-items:center;gap:6px;padding:5px 12px}.tag .i{color:var(--mint);width:16px;height:16px}
+.btn{min-height:46px}.btn .i{width:19px;height:19px}
+.trust .i{color:var(--ok);margin-inline-end:4px}
+.list li{align-items:flex-start}.list li .i{color:var(--ok);width:18px;height:18px;margin-top:5px}
+.list.dots li .d{flex:0 0 6px;height:6px;border-radius:50%;background:var(--mint);margin-top:12px}
+ol.lessons{list-style:none;display:grid;gap:6px;counter-reset:l}ol.lessons li{display:flex;align-items:center;gap:10px;counter-increment:l;padding:6px 0;border-bottom:1px dashed var(--line)}
+ol.lessons li::before{content:counter(l);min-width:26px;color:var(--mut);font-size:.82rem;font-weight:700}ol.lessons li .i{color:var(--mut);width:15px;height:15px;order:2;margin-inline-start:auto}
+.pv{font-size:.62em;color:var(--mut);font-weight:700}.pv.live{color:#0ea5e9}.pv.live::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444;margin-inline-end:5px;vertical-align:middle}
+.card{display:flex;flex-direction:column}.card img{height:auto;aspect-ratio:16/9;object-fit:cover}.card .b{display:flex;flex-direction:column;gap:6px;flex:1;padding:14px 16px}
+.card h3{margin:0}.card .k{display:flex;align-items:center;gap:6px}.card .k .i{color:var(--mint)}
+.card .m{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:.8rem;color:var(--mut)}.card .m span{display:inline-flex;align-items:center;gap:4px}.card .m .i{color:var(--mint);width:15px;height:15px}
+.card .p{margin-top:auto;padding-top:6px;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}.card .p b{font-size:1.1rem}.card .p s{color:var(--mut);font-size:.85rem}
+.card .free{color:var(--ok);font-weight:800}
+.flt{display:grid;gap:12px;margin:6px 0 20px}
+.flt-q{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:0 14px;max-width:460px}
+.flt-q .i{color:var(--mut)}.flt-q input{flex:1;min-height:46px;background:none;border:0;color:var(--txt);font:inherit;outline:none}
+.flt-q:focus-within{border-color:var(--mint)}
+.flt-c{display:flex;flex-wrap:wrap;gap:8px}
+.flt-c button{min-height:40px;padding:6px 14px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--txt);font:inherit;font-size:.88rem;font-weight:700;cursor:pointer}
+.flt-c button small{color:var(--mut);font-weight:400;margin-inline-start:2px}
+.flt-c button:hover{border-color:var(--mint)}.flt-c button.on{background:var(--acc);border-color:var(--acc);color:#1a1200}.flt-c button.on small{color:#1a1200}
+.flt-n{font-size:.85rem;color:var(--mut);margin:0}
+.flt-empty{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:22px;text-align:center;color:var(--mut)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .answer b,.box p b{unicode-bidi:plaintext}
 .box p.eq{direction:ltr;unicode-bidi:isolate;text-align:center;font-family:Consolas,"Courier New",monospace;font-size:1rem;font-weight:700;color:var(--acc2);background:#0a0f1d;border:1px solid var(--line);border-radius:10px;padding:8px 14px;margin:6px 0 12px;overflow-x:auto;white-space:nowrap}
 .schem{max-width:520px;margin:6px auto 16px;color:#cbd3e6}.schem svg{width:100%;height:auto;display:block;direction:ltr}.schem text{fill:var(--acc2);stroke:none;font-weight:700;font-size:15px;font-family:inherit}.schem .pin text{fill:#98a2bf;font-size:11px;font-weight:700}.schem .chip{font-size:26px;fill:#cbd3e6}.schem .hl{stroke:var(--acc)}
@@ -791,12 +822,12 @@ function itemPage(sec, item, siblings, all) {
   schemas.push(bc.schema);
 
   const tags = [
-    item.category && isNaN(item.category) ? `📂 ${item.category}` : "",
-    item.level && `🎯 ${item.level}`,
-    item.duration && `⏱ ${item.duration}`,
-    item.lessons && `📹 ${item.lessons}`,
-    item.author && `✍️ ${item.author}`,
-    item.pages && `📄 ${item.pages} صفحة`,
+    item.category && isNaN(item.category) ? ["tag", item.category] : null,
+    item.level ? ["level", item.level] : null,
+    item.duration ? ["clock", item.duration] : null,
+    item.lessons ? ["lessons", item.lessons] : null,
+    item.author ? ["user", item.author] : null,
+    item.pages ? ["book", `${item.pages} صفحة`] : null,
   ].filter(Boolean);
 
   // ملخص سريع — معلومات واضحة وسهلة الاستخراج لجوجل والـ AI
@@ -820,13 +851,13 @@ function itemPage(sec, item, siblings, all) {
     rating ? ["تقييم الطلاب", `★ ${rating.avg.toFixed(1)} من 5 (${rating.count} ${rating.count === 1 ? "تقييم" : "تقييمات"})`] : null,
     updated ? ["آخر تحديث", updated.slice(0, 10)] : null,
   ].filter(Boolean);
-  const factsHtml = `<section class="box"><h2>⚡ ملخص سريع</h2><table class="facts">${facts.map(([k, v, raw]) => `<tr><th>${k}</th><td>${raw ? v : esc(v)}</td></tr>`).join("")}</table></section>`;
+  const factsHtml = `<section class="box"><h2>${hd("lessons", "ملخص سريع")}</h2><table class="facts">${facts.map(([k, v, raw]) => `<tr><th>${k}</th><td>${raw ? v : esc(v)}</td></tr>`).join("")}</table></section>`;
 
   const license = free
     ? ""
-    : `<section class="box"><h2>📥 الاستلام والترخيص</h2><p>${sec.type === "Course"
+    : `<section class="box"><h2>${hd("download", "الاستلام والترخيص")}</h2><p>${sec.type === "Course"
         ? "بعد إتمام الاشتراك يتواصل معك فريقنا بتفاصيل الوصول إلى الدورة ومواعيدها أو روابط الدروس المسجّلة."
-        : "بعد تأكيد الدفع تظهر ملفات المنتج فوراً في صفحة «📦 مشترياتي» داخل حسابك، ويمكنك تحميلها في أي وقت."}
+        : "بعد تأكيد الدفع تظهر ملفات المنتج فوراً في صفحة «مشترياتي» داخل حسابك، ويمكنك تحميلها في أي وقت."}
  تحصل على رخصة استخدام شخصي، ويُمنع إعادة بيع المحتوى أو نشره. التفاصيل في <a href="/privacy.html#terms" style="color:var(--acc)">شروط الاستخدام</a> و<a href="/privacy.html#refund" style="color:var(--acc)">سياسة الإرجاع</a>.</p></section>`;
 
   const off = oldPrice && oldPrice > price ? Math.round((1 - price / oldPrice) * 100) : 0;
@@ -835,7 +866,7 @@ function itemPage(sec, item, siblings, all) {
     ? `<img src="${esc(img)}" alt="${esc(title)}" width="${item._w || 800}" height="${item._h || 450}" fetchpriority="high" decoding="async">`
     : `<div class="emoji-cover">${item.emoji || sec.emoji}</div>`;
 
-  const learnTitle = sec.type === "Course" ? "🎯 ماذا ستتعلم" : "🎁 ماذا ستحصل عليه";
+  const learnTitle = sec.type === "Course" ? hd("module", "ماذا ستتعلم") : hd("package", "ماذا ستحصل عليه");
 
   // ✅ باختصار: جواب مباشر يقدر جوجل والذكاء الاصطناعي يقتبسه كما هو
   const instr = instructorOf(item);
@@ -858,7 +889,7 @@ function itemPage(sec, item, siblings, all) {
       + (audience.length ? ` الفئة المستهدفة: ${audience.slice(0, 2).join("، ")}` : "")
       + `${audience.length ? ". " : " "}${free ? "وهو مجاني بالكامل" : "السعر " + price + "$"}.`;
   }
-  const answerHtml = `<section class="box answer"><h2>✅ باختصار</h2><p>${esc(answer)}</p>${instr ? `<p style="margin:0">👨‍🏫 المدرّب: ${personLink(instr)}</p>` : item.author && teamOf(item.author) ? `<p style="margin:0">✍️ المؤلف: ${personLink(item.author)}</p>` : ""}</section>`;
+  const answerHtml = `<section class="box answer"><h2>${hd("check", "باختصار")}</h2><p>${esc(answer)}</p>${instr ? `<p style="margin:0">المدرّب: ${personLink(instr)}</p>` : item.author && teamOf(item.author) ? `<p style="margin:0">المؤلف: ${personLink(item.author)}</p>` : ""}</section>`;
 
   // عناصر مرتبطة: نفس التقنية أولاً (من كل الأقسام)، ثم نفس القسم
   const score = (o) => itemTopics(o).filter((t) => topics.includes(t)).length;
@@ -879,41 +910,41 @@ ${bc.html}
   <div>
     <h1>${esc(title)}</h1>
     ${item.shortDesc ? `<p class="lead">${esc(clean(item.shortDesc))}</p>` : ""}
-    <div class="tags">${tags.map((t) => `<span class="tag">${esc(t)}</span>`).join("")}</div>
-    <div class="price">${!free ? (liveOnly ? `<span style="font-size:.6em;color:#0ea5e9">🔴 لايف</span> <b style="color:#0ea5e9" data-p="livePrice">$${num(item.livePrice)}</b>` : sec.col === "courses" && num(item.livePrice) > 0 ? `<span style="font-size:.6em;color:var(--mut)">🎬 مسجّلة</span> <b data-p="price">$${price}</b> <span style="font-size:.6em;color:#0ea5e9;margin-inline-start:14px">🔴 لايف</span> <b style="color:#0ea5e9" data-p="livePrice">$${num(item.livePrice)}</b>` : `<b data-p="price">$${price}</b>`) : `<b>مجاني</b>`}${!free && oldPrice && oldPrice > (liveOnly ? num(item.livePrice) : price) ? `<s data-p="oldPrice">$${oldPrice}</s>` : ""}</div>
+    <div class="tags">${tags.map(([n, t]) => `<span class="tag">${ic(n)}${esc(t)}</span>`).join("")}</div>
+    <div class="price">${!free ? (liveOnly ? `<span class="pv live">لايف</span> <b style="color:#0ea5e9" data-p="livePrice">$${num(item.livePrice)}</b>` : sec.col === "courses" && num(item.livePrice) > 0 ? `<span class="pv">مسجّلة</span> <b data-p="price">$${price}</b> <span class="pv live" style="margin-inline-start:14px">لايف</span> <b style="color:#0ea5e9" data-p="livePrice">$${num(item.livePrice)}</b>` : `<b data-p="price">$${price}</b>`) : `<b>مجاني</b>`}${!free && oldPrice && oldPrice > (liveOnly ? num(item.livePrice) : price) ? `<s data-p="oldPrice">$${oldPrice}</s>` : ""}</div>
     <div class="cta">
       ${liveOnly ? "" : !free
-        ? `<a class="btn main" href="/?buy=${sec.col}:${item.id}" rel="nofollow" data-buy="${sec.col}:${item.id}" data-name="${esc(title)}" data-price="${price}" data-emoji="${esc(item.emoji || "🛒")}">🛒 ${sec.col === "courses" && num(item.livePrice) > 0 ? "اشترِ الدورة المسجّلة" : "اشترِ الآن"}</a>`
+        ? `<a class="btn main" href="/?buy=${sec.col}:${item.id}" rel="nofollow" data-buy="${sec.col}:${item.id}" data-name="${esc(title)}" data-price="${price}" data-emoji="${esc(item.emoji || "🛒")}">${ic("basket")}${sec.col === "courses" && num(item.livePrice) > 0 ? "اشترِ الدورة المسجّلة" : "اشترِ الآن"}</a>`
         : item.fileUrl
-          ? `<a class="btn main" href="${esc(item.fileUrl)}" target="_blank" rel="nofollow noopener">📥 تحميل مجاني</a>`
-          : `<a class="btn main" href="/?open=${sec.col}:${item.id}">📥 احصل عليه مجاناً</a>`}
-      ${sec.col === "courses" && num(item.livePrice) > 0 ? `<a class="btn main" style="background:linear-gradient(135deg,#0ea5e9,#0369a1);color:#fff;opacity:.55" href="/?buy=${sec.col}:${item.id}" rel="nofollow" data-buy="${sec.col}:${item.id}" data-variant="live" data-name="${esc(title)} — لايف 🔴" data-price="${num(item.livePrice)}" data-emoji="🔴"><span data-live-label>🔴 الدورة المباشرة (لايف) — التسجيل مغلق حالياً</span> <b data-live-price>$${num(item.livePrice)}</b></a>` : ""}
-      <a class="btn wa" href="https://wa.me/${WHATSAPP}?text=${waMsg}" rel="nofollow">💬 استفسار واتساب</a>
+          ? `<a class="btn main" href="${esc(item.fileUrl)}" target="_blank" rel="nofollow noopener">${ic("download")}تحميل مجاني</a>`
+          : `<a class="btn main" href="/?open=${sec.col}:${item.id}">${ic("download")}احصل عليه مجاناً</a>`}
+      ${sec.col === "courses" && num(item.livePrice) > 0 ? `<a class="btn main" style="background:linear-gradient(135deg,#0ea5e9,#0369a1);color:#fff;opacity:.55" href="/?buy=${sec.col}:${item.id}" rel="nofollow" data-buy="${sec.col}:${item.id}" data-variant="live" data-name="${esc(title)} — لايف 🔴" data-price="${num(item.livePrice)}" data-emoji="🔴"><span data-live-label>الدورة المباشرة (لايف) — التسجيل مغلق حالياً</span> <b data-live-price>$${num(item.livePrice)}</b></a>` : ""}
+      <a class="btn wa" href="https://wa.me/${WHATSAPP}?text=${waMsg}" rel="nofollow">${ic("chat")}استفسار واتساب</a>
     </div>
-    ${sec.col === "courses" && num(item.livePrice) > 0 ? `<p class="trust" data-live-info hidden>🔴 ${esc(clean(item.liveInfo || "الدورة المباشرة متاحة للحجز الآن"))}</p>` : ""}
-    ${!free ? `<p class="trust">🔒 دفع آمن عبر بوابة Togo — بيانات بطاقتك لا تصل إلينا • ↩️ <a href="/privacy.html#refund">استرداد خلال 7 أيام</a> حسب السياسة</p>` : ""}
+    ${sec.col === "courses" && num(item.livePrice) > 0 ? `<p class="trust" data-live-info hidden>${esc(clean(item.liveInfo || "الدورة المباشرة متاحة للحجز الآن"))}</p>` : ""}
+    ${!free ? `<p class="trust">${ic("lock")}دفع آمن عبر بوابة Togo — بيانات بطاقتك لا تصل إلينا • <a href="/privacy.html#refund">استرداد خلال 7 أيام</a> حسب السياسة</p>` : ""}
   </div>
 </section>
 
 ${answerHtml}
 ${factsHtml}
-${item.desc ? `<section class="box"><h2>📖 التفاصيل</h2><div class="prose">${md.render(item.desc)}</div></section>` : ""}
+${item.desc ? `<section class="box"><h2>${hd("article", "التفاصيل")}</h2><div class="prose">${md.render(item.desc)}</div></section>` : ""}
 <div class="grid2">
-  ${list("👥 لمن هذا؟", audience, "•")}
+  ${list(hd("team", "لمن هذا؟"), audience, "dot")}
   ${list(learnTitle, item.learns)}
-  ${list("🔧 المكونات المستخدمة", item.components, "•")}
-  ${list("📝 المتطلبات المسبقة", item.requirements, "•")}
+  ${list(hd("cpu", "المكونات المستخدمة"), item.components, "dot")}
+  ${list(hd("lessons", "المتطلبات المسبقة"), item.requirements, "dot")}
 </div>
-${list("📚 محاور الدورة", item.topics, "▸")}
-${arr(item.lessonsOutline).length ? `<section class="box"><h2>🎬 المحاضرات (${arr(item.lessonsOutline).length})</h2><ol class="lessons">${arr(item.lessonsOutline).map((t) => `<li>🔒 ${esc(clean(t))}</li>`).join("")}</ol><p style="margin-top:10px">اشتركت؟ <a href="/learn/?item=${sec.col}:${item.id}" rel="nofollow" style="color:var(--acc);font-weight:700">▶️ افتح المحاضرات</a> (بنفس الإيميل الذي اشتريت به، أو من الرابط المرسل إلى بريدك).</p></section>` : ""}
-${yt ? `<section class="box"><h2>🎬 فيديو ${esc(sec.one)}</h2><div class="video"><iframe src="${yt}" allow="autoplay; fullscreen" title="${esc(title)}" loading="lazy" allowfullscreen></iframe></div></section>` : ""}
-${reviews.length ? `<section class="box"><h2>⭐ آراء الطلاب${rating ? ` <span style="font-size:.85rem;color:var(--mut)">(${rating.avg.toFixed(1)} من 5)</span>` : ""}</h2>${reviews.map((r) => { const st = Math.min(5, Math.max(1, Number(r.rating) || 5)); return `<blockquote class="rv"><div style="color:var(--acc)">${"★".repeat(st)}${"☆".repeat(5 - st)}</div><p>${esc(clean(r.text))}</p><footer>— <b>${esc(clean(r.name))}</b>${clean(r.role) ? "، " + esc(clean(r.role)) : ""}</footer></blockquote>`; }).join("")}</section>` : ""}
-${faqs.length ? `<section class="box faq"><h2>❓ أسئلة عن ${esc(sec.one)}</h2>${faqs.map((f) => `<details><summary>${esc(clean(f.q))}</summary><p>${esc(clean(f.a))}</p></details>`).join("")}</section>` : ""}
+${list(hd("module", "محاور الدورة"), item.topics, "dot")}
+${arr(item.lessonsOutline).length ? `<section class="box"><h2>${hd("play", "المحاضرات")} (${arr(item.lessonsOutline).length})</h2><ol class="lessons">${arr(item.lessonsOutline).map((t) => `<li>${ic("lock")}${esc(clean(t))}</li>`).join("")}</ol><p style="margin-top:10px">اشتركت؟ <a href="/learn/?item=${sec.col}:${item.id}" rel="nofollow" style="color:var(--acc);font-weight:700">افتح المحاضرات</a> (بنفس الإيميل الذي اشتريت به، أو من الرابط المرسل إلى بريدك).</p></section>` : ""}
+${yt ? `<section class="box"><h2>${hd("play", "فيديو " + esc(sec.one))}</h2><div class="video"><iframe src="${yt}" allow="autoplay; fullscreen" title="${esc(title)}" loading="lazy" allowfullscreen></iframe></div></section>` : ""}
+${reviews.length ? `<section class="box"><h2>${hd("star", "آراء الطلاب")}${rating ? ` <span style="font-size:.85rem;color:var(--mut)">(${rating.avg.toFixed(1)} من 5)</span>` : ""}</h2>${reviews.map((r) => { const st = Math.min(5, Math.max(1, Number(r.rating) || 5)); return `<blockquote class="rv"><div style="color:var(--acc)">${"★".repeat(st)}${"☆".repeat(5 - st)}</div><p>${esc(clean(r.text))}</p><footer>— <b>${esc(clean(r.name))}</b>${clean(r.role) ? "، " + esc(clean(r.role)) : ""}</footer></blockquote>`; }).join("")}</section>` : ""}
+${faqs.length ? `<section class="box faq"><h2>${hd("chat", "أسئلة عن " + esc(sec.one))}</h2>${faqs.map((f) => `<details><summary>${esc(clean(f.q))}</summary><p>${esc(clean(f.a))}</p></details>`).join("")}</section>` : ""}
 ${license}
 
-<section class="box"><h2>👷 عن ${BRAND}</h2><p>${BRAND} (${BRAND_AR}) منصة عربية من فلسطين يديرها مهندسون كهربائيون ومدربون جامعيون، تقدّم دورات ومشاريع جاهزة وكتباً في الهندسة الكهربائية والأنظمة المدمجة وإنترنت الأشياء. <a href="/#about" style="color:var(--acc)">تعرّف على الفريق</a> • <a href="/#faq" style="color:var(--acc)">الأسئلة الشائعة</a> • <a href="/privacy.html#refund" style="color:var(--acc)">سياسة الإرجاع</a></p></section>
+<section class="box"><h2>${hd("team", "عن " + BRAND)}</h2><p>${BRAND} (${BRAND_AR}) منصة عربية من فلسطين يديرها مهندسون كهربائيون ومدربون جامعيون، تقدّم دورات ومشاريع جاهزة وكتباً في الهندسة الكهربائية والأنظمة المدمجة وإنترنت الأشياء. <a href="/#about" style="color:var(--acc)">تعرّف على الفريق</a> • <a href="/#faq" style="color:var(--acc)">الأسئلة الشائعة</a> • <a href="/privacy.html#refund" style="color:var(--acc)">سياسة الإرجاع</a></p></section>
 
-${related.length ? `<h2 class="sec-title">🔗 قد يهمك أيضاً</h2><div class="cards">${related.map((r) => card(r._sec, r)).join("")}</div>` : ""}
+${related.length ? `<h2 class="sec-title">قد يهمك أيضاً</h2><div class="cards">${related.map((r) => card(r._sec, r)).join("")}</div>` : ""}
 `;
 
   return layout({
@@ -949,15 +980,31 @@ ${list.length ? `<div class="cards">${list.map((it) => card(sec, it)).join("")}<
 <section class="box" style="margin-top:26px"><h2>📚 أقسام أخرى</h2><div class="chips">${others}<a class="chip" href="/${sec.dir}/">كل المقالات</a></div></section>`;
   return layout({ title: `${c.seoT} | ${BRAND}`, description: cut(c.seoD, 158), canonical: SITE + url, schemas: [listSchema, bc.schema], body });
 }
+const SEC_IC = { courses: "module", projects: "bench", products: "package", books: "book" };
 function card(sec, it, showType = false) {
   const img = it._thumb || it.imageUrl || it.coverUrl || it.image;
   const price = num(it.price) ?? 0;
   const h = it._w && it._h ? Math.round((480 * it._h) / it._w) : 225;
-  return `<a class="card" href="/${sec.dir}/${it._slug}/">${img
+  const live = num(it.livePrice) > 0, liveOnly = it.liveOnly === true && live;
+  const paid = (price > 0 && !isFree(it)) || liveOnly;
+  const meta = sec.type === "Article" ? [] : [
+    it.level ? ["level", it.level] : null,
+    it.duration ? ["clock", it.duration] : null,
+    it.lessons ? ["lessons", it.lessons] : null,
+    it.pages ? ["book", `${it.pages} صفحة`] : null,
+    it.videoUrl && sec.col === "projects" ? ["play", "فيديو"] : null,
+  ].filter(Boolean).slice(0, 3);
+  const priceHtml = !paid ? `<span class="free">مجاني</span>`
+    : liveOnly ? `<span class="pv live">لايف</span> <b style="color:#0ea5e9">$${num(it.livePrice)}</b>`
+    : live ? `<span class="pv">مسجّلة</span> <b>$${price}</b> <span class="pv live">لايف</span> <b style="color:#0ea5e9">$${num(it.livePrice)}</b>`
+    : `<b>$${price}</b>${num(it.oldPrice) > price ? ` <s>$${num(it.oldPrice)}</s>` : ""}`;
+  const q = clean(it.title).toLowerCase();
+  const tp = itemTopics(it).map((t) => t.slug).join(" ");
+  return `<a class="card" href="/${sec.dir}/${it._slug}/" data-q="${esc(q)}" data-t="${esc(tp)}" data-free="${paid ? 0 : 1}">${img
     ? `<img src="${esc(img)}" alt="${esc(clean(it.title))}" loading="lazy" decoding="async" width="480" height="${h}">`
-    : `<div class="ph">${it.emoji || sec.emoji}</div>`}<div class="b">${showType ? `<div class="k">${sec.emoji} ${esc(sec.one)}</div>` : ""}<h3>${esc(cut(it.title, 70))}</h3>${sec.type === "Article"
-      ? `<div class="k">${articleDate(it) ? "📅 " + articleDate(it) + " • " : ""}⏱ ${md.readingMinutes(it.body)} دقائق قراءة</div>`
-      : `<div class="p">${(price > 0 && !isFree(it)) || (it.liveOnly === true && num(it.livePrice) > 0) ? (it.liveOnly === true && num(it.livePrice) > 0 ? `<span style="color:#0ea5e9">🔴 لايف $${num(it.livePrice)}</span>` : num(it.livePrice) > 0 ? `🎬 مسجّلة $${price} <span style="color:#0ea5e9">• 🔴 لايف $${num(it.livePrice)}</span>` : "$" + price) : "مجاني"}</div>`}</div></a>`;
+    : `<div class="ph">${it.emoji || sec.emoji}</div>`}<div class="b">${showType ? `<div class="k">${ic(SEC_IC[sec.col] || "tag")}${esc(sec.one)}</div>` : ""}<h3>${esc(cut(it.title, 70))}</h3>${sec.type === "Article"
+      ? `<div class="k">${articleDate(it) ? ic("clock") + articleDate(it) + " • " : ""}${md.readingMinutes(it.body)} دقائق قراءة</div>`
+      : `${meta.length ? `<div class="m">${meta.map(([n, t]) => `<span>${ic(n)}${esc(t)}</span>`).join("")}</div>` : ""}<div class="p">${priceHtml}</div>`}</div></a>`;
 }
 
 // ---------------- صفحة المقال ----------------
@@ -1032,7 +1079,7 @@ ${bc.html}
   ${faqs.length ? `<section class="box faq" style="margin-top:20px"><h2>❓ أسئلة شائعة</h2>${faqs.map((f) => `<details><summary>${esc(clean(f.q))}</summary><p>${esc(clean(f.a))}</p></details>`).join("")}</section>` : ""}
   <section class="box" style="margin-top:20px"><h2>👷 عن ${BRAND}</h2><p>${BRAND} (${BRAND_AR}) منصة عربية من فلسطين يديرها مهندسون كهربائيون ومدربون جامعيون، تقدّم دورات ومشاريع جاهزة وكتباً ومقالات في الهندسة الكهربائية والأنظمة المدمجة وإنترنت الأشياء. <a href="/#about" style="color:var(--acc)">تعرّف على الفريق</a> • <a href="/courses/" style="color:var(--acc)">الدورات</a> • <a href="/projects/" style="color:var(--acc)">المشاريع</a></p></section>
 </article>
-${related.length ? `<h2 class="sec-title">🔗 قد يهمك أيضاً</h2><div class="cards">${related.map((r) => card(r._sec, r, r._sec !== sec)).join("")}</div>` : ""}
+${related.length ? `<h2 class="sec-title">قد يهمك أيضاً</h2><div class="cards">${related.map((r) => card(r._sec, r, r._sec !== sec)).join("")}</div>` : ""}
 ${/class="quiz"/.test(body0) ? QUIZ_JS : ""}
 `;
   return layout({ title: `${cut(title, 55)} | ${BRAND}`, description: metaDescription(sec, item), canonical, image: imgAbs, ogType: "article", schemas, body, itemId: item.id, noindex: item.unlisted === true });
@@ -1068,10 +1115,10 @@ function teamPage(m, photo, works) {
   <div class="av">${photo ? `<img src="${photo}" alt="${esc(m.name)}" width="140" height="140">` : esc(m.name.replace(/^م\.\s*/, "")[0])}</div>
   <div><h1>${esc(m.name)}</h1><div class="role">${esc(m.role)}</div><p class="lead" style="margin-top:8px">فريق ${BRAND} — ${BRAND_AR}</p></div>
 </section>
-<section class="box"><h2>👤 نبذة</h2>${m.bio.map((p) => `<p>${esc(p)}</p>`).join("")}${m.alumniAr ? `<p>🎓 ${esc(m.alumniAr)}</p>` : ""}</section>
-<section class="box"><h2>🧠 مجالات الخبرة</h2><div class="chips">${topicLinks.join("")}</div></section>
-${m.sameAs.length ? `<section class="box"><h2>🔗 روابط</h2><p>${m.sameAs.map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener me" style="color:var(--acc)">${esc(u.replace(/^https?:\/\/(www\.)?/, ""))}</a>`).join(" • ")}</p></section>` : ""}
-${works.length ? `<h2 class="sec-title">📚 محتوى ${esc(m.name)}</h2><div class="cards">${works.map((w) => card(w._sec, w, true)).join("")}</div>` : ""}`;
+<section class="box"><h2>${hd("user", "نبذة")}</h2>${m.bio.map((p) => `<p>${esc(p)}</p>`).join("")}${m.alumniAr ? `<p>${esc(m.alumniAr)}</p>` : ""}</section>
+<section class="box"><h2>${hd("cpu", "مجالات الخبرة")}</h2><div class="chips">${topicLinks.join("")}</div></section>
+${m.sameAs.length ? `<section class="box"><h2>${hd("globe", "روابط")}</h2><p>${m.sameAs.map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener me" style="color:var(--acc)">${esc(u.replace(/^https?:\/\/(www\.)?/, ""))}</a>`).join(" • ")}</p></section>` : ""}
+${works.length ? `<h2 class="sec-title">محتوى ${esc(m.name)}</h2><div class="cards">${works.map((w) => card(w._sec, w, true)).join("")}</div>` : ""}`;
   return layout({
     title: `${m.name} — ${m.role.split("•")[0].trim()} | ${BRAND}`,
     description: cut(`${m.name}: ${m.bio.join(" ")}`, 155),
@@ -1116,7 +1163,7 @@ function toolPage(t, all) {
   const siblings = TOOLS.filter((x) => x.slug !== t.slug);
   const body = `${bc.html}
 <h1>${esc(t.emoji)} ${esc(t.title)}</h1>
-<section class="box answer"><h2>✅ باختصار</h2><p>${ltr(t.answer)}</p></section>
+<section class="box answer"><h2>${hd("check", "باختصار")}</h2><p>${ltr(t.answer)}</p></section>
 <section class="box calc" data-tool="${t.slug}"><h2>🧮 الحاسبة</h2>${t.form}<div class="out" aria-live="polite"></div></section>
 ${t.warn ? TOOLS_DISCLAIMER : ""}
 <section class="box"><h2>📐 طريقة الحساب</h2>${ltr(t.how)}</section>
@@ -1301,6 +1348,21 @@ async function updateHome(data) {
 }
 
 // ---------------- صفحة فهرس القسم ----------------
+// شريط البحث والتصفية بصفحات الأقسام (يعمل بالمتصفح، والبطاقات كلها موجودة بالصفحة لمحركات البحث)
+function filterBar(sec, items) {
+  const counts = new Map();
+  for (const it of items) for (const t of itemTopics(it)) counts.set(t.slug, [t, (counts.get(t.slug)?.[1] || 0) + 1]);
+  const topics = [...counts.values()].filter(([, n]) => n >= 2 && n < items.length).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  const free = items.filter((it) => !(((num(it.price) ?? 0) > 0 && !isFree(it)) || (it.liveOnly === true && num(it.livePrice) > 0))).length;
+  return `<div class="flt" role="search">
+  <label class="flt-q">${ic("search")}<span class="sr">ابحث في ${esc(sec.label)}</span><input type="search" id="fltQ" placeholder="ابحث في ${esc(sec.label)}…" autocomplete="off"></label>
+  <div class="flt-c" role="group" aria-label="تصفية حسب المجال"><button type="button" class="on" data-f="" aria-pressed="true">الكل</button>${topics.map(([t, n]) => `<button type="button" data-f="${esc(t.slug)}" aria-pressed="false">${esc(t.ar)} <small>${n}</small></button>`).join("")}${free && free < items.length ? `<button type="button" data-f="free" aria-pressed="false">مجاني <small>${free}</small></button>` : ""}</div>
+  <p class="flt-n" id="fltN" aria-live="polite">العدد: ${items.length}</p>
+</div>`;
+}
+const FILTER_JS = `<script>(function(){var q=document.getElementById("fltQ"),f="",cs=[].slice.call(document.querySelectorAll("#cards .card")),n=document.getElementById("fltN"),em=document.getElementById("fltEmpty"),bs=[].slice.call(document.querySelectorAll(".flt-c button"));
+function go(){var v=(q.value||"").trim().toLowerCase(),k=0;cs.forEach(function(c){var ok=(!v||c.dataset.q.indexOf(v)>=0)&&(!f||(f==="free"?c.dataset.free==="1":(" "+c.dataset.t+" ").indexOf(" "+f+" ")>=0));c.hidden=!ok;if(ok)k++;});n.textContent="النتائج: "+k+" من "+cs.length;em.hidden=k>0;}
+q.addEventListener("input",go);bs.forEach(function(b){b.addEventListener("click",function(){f=b.dataset.f;bs.forEach(function(x){x.classList.toggle("on",x===b);x.setAttribute("aria-pressed",x===b?"true":"false");});go();});});})();</script>`;
 function hubPage(sec, items) {
   const url = `/${sec.dir}/`;
   const bc = crumbs([{ name: "الرئيسية", url: "/" }, { name: sec.label, url }]);
@@ -1311,9 +1373,9 @@ function hubPage(sec, items) {
     itemListElement: items.map((it, i) => ({ "@type": "ListItem", position: i + 1, url: `${SITE}/${sec.dir}/${it._slug}/`, name: clean(it.title) })),
   };
   const body = `${bc.html}
-<h1>${sec.emoji} ${esc(sec.label)}</h1>
+<h1>${esc(sec.label)}</h1>
 <p class="lead">${sec.custom && sec.tagline ? esc(sec.tagline) : `كل ${esc(sec.label)} المتوفرة على منصة ${BRAND} في الهندسة الكهربائية، ESP32، Arduino، إنترنت الأشياء والذكاء الاصطناعي.`}</p>
-${sec.type === "Article" && items.some(artCat) ? artHub(sec, items) : `<div class="cards">${items.map((it) => card(sec, it)).join("")}</div>`}`;
+${sec.type === "Article" && items.some(artCat) ? artHub(sec, items) : `${items.length >= 6 ? filterBar(sec, items) : ""}<div class="cards" id="cards">${items.map((it) => card(sec, it)).join("")}</div>${items.length >= 6 ? `<p class="flt-empty" id="fltEmpty" hidden>لا توجد نتائج مطابقة. جرّب كلمة أخرى أو اختر «الكل».</p>${FILTER_JS}` : ""}`}`;
   return layout({
     title: `${sec.label} | ${BRAND} ${BRAND_AR}`,
     description: cut(`${sec.custom && sec.tagline ? clean(sec.tagline) + " — " : `تصفح ${sec.label} على منصة ${BRAND}: `}${items.slice(0, 4).map((i) => clean(i.title)).join("، ")}`, 155),
